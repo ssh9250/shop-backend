@@ -7,5 +7,5 @@ import jakarta.persistence.Id;
 public class Member {
     @Id
     private Long memberId;
-    // data jpa, gradle dependency 1117
+    // 1118
 }
