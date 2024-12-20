@@ -9,4 +9,5 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     // 1201
     // 1217
     // 1218
+    // 1220
 }
