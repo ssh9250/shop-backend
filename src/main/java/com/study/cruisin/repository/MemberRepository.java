@@ -31,4 +31,5 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     // 0110
     // 0111
     // 0112
+    // 0113
 }
