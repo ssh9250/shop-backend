@@ -36,5 +36,6 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     // 0115 => restart
     // 0116 temp
     // 0117
+    // 0118
 
 }
