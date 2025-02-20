@@ -18,6 +18,7 @@ public class Member {
 
     @ManyToOne
     @JoinColumn(name = "team_id")
+    // many to one have foreign key
     private Team team;
 
     public Member(String username) {
