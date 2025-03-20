@@ -58,9 +58,5 @@ class MemberRepositoryTest {
 
         long deleteData = memberRepository.count();
         assertThat(deleteData).isEqualTo(0);
-
-
     }
-
-
 }
