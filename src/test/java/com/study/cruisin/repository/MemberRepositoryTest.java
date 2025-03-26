@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -101,5 +103,33 @@ class MemberRepositoryTest {
             System.out.println("s = " + s);
 
         }
+    }
+
+    @Test
+    public void findByNames() {
+        Member member1 = new Member("member1", 10);
+        Member member2 = new Member("member2", 15);
+        memberRepository.save(member1);
+        memberRepository.save(member2);
+
+        List<Member> result = memberRepository.findByNames(Arrays.asList("member1", "member2"));
+        for (Member member : result) {
+            System.out.println("member = " + member);
+        }
+    }
+
+    @Test
+    public void returnType() {
+        Member member1 = new Member("member1", 10);
+        Member member2 = new Member("member2", 15);
+        memberRepository.save(member1);
+        memberRepository.save(member2);
+
+        List<Member> find1 = memberRepository.findListByUsername("member1");
+        Member find2 = memberRepository.findMemberByUsername("member2");
+
+        Optional<Member> optionalmember = memberRepository.findOptionalByUsername("member1");
+
+        System.out.println("optionalmember = " + optionalmember);
     }
 }
