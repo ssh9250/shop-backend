@@ -162,5 +162,11 @@ class MemberRepositoryTest {
         }
 
         System.out.println("totalElements = " + totalElements);
+
+        assertThat(content.size()).isEqualTo(3);
+        assertThat(members.getTotalElements()).isEqualTo(6);
+        assertThat(members.getNumber()).isEqualTo(0);
+        assertThat(members.isFirst()).isTrue();
+        assertThat(members.hasNext()).isTrue();
     }
 }
