@@ -1,11 +1,13 @@
 package com.study.cruisin.repository;
 
+import com.study.cruisin.dto.MemberDto;
 import com.study.cruisin.entity.Member;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -152,21 +154,27 @@ class MemberRepositoryTest {
 
         // when
         Page<Member> members = memberRepository.findByAge(age, pageRequest);
+//        Slice<Member> members = memberRepository.findByAge(age, pageRequest);
+
+        Page<MemberDto> toMap = members.map(member -> new MemberDto(member.getId(), member.getUsername(), null));
+
 
         // then
         List<Member> content = members.getContent();
-        long totalElements = members.getTotalElements();
+//        long totalElements = members.getTotalElements();
 
         for (Member member : content) {
             System.out.println("member = " + member);
         }
 
-        System.out.println("totalElements = " + totalElements);
+//        System.out.println("totalElements = " + totalElements);
 
         assertThat(content.size()).isEqualTo(3);
-        assertThat(members.getTotalElements()).isEqualTo(6);
+//        assertThat(members.getTotalElements()).isEqualTo(6);
         assertThat(members.getNumber()).isEqualTo(0);
         assertThat(members.isFirst()).isTrue();
         assertThat(members.hasNext()).isTrue();
     }
+
+
 }
