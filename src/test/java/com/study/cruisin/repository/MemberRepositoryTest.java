@@ -175,6 +175,4 @@ class MemberRepositoryTest {
         assertThat(members.isFirst()).isTrue();
         assertThat(members.hasNext()).isTrue();
     }
-
-
 }
