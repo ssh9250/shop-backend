@@ -2,6 +2,7 @@ package com.study.cruisin.repository;
 
 import com.study.cruisin.dto.MemberDto;
 import com.study.cruisin.entity.Member;
+import com.study.cruisin.entity.Team;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.Test;
@@ -192,13 +193,27 @@ class MemberRepositoryTest {
 
         //when
         int resultCount = memberRepository.bulkAgePlus(20);
-        em.flush();
-        em.clear();
+//        em.flush();
+//        em.clear();
 
         Member member5 = memberRepository.findMemberByUsername("member5");
         System.out.println("member5 = " + member5);
 
         //then
         assertThat(resultCount).isEqualTo(3);
+    }
+
+    @Test
+    public void findMemberLazy() {
+        //given
+        //member1 -> teamA
+        //member2 -> teamB
+
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+
+
+
+
     }
 }
