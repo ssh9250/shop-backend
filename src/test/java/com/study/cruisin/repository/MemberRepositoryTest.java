@@ -25,6 +25,8 @@ import static org.assertj.core.api.Assertions.*;
 class MemberRepositoryTest {
     @Autowired
     MemberRepository memberRepository;
+    @Autowired
+    TeamRepository teamRepository;
 
     @PersistenceContext
     EntityManager em;
@@ -212,8 +214,21 @@ class MemberRepositoryTest {
         Team teamA = new Team("teamA");
         Team teamB = new Team("teamB");
 
+        teamRepository.save(teamA);
+        teamRepository.save(teamB);
 
+        memberRepository.save(new Member("member1", 10, teamA));
+        memberRepository.save(new Member("member2", 20, teamB));
 
+        em.flush();
+        em.clear();
 
+        //when
+        List<Member> members = memberRepository.findAll();
+
+        for (Member member : members) {
+            System.out.println("member = " + member);
+            System.out.println("member.team = " + member.getTeam().getName());
+        }
     }
 }
