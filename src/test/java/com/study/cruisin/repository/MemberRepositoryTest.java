@@ -246,4 +246,19 @@ class MemberRepositoryTest {
 
         em.flush();
     }
+
+    @Test
+    public void queryHint1() {
+        //given
+        Member member1 = memberRepository.save(new Member("member1", 10));
+        em.flush();
+        em.clear();
+
+        //when
+        Member findMember = memberRepository.findById(member1.getId()).get();
+        List<Member> findMember1 = memberRepository.findLockByUsername("member1");
+        findMember.setUsername("member2");
+
+        em.flush();
+    }
 }
