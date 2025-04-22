@@ -1,5 +1,7 @@
-package com.study.cruisin.entity;
+package com.study.cruisin.domain.user.entity;
 
+import com.study.cruisin.domain.team.entity.Team;
+import com.study.cruisin.support.util.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -8,7 +10,7 @@ import lombok.*;
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @ToString(of = {"id", "username", "age"})
-public class Member {
+public class User extends BaseEntity {
 
     @Id
     @GeneratedValue
@@ -21,17 +23,17 @@ public class Member {
     @JoinColumn(name = "team_id")
     private Team team;
 
-    public Member(String username) {
+    public User(String username) {
         this.username = username;
     }
 
 
-    public Member(String name, int age) {
+    public User(String name, int age) {
         this.username = name;
         this.age = age;
     }
 
-    public Member(String username, int age, Team team) {
+    public User(String username, int age, Team team) {
         this.username = username;
         this.age = age;
         if (team != null)
@@ -41,6 +43,6 @@ public class Member {
 
     public void changeTeam(Team team) {
         this.team = team;
-        team.getMembers().add(this);
+        team.getUsers().add(this);
     }
 }

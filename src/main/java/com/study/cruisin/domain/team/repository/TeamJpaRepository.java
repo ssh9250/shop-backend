@@ -1,6 +1,6 @@
-package com.study.cruisin.repository;
+package com.study.cruisin.domain.team.repository;
 
-import com.study.cruisin.entity.Team;
+import com.study.cruisin.domain.team.entity.Team;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;

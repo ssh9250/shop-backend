@@ -1,5 +1,6 @@
-package com.study.cruisin.entity;
+package com.study.cruisin.domain.team.entity;
 
+import com.study.cruisin.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,7 +20,7 @@ public class Team {
     private String name;
 
     @OneToMany(mappedBy = "team")
-    private List<Member> members = new ArrayList<>();
+    private List<User> users = new ArrayList<>();
 
     public Team(String name) {
         this.name = name;
