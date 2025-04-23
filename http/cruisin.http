@@ -1,0 +1,8 @@
+### 1. 리뷰 작성
+POST {{review-api}}/reviews?prouctId=1
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "content" : "review saved"
+}
