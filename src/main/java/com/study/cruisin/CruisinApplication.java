@@ -10,15 +10,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 @SpringBootApplication
-@EnableJpaAuditing
 public class CruisinApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(CruisinApplication.class, args);
 	}
 
-	@Bean
-	public AuditorAware<String> auditorProvider(){
-		return () -> Optional.of(UUID.randomUUID().toString());
-	}
 }
