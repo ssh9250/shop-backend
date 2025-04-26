@@ -2,13 +2,16 @@ package com.study.cruisin.domain.board.service;
 
 import com.study.cruisin.domain.board.dto.CreatePostRequestDto;
 import com.study.cruisin.domain.board.dto.PostResponseDto;
+import com.study.cruisin.domain.board.dto.UpdatePostRequestDto;
 import com.study.cruisin.domain.board.entity.Post;
+import com.study.cruisin.domain.board.exception.PostNotFoundException;
 import com.study.cruisin.domain.board.rpository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,5 +35,24 @@ public class PostService {
                 .stream()
                 .map(PostResponseDto::from)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public PostResponseDto getPostById(Long id) {
+        return postRepository.findById(id)
+                .map(PostResponseDto::from)
+                .orElseThrow(() -> new PostNotFoundException(id));
+    }
+
+    public void updatePost(Long id, UpdatePostRequestDto requestDto) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new PostNotFoundException(id));
+        post.update(requestDto.getTitle(), requestDto.getContent());
+    }
+
+    public void deletePost(Long id) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new PostNotFoundException(id));
+        postRepository.delete(post);
     }
 }
