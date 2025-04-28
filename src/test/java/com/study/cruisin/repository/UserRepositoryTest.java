@@ -2,7 +2,7 @@ package com.study.cruisin.repository;
 
 import com.study.cruisin.domain.team.repository.TeamRepository;
 import com.study.cruisin.domain.user.repository.UserRepository;
-import com.study.cruisin.domain.user.dto.USerDto;
+import com.study.cruisin.domain.user.dto.UserDto;
 import com.study.cruisin.domain.user.entity.User;
 import com.study.cruisin.domain.team.entity.Team;
 import jakarta.persistence.EntityManager;
@@ -165,7 +165,7 @@ class UserRepositoryTest {
         Page<User> members = userRepository.findByAge(age, pageRequest);
 //        Slice<Member> members = memberRepository.findByAge(age, pageRequest);
 
-        Page<USerDto> toMap = members.map(member -> new USerDto(member.getId(), member.getUsername(), null));
+        Page<UserDto> toMap = members.map(member -> new UserDto(member.getId(), member.getUsername(), null));
 
 
         // then

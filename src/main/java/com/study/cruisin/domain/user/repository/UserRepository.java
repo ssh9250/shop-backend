@@ -1,6 +1,6 @@
 package com.study.cruisin.domain.user.repository;
 
-import com.study.cruisin.domain.user.dto.USerDto;
+import com.study.cruisin.domain.user.dto.UserDto;
 import com.study.cruisin.domain.user.entity.User;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.QueryHint;
@@ -24,7 +24,7 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
 
     @Query("select new com.study.cruisin.dto.USerDto(m.id, m.username, t.name) " +
             "from User m join m.team t")
-    List<USerDto> findMemberDto();
+    List<UserDto> findMemberDto();
 
     @Query("select m from User m where m.username in :names")
     List<User> findByNames(@Param("names") Collection<String> names);
