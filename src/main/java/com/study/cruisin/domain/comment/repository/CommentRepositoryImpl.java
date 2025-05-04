@@ -12,7 +12,6 @@ import static com.study.cruisin.domain.comment.entity.QComment.*;
 
 @RequiredArgsConstructor
 public class CommentRepositoryImpl implements CommentRepositoryCustom{
-    // querydsl
     private final JPAQueryFactory queryFactory;
     @Override
     public List<Comment> findByPostId(Long postId) {
