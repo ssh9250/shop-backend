@@ -2,7 +2,7 @@ package com.study.cruisin.domain.comment.service;
 
 import com.study.cruisin.domain.board.entity.Post;
 import com.study.cruisin.domain.board.exception.PostNotFoundException;
-import com.study.cruisin.domain.board.rpository.PostRepository;
+import com.study.cruisin.domain.board.repository.PostRepository;
 import com.study.cruisin.domain.comment.dto.CommentResponseDto;
 import com.study.cruisin.domain.comment.dto.CreateCommentRequestDto;
 import com.study.cruisin.domain.comment.entity.Comment;

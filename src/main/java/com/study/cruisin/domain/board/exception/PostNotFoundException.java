@@ -1,7 +1,10 @@
 package com.study.cruisin.domain.board.exception;
 
-public class PostNotFoundException extends RuntimeException {
+import com.study.cruisin.global.exception.CustomException;
+import com.study.cruisin.global.exception.ErrorCode;
+
+public class PostNotFoundException extends CustomException {
     public PostNotFoundException(Long id) {
-        super("해당 ID의 게시글을 찾을 수 없습니다. ID : " + id);
+        super(ErrorCode.POST_NOT_FOUND);
     }
 }

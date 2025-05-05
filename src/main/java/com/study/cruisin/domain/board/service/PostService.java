@@ -5,13 +5,12 @@ import com.study.cruisin.domain.board.dto.PostResponseDto;
 import com.study.cruisin.domain.board.dto.UpdatePostRequestDto;
 import com.study.cruisin.domain.board.entity.Post;
 import com.study.cruisin.domain.board.exception.PostNotFoundException;
-import com.study.cruisin.domain.board.rpository.PostRepository;
+import com.study.cruisin.domain.board.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
