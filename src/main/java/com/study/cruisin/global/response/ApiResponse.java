@@ -17,9 +17,4 @@ public class ApiResponse<T> {
     public static <T> ApiResponse<T> fail(String message) {
         return new ApiResponse<>(false, null, message);
     }
-
-    public void res() {
-        // 5.14 restart
-        // 5.15 not yet
-    }
 }
