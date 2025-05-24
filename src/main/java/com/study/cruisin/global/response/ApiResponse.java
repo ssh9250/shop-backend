@@ -21,4 +21,4 @@ public class ApiResponse<T> {
 
 
 // 오랜만, api 관련 전체 설명 (작동 매커니즘, 순서, 전체 구조 등), 다음 진행
-// 5.20 restart
+// 5.20 restarto*
