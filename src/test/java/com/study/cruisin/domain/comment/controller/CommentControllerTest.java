@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.study.cruisin.domain.board.entity.Post;
 import com.study.cruisin.domain.board.repository.PostRepository;
 import com.study.cruisin.domain.comment.dto.CreateCommentRequestDto;
+import com.study.cruisin.domain.comment.entity.Comment;
 import com.study.cruisin.domain.comment.repository.CommentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -63,5 +64,24 @@ class CommentControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data").isNumber());
+    }
+
+    @Test
+    void 댓글_조회시_댓글목록_가져오기() throws Exception {
+        // given
+        commentRepository.save(
+                Comment.builder()
+                        .post(postRepository.findById(postId).orElseThrow())
+                        .writer("사자")
+                        .content("<UNK> <UNK>")
+                        .build()
+        );
+
+        mockMvc.perform(get("/api/comments/")
+                        .param("postId", postId.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data.length()").value(1));
     }
 }
