@@ -52,6 +52,7 @@ class CommentControllerTest {
 
     @Test
     void 댓글_등록_가능() throws Exception {
+        System.out.println("postid : " + postId);
         //given
         CreateCommentRequestDto request = new CreateCommentRequestDto();
         request.setPostId(postId);
@@ -102,3 +103,5 @@ class CommentControllerTest {
                 .andExpect(jsonPath("$.message").value("게시글을 찾을 수 없습니다."));
     }
 }
+
+// 테스트 오류, give 메서드, requestparam(controller 어노테이션), 컨트롤러 반환 타입 apiresponse 안하는 이유

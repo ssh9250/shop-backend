@@ -3,6 +3,7 @@ package com.study.cruisin.domain.comment.controller;
 import com.study.cruisin.domain.comment.dto.CommentResponseDto;
 import com.study.cruisin.domain.comment.dto.CreateCommentRequestDto;
 import com.study.cruisin.domain.comment.service.CommentService;
+import com.study.cruisin.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +19,9 @@ public class CommentController {
     private final CommentService commentService;
 
     @PostMapping
-    public ResponseEntity<Long> createComment(@RequestBody @Valid CreateCommentRequestDto request) {
+    public ResponseEntity<ApiResponse<Long>> createComment(@RequestBody @Valid CreateCommentRequestDto request) {
         Long commentId = commentService.createComment(request);
-        return ResponseEntity.ok(commentId);
+        return ResponseEntity.ok(ApiResponse.success(commentId));
     }
 
     @GetMapping
