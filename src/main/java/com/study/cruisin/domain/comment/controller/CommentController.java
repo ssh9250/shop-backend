@@ -2,6 +2,7 @@ package com.study.cruisin.domain.comment.controller;
 
 import com.study.cruisin.domain.comment.dto.CommentResponseDto;
 import com.study.cruisin.domain.comment.dto.CreateCommentRequestDto;
+import com.study.cruisin.domain.comment.dto.UpdateCommentRequestDto;
 import com.study.cruisin.domain.comment.service.CommentService;
 import com.study.cruisin.global.response.ApiResponse;
 import jakarta.validation.Valid;
@@ -25,14 +26,20 @@ public class CommentController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CommentResponseDto>> getCommentsByPostId(@RequestParam Long postId) {
+    public ResponseEntity<ApiResponse<List<CommentResponseDto>>> getCommentsByPostId(@RequestParam Long postId) {
         List<CommentResponseDto> comments = commentService.getCommentsByPostId(postId);
-        return ResponseEntity.ok(comments);
+        return ResponseEntity.ok(ApiResponse.success(comments));
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<ApiResponse<Long>> updateComment(@PathVariable Long id, @RequestBody @Valid UpdateCommentRequestDto requestDto) {
+        commentService.updateComment(id, requestDto);
+        return ResponseEntity.ok(ApiResponse.success(null, "댓글이 성공적으로 수정되었습니다."));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteComment(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteComment(@PathVariable Long id) {
         commentService.deleteComment(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

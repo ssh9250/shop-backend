@@ -5,7 +5,9 @@ import com.study.cruisin.domain.board.exception.PostNotFoundException;
 import com.study.cruisin.domain.board.repository.PostRepository;
 import com.study.cruisin.domain.comment.dto.CommentResponseDto;
 import com.study.cruisin.domain.comment.dto.CreateCommentRequestDto;
+import com.study.cruisin.domain.comment.dto.UpdateCommentRequestDto;
 import com.study.cruisin.domain.comment.entity.Comment;
+import com.study.cruisin.domain.comment.exception.CommentNotFoundException;
 import com.study.cruisin.domain.comment.repository.CommentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -41,7 +43,15 @@ public class CommentService {
                 .collect(Collectors.toList());
     }
 
-    public void deleteComment(Long commentId) {
-        commentRepository.deleteById(commentId);
+    public void updateComment(Long id, UpdateCommentRequestDto requestDto) {
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(() -> new CommentNotFoundException(id));
+        comment.update(requestDto.getContent());
+    }
+
+    public void deleteComment(Long id) {
+        Comment comment = commentRepository.findById(id)
+                        .orElseThrow(() -> new CommentNotFoundException(id));
+        commentRepository.delete(comment);
     }
 }

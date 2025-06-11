@@ -3,6 +3,7 @@ package com.study.cruisin.domain.board.controller;
 import com.study.cruisin.domain.board.dto.CreatePostRequestDto;
 import com.study.cruisin.domain.board.dto.PostResponseDto;
 import com.study.cruisin.domain.board.service.PostService;
+import com.study.cruisin.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,17 +18,17 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping
-    public ResponseEntity<Long> createPost(@RequestBody @Valid CreatePostRequestDto requestDto) {
-        return ResponseEntity.ok(postService.createPost(requestDto));
+    public ResponseEntity<ApiResponse<Long>> createPost(@RequestBody @Valid CreatePostRequestDto requestDto) {
+        return ResponseEntity.ok(ApiResponse.success(postService.createPost(requestDto)));
     }
 
     @GetMapping
-    public ResponseEntity<List<PostResponseDto>> getAllPosts() {
-        return ResponseEntity.ok(postService.getAllPosts());
+    public ResponseEntity<ApiResponse<List<PostResponseDto>>> getAllPosts() {
+        return ResponseEntity.ok(ApiResponse.success(postService.getAllPosts()));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PostResponseDto> getPost(@PathVariable Long id) {
-        return ResponseEntity.ok(postService.getPostById(id));
+    public ResponseEntity<ApiResponse<PostResponseDto>> getPost(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(postService.getPostById(id)));
     }
 }

@@ -56,7 +56,7 @@ class CommentControllerTest {
         //given
         CreateCommentRequestDto request = new CreateCommentRequestDto();
         request.setPostId(postId);
-        request.setWriter("호랑이");
+        request.setWriter("tiger");
         request.setContent("<UNK> <UNK>");
 
         //when
@@ -70,17 +70,17 @@ class CommentControllerTest {
     }
 
     @Test
-    void 댓글_조회시_댓글목록_가져오기() throws Exception {
+    void 게시글_조회시_댓글목록_가져오기() throws Exception {
         // given
         commentRepository.save(
                 Comment.builder()
                         .post(postRepository.findById(postId).orElseThrow())
-                        .writer("사자")
+                        .writer("lion")
                         .content("<UNK> <UNK>")
                         .build()
         );
 
-        mockMvc.perform(get("/api/comments/")
+        mockMvc.perform(get("/api/comments")
                         .param("postId", postId.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -89,7 +89,7 @@ class CommentControllerTest {
     }
 
     @Test
-    void 존재하지_않는_댓글에는_댓글등록_불가() throws Exception {
+    void 존재하지_않는_게시글에는_댓글등록_불가() throws Exception {
         CreateCommentRequestDto request = new CreateCommentRequestDto();
         request.setPostId(999L);
         request.setWriter("<UNK>");
@@ -103,5 +103,3 @@ class CommentControllerTest {
                 .andExpect(jsonPath("$.message").value("게시글을 찾을 수 없습니다."));
     }
 }
-
-// 테스트 오류, give 메서드, requestparam(controller 어노테이션), 컨트롤러 반환 타입 apiresponse 안하는 이유
