@@ -34,12 +34,12 @@ public class CommentController {
     @PatchMapping("/{id}")
     public ResponseEntity<ApiResponse<Long>> updateComment(@PathVariable Long id, @RequestBody @Valid UpdateCommentRequestDto requestDto) {
         commentService.updateComment(id, requestDto);
-        return ResponseEntity.ok(ApiResponse.success(null, "댓글이 성공적으로 수정되었습니다."));
+        return ResponseEntity.ok(ApiResponse.success(null, "댓글이 수정되었습니다."));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteComment(@PathVariable Long id) {
         commentService.deleteComment(id);
-        return ResponseEntity.ok(ApiResponse.success(null));
+        return ResponseEntity.ok(ApiResponse.success(null, "댓글이 삭제되었습니다."));
     }
 }

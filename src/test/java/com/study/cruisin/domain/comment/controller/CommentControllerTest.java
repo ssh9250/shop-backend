@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.study.cruisin.domain.board.entity.Post;
 import com.study.cruisin.domain.board.repository.PostRepository;
 import com.study.cruisin.domain.comment.dto.CreateCommentRequestDto;
+import com.study.cruisin.domain.comment.dto.UpdateCommentRequestDto;
 import com.study.cruisin.domain.comment.entity.Comment;
 import com.study.cruisin.domain.comment.repository.CommentRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -80,8 +81,10 @@ class CommentControllerTest {
                         .build()
         );
 
+        //when
         mockMvc.perform(get("/api/comments")
                         .param("postId", postId.toString()))
+                //then
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data").isArray())
@@ -101,5 +104,73 @@ class CommentControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("게시글을 찾을 수 없습니다."));
+    }
+
+    @Test
+    void 댓글_수정_가능() throws Exception {
+        // given
+        Comment comment = commentRepository.save(
+                Comment.builder()
+                        .post(postRepository.findById(postId).orElseThrow())
+                        .writer("lion")
+                        .content("before update")
+                        .build());
+        UpdateCommentRequestDto newContent = new UpdateCommentRequestDto();
+        newContent.setContent("after update");
+
+        //when
+        mockMvc.perform(patch("/api/comments/" + comment.getId())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(newContent))
+//                .accept(MediaType.APPLICATION_JSON)
+                )
+                //then
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("댓글이 수정되었습니다."));
+    }
+
+    @Test
+    void 존재하지_않는_댓글_수정_불가() throws Exception {
+        //given
+        UpdateCommentRequestDto newContent = new UpdateCommentRequestDto();
+        newContent.setContent("try update");
+
+        //when
+        mockMvc.perform(patch("/api/comments/999")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newContent))
+                )
+                //then
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("댓글을 찾을 수 없습니다."));
+    }
+
+    @Test
+    void 댓글_삭제_가능() throws Exception {
+        //given
+        Comment comment = commentRepository.save(
+                Comment.builder()
+                        .post(postRepository.findById(postId).orElseThrow())
+                        .writer("lion")
+                        .content("before update")
+                        .build());
+
+        //when
+        mockMvc.perform(delete("/api/comments/" + comment.getId()))
+                //then
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("댓글이 삭제되었습니다."));
+    }
+
+    @Test
+    void 존재하지_않는_댓글_삭제_불가() throws Exception {
+        //when
+        mockMvc.perform(delete("/api/comments/999"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("댓글을 찾을 수 없습니다."));
     }
 }
