@@ -32,7 +32,7 @@ public class CommentController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<ApiResponse<Long>> updateComment(@PathVariable Long id, @RequestBody @Valid UpdateCommentRequestDto requestDto) {
+    public ResponseEntity<ApiResponse<Void>> updateComment(@PathVariable Long id, @RequestBody @Valid UpdateCommentRequestDto requestDto) {
         commentService.updateComment(id, requestDto);
         return ResponseEntity.ok(ApiResponse.success(null, "댓글이 수정되었습니다."));
     }

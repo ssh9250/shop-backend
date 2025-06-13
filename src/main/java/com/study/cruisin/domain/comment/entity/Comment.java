@@ -3,10 +3,7 @@ package com.study.cruisin.domain.comment.entity;
 import com.study.cruisin.domain.board.entity.Post;
 import com.study.cruisin.support.util.BaseTimeEntity;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Getter
@@ -22,6 +19,7 @@ public class Comment extends BaseTimeEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    @Setter // Post 연관관계 편의 메서드 용도
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;

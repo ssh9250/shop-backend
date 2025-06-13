@@ -37,6 +37,8 @@ class CommentControllerTest {
 
     private Long postId;
 
+    private String url = "/api/comment";
+
     @BeforeEach
     void setUp() {
         commentRepository.deleteAll();
@@ -53,7 +55,6 @@ class CommentControllerTest {
 
     @Test
     void 댓글_등록_가능() throws Exception {
-        System.out.println("postid : " + postId);
         //given
         CreateCommentRequestDto request = new CreateCommentRequestDto();
         request.setPostId(postId);
@@ -157,12 +158,20 @@ class CommentControllerTest {
                         .content("before update")
                         .build());
 
+        Comment comment1 = commentRepository.save(
+                Comment.builder()
+                        .post(postRepository.findById(postId).orElseThrow())
+                        .writer("cat")
+                        .content("before delete")
+                        .build());
+
         //when
         mockMvc.perform(delete("/api/comments/" + comment.getId()))
                 //then
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("댓글이 삭제되었습니다."));
+        System.out.println(commentRepository.findByPostId(postId));
     }
 
     @Test
