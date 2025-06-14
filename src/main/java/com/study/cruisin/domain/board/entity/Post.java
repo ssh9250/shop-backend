@@ -37,4 +37,9 @@ public class Post extends BaseTimeEntity {
         this.comments.add(comment);
         comment.setPost(this);
     }
+
+    public void removeComment(Comment comment) {
+        this.comments.remove(comment);
+        comment.setPost(null);
+    }
 }

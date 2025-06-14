@@ -52,6 +52,8 @@ public class CommentService {
     public void deleteComment(Long id) {
         Comment comment = commentRepository.findById(id)
                         .orElseThrow(() -> new CommentNotFoundException(id));
+        Post post = comment.getPost();
+        post.removeComment(comment);
         commentRepository.delete(comment);
     }
 }
