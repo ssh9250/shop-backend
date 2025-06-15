@@ -1,6 +1,7 @@
 package com.study.cruisin.domain.comment.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.study.cruisin.domain.board.dto.PostResponseDto;
 import com.study.cruisin.domain.board.entity.Post;
 import com.study.cruisin.domain.board.repository.PostRepository;
 import com.study.cruisin.domain.comment.dto.CreateCommentRequestDto;
@@ -10,11 +11,16 @@ import com.study.cruisin.domain.comment.repository.CommentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -22,6 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 class CommentControllerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -37,7 +44,7 @@ class CommentControllerTest {
 
     private Long postId;
 
-    private String url = "/api/comment";
+    private static final Logger logger = LoggerFactory.getLogger(CommentControllerTest.class);
 
     @BeforeEach
     void setUp() {
@@ -123,7 +130,6 @@ class CommentControllerTest {
         mockMvc.perform(patch("/api/comments/" + comment.getId())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(newContent))
-//                .accept(MediaType.APPLICATION_JSON)
                 )
                 //then
                 .andExpect(status().isOk())
@@ -165,13 +171,23 @@ class CommentControllerTest {
                         .content("before delete")
                         .build());
 
+        Post post = postRepository.findById(postId).orElseThrow();
+        post.addComment(comment);
+        post.addComment(comment1);
+
+        logger.debug("삭제전 댓글 목록 : {}", commentRepository.findByPostId(postId));
+        logger.debug("삭제전 post가 가진 댓글 목록 : {}",postRepository.findById(postId).orElseThrow().getComments());
+
         //when
         mockMvc.perform(delete("/api/comments/" + comment.getId()))
                 //then
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("댓글이 삭제되었습니다."));
-        System.out.println(commentRepository.findByPostId(postId));
+
+        logger.info("삭제후 댓글 목록 : {}", commentRepository.findByPostId(postId));
+        logger.debug("삭제후 post가 가진 댓글 목록 : {}",
+                postRepository.findById(postId).orElseThrow().getComments());
     }
 
     @Test

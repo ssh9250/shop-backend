@@ -24,6 +24,7 @@ public class Post extends BaseTimeEntity {
     private String content;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<Comment> comments = new ArrayList<>();
 
     private String writer;
