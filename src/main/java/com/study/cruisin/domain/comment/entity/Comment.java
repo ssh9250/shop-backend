@@ -1,6 +1,7 @@
 package com.study.cruisin.domain.comment.entity;
 
 import com.study.cruisin.domain.board.entity.Post;
+import com.study.cruisin.domain.member.entity.Member;
 import com.study.cruisin.support.util.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -8,6 +9,8 @@ import lombok.*;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class Comment extends BaseTimeEntity {
     @Id
     @GeneratedValue
@@ -24,7 +27,10 @@ public class Comment extends BaseTimeEntity {
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
-    @Builder
+    @Setter
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
 
     public Comment(String writer, String content, Post post) {
         this.writer = writer;

@@ -1,6 +1,7 @@
 package com.study.cruisin.domain.board.entity;
 
 import com.study.cruisin.domain.comment.entity.Comment;
+import com.study.cruisin.domain.member.entity.Member;
 import com.study.cruisin.support.util.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -27,6 +28,11 @@ public class Post extends BaseTimeEntity {
     @Builder.Default
     private List<Comment> comments = new ArrayList<>();
 
+    @Setter
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
+
     private String writer;
 
     public void update(String title, String content) {
@@ -35,8 +41,10 @@ public class Post extends BaseTimeEntity {
     }
 
     public void addComment(Comment comment) {
-        this.comments.add(comment);
-        comment.setPost(this);
+        if (comment != null && !this.comments.contains(comment)) {
+            this.comments.add(comment);
+            comment.setPost(this);
+        }
     }
 
     public void removeComment(Comment comment) {
