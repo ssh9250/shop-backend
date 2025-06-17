@@ -1,6 +1,7 @@
 package com.study.cruisin.domain.member.dto;
 
 import com.study.cruisin.domain.member.entity.Member;
+import com.study.cruisin.global.enums.RoleType;
 import lombok.*;
 
 @Getter
@@ -14,7 +15,7 @@ public class MemberResponseDto {
     private String nickname;
     private String phone;
     private String address;
-    private String role;
+    private RoleType role;
 
     public static MemberResponseDto from(Member member) {
         return MemberResponseDto.builder()
