@@ -2,7 +2,7 @@ package com.study.cruisin.domain.comment.entity;
 
 import com.study.cruisin.domain.board.entity.Post;
 import com.study.cruisin.domain.member.entity.Member;
-import com.study.cruisin.support.util.BaseTimeEntity;
+import com.study.cruisin.global.util.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 

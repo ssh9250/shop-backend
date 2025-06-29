@@ -1,4 +1,4 @@
-package com.study.cruisin.support.util;
+package com.study.cruisin.global.util;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

@@ -62,6 +62,4 @@ public class MemberService {
         Member member = memberRepository.findById(id).orElseThrow(() -> new MemberNotFoundException(id));
         memberRepository.delete(member);
     }
-
-    // 0627 restart ~ 0628
 }

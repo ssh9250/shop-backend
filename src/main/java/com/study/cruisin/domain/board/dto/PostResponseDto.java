@@ -1,8 +1,6 @@
 package com.study.cruisin.domain.board.dto;
 
 import com.study.cruisin.domain.board.entity.Post;
-import com.study.cruisin.support.util.BaseEntity;
-import jakarta.persistence.MappedSuperclass;
 import lombok.Builder;
 import lombok.Getter;
 
