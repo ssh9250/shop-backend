@@ -1,5 +1,6 @@
 package com.study.cruisin.domain.Instrument.dto;
 
+import com.study.cruisin.global.enums.InstrumentCategory;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,6 +24,8 @@ public class CreateInstrumentRequestDto {
     private boolean used;
     @NotBlank
     private boolean available;
+    @NotBlank
+    private InstrumentCategory category;
 
     /*
     * private Long id;
