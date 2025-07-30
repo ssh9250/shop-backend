@@ -1,4 +1,8 @@
 spring:
+  security:
+    user:
+      name: user
+      password: 1111
   datasource:
 #    url: jdbc:h2:tcp://localhost/~/cruisin
     url: jdbc:h2:mem:cruisin
