@@ -29,6 +29,8 @@ public class AuthService {
 
         String token = "jwt-token";
 
+        // 좀 더 단순화 (최소한의 기능만) + oauth 등 지원
+
         return LoginResponseDto.builder()
                 .token(token)
                 .build();
