@@ -1,9 +1,9 @@
 package com.study.shop.domain.member.service;
 
+import com.study.shop.domain.auth.dto.SignupRequestDto;
 import com.study.shop.domain.board.repository.PostRepository;
 import com.study.shop.domain.comment.repository.CommentRepository;
 import com.study.shop.domain.member.dto.ChangePasswordRequestDto;
-import com.study.shop.domain.member.dto.CreateMemberRequestDto;
 import com.study.shop.domain.member.dto.MemberResponseDto;
 import com.study.shop.domain.member.dto.UpdateProfileRequestDto;
 import com.study.shop.domain.member.entity.Member;
@@ -24,7 +24,8 @@ public class MemberService {
     private final CommentRepository commentRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public Long createMember(CreateMemberRequestDto requestDto) {
+    public void signup(SignupRequestDto requestDto) {
+        // 이메일, 닉네임 등 중복체크 작업 필요
         String encryptedPassword = passwordEncoder.encode(requestDto.getPassword());
         Member member = Member.builder()
                 .email(requestDto.getEmail())
@@ -34,7 +35,7 @@ public class MemberService {
                 .address(requestDto.getAddress())
                 .role(RoleType.USER)
                 .build();
-        return memberRepository.save(member).getId();
+        memberRepository.save(member);
     }
 
     @Transactional(readOnly = true)

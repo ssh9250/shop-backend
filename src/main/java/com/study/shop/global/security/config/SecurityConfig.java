@@ -14,11 +14,24 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain springSecurityFilterChain(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/members/login", "/api/members/register").permitAll()
-                        .anyRequest().authenticated())
                 .csrf(csrf -> csrf.disable())
-                .formLogin(form -> form.disable());
+
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .anyRequest().authenticated())
+
+                .formLogin(form -> form
+                        .loginPage("/api/auth/login")
+                        .loginProcessingUrl("/api/auth/login")
+                        .defaultSuccessUrl("/", true)
+                        .permitAll()
+                )
+
+                .logout(logout -> logout
+                        .logoutUrl("/api/auth/logout")
+                        .logoutSuccessUrl("/")
+                        .invalidateHttpSession(true)
+                );
 
         return http.build();
     }

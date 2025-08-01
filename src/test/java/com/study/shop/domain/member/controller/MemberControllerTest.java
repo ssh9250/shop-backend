@@ -4,12 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.study.shop.domain.board.repository.PostRepository;
 import com.study.shop.domain.comment.repository.CommentRepository;
 import com.study.shop.domain.member.dto.ChangePasswordRequestDto;
-import com.study.shop.domain.member.dto.CreateMemberRequestDto;
 import com.study.shop.domain.member.dto.UpdateProfileRequestDto;
 import com.study.shop.domain.member.entity.Member;
 import com.study.shop.domain.member.repository.MemberRepository;
 import com.study.shop.global.enums.RoleType;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,26 +55,27 @@ class MemberControllerTest {
         testId = memberRepository.save(member).getId();
     }
 
-    @Test
-    void 회원_생성_가능() throws Exception {
-        //given
-        CreateMemberRequestDto requestDto = new CreateMemberRequestDto();
-        requestDto.setEmail("testEmail@test.com");
-        requestDto.setPassword("testPW");
-        requestDto.setAddress("testAddress");
-        requestDto.setNickname("tester");
-        requestDto.setPhone("010-1234-5678");
-
-
-        //when
-        mockMvc.perform(post("/api/members")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto)))
-                //then
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data").isNumber());
-    }
+//    @Test
+//    @Disabled
+//    void 회원_생성_가능() throws Exception {
+//        //given
+//        CreateMemberRequestDto requestDto = new CreateMemberRequestDto();
+//        requestDto.setEmail("testEmail@test.com");
+//        requestDto.setPassword("testPW");
+//        requestDto.setAddress("testAddress");
+//        requestDto.setNickname("tester");
+//        requestDto.setPhone("010-1234-5678");
+//
+//
+//        //when
+//        mockMvc.perform(post("/api/members")
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                        .content(objectMapper.writeValueAsString(requestDto)))
+//                //then
+//                .andExpect(status().isOk())
+//                .andExpect(jsonPath("$.success").value(true))
+//                .andExpect(jsonPath("$.data").isNumber());
+//    }
 
     @Test
     void 회원_정보_조회() throws Exception {

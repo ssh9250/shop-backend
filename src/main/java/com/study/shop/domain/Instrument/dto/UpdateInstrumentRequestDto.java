@@ -9,7 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CreateInstrumentRequestDto {
+public class UpdateInstrumentRequestDto {
     private String name;
     private String brand;
     private String description;

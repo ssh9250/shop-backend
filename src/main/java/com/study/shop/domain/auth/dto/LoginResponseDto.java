@@ -1,12 +1,13 @@
 package com.study.shop.domain.auth.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
 @Getter
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class LoginResponseDto {
-    private String token;
+    private Long memberId;
+    private String email;
 }
