@@ -1,12 +1,18 @@
 package com.study.shop.domain.Instrument.service;
 
 import com.study.shop.domain.Instrument.dto.CreateInstrumentRequestDto;
+import com.study.shop.domain.Instrument.dto.InstrumentResponseDto;
+import com.study.shop.domain.Instrument.dto.UpdateInstrumentRequestDto;
 import com.study.shop.domain.Instrument.entity.Instrument;
+import com.study.shop.domain.Instrument.exception.InstrumentNotFoundException;
 import com.study.shop.domain.Instrument.repository.InstrumentRepository;
-import jakarta.transaction.Transactional;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @NoArgsConstructor
@@ -15,7 +21,7 @@ public class InstrumentService {
     @Autowired
     private InstrumentRepository instrumentRepository;
 
-    private Long createInstrument(CreateInstrumentRequestDto requestDto) {
+    public Long createInstrument(CreateInstrumentRequestDto requestDto) {
         Instrument instrument = Instrument.builder()
                 .name(requestDto.getName())
                 .brand(requestDto.getBrand())
@@ -27,4 +33,47 @@ public class InstrumentService {
                 .build();
         return instrumentRepository.save(instrument).getId();
     }
+
+    @Transactional(readOnly = true)
+    public List<InstrumentResponseDto> getAllInstruments() {
+        return instrumentRepository.findAll().stream()
+                .map(InstrumentResponseDto::from)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public InstrumentResponseDto getInstrumentById(Long id) {
+        return instrumentRepository.findById(id)
+                .map(InstrumentResponseDto::from)
+                .orElseThrow(() -> new InstrumentNotFoundException(id));
+    }
+
+    @Transactional(readOnly = true)
+    public List<InstrumentResponseDto> getInstrumentsByMemberId(Long memberId) {
+        return instrumentRepository.findBySellerId(memberId).stream()
+                .map(InstrumentResponseDto::from)
+                .collect(Collectors.toList());
+    }
+
+    public void updateInstrument(Long id, UpdateInstrumentRequestDto request) {
+        Instrument instrument = instrumentRepository.findById(id)
+                .orElseThrow(() -> new InstrumentNotFoundException(id));
+        instrument.update(
+                request.getName(),
+                request.getBrand(),
+                request.getDescription(),
+                request.getPrice(),
+                request.isUsed(),
+                request.isAvailable(),
+                request.getCategory()
+        );
+    }
+
+    public void deleteInstrument(Long id) {
+        Instrument instrument = instrumentRepository.findById(id)
+                .orElseThrow(() -> new InstrumentNotFoundException(id));
+        instrumentRepository.deleteById(id);
+    }
+
+
 }

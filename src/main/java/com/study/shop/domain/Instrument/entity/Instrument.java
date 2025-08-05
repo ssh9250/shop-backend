@@ -30,4 +30,13 @@ public class Instrument extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private Member seller;
 
+    public void update(String name, String brand, String description, int price, boolean used, boolean available, InstrumentCategory category) {
+        this.name = name;
+        this.brand = brand;
+        this.description = description;
+        this.price = price;
+        this.used = used;
+        this.available = available;
+        this.category = category;
+    }
 }
