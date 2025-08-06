@@ -1,11 +1,11 @@
-package com.study.shop.domain.Instrument.service;
+package com.study.shop.domain.instrument.service;
 
-import com.study.shop.domain.Instrument.dto.CreateInstrumentRequestDto;
-import com.study.shop.domain.Instrument.dto.InstrumentResponseDto;
-import com.study.shop.domain.Instrument.dto.UpdateInstrumentRequestDto;
-import com.study.shop.domain.Instrument.entity.Instrument;
-import com.study.shop.domain.Instrument.exception.InstrumentNotFoundException;
-import com.study.shop.domain.Instrument.repository.InstrumentRepository;
+import com.study.shop.domain.instrument.dto.CreateInstrumentRequestDto;
+import com.study.shop.domain.instrument.dto.InstrumentResponseDto;
+import com.study.shop.domain.instrument.dto.UpdateInstrumentRequestDto;
+import com.study.shop.domain.instrument.entity.Instrument;
+import com.study.shop.domain.instrument.exception.InstrumentNotFoundException;
+import com.study.shop.domain.instrument.repository.InstrumentRepository;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

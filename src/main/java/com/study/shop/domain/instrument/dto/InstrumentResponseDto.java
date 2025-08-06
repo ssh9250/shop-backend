@@ -1,6 +1,6 @@
-package com.study.shop.domain.Instrument.dto;
+package com.study.shop.domain.instrument.dto;
 
-import com.study.shop.domain.Instrument.entity.Instrument;
+import com.study.shop.domain.instrument.entity.Instrument;
 import com.study.shop.global.enums.InstrumentCategory;
 import lombok.Builder;
 import lombok.Getter;

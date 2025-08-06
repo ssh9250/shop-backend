@@ -1,6 +1,6 @@
-package com.study.shop.domain.Instrument.repository;
+package com.study.shop.domain.instrument.repository;
 
-import com.study.shop.domain.Instrument.entity.Instrument;
+import com.study.shop.domain.instrument.entity.Instrument;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

@@ -1,7 +1,6 @@
-package com.study.shop.domain.Instrument.dto;
+package com.study.shop.domain.instrument.dto;
 
 import com.study.shop.global.enums.InstrumentCategory;
-import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 @Getter
@@ -9,7 +8,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UpdateInstrumentRequestDto {
+public class CreateInstrumentRequestDto {
     private String name;
     private String brand;
     private String description;

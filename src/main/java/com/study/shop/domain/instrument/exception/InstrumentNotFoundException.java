@@ -1,4 +1,4 @@
-package com.study.shop.domain.Instrument.exception;
+package com.study.shop.domain.instrument.exception;
 
 import com.study.shop.global.exception.CustomException;
 import com.study.shop.global.exception.ErrorCode;

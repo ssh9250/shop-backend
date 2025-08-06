@@ -1,4 +1,4 @@
-package com.study.shop.domain.Instrument.entity;
+package com.study.shop.domain.instrument.entity;
 
 import com.study.shop.domain.member.entity.Member;
 import com.study.shop.global.enums.InstrumentCategory;

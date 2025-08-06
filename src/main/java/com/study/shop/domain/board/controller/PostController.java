@@ -7,6 +7,7 @@ import com.study.shop.domain.board.service.PostService;
 import com.study.shop.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +21,7 @@ public class PostController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<Long>> createPost(@RequestBody @Valid CreatePostRequestDto requestDto) {
-        return ResponseEntity.ok(ApiResponse.success(postService.createPost(requestDto)));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(postService.createPost(requestDto)));
     }
 
     @GetMapping
