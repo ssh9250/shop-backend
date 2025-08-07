@@ -7,7 +7,6 @@ import com.study.shop.domain.instrument.service.InstrumentService;
 import com.study.shop.global.response.ApiResponse;
 import com.study.shop.global.security.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +21,7 @@ public class InstrumentController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<Long>> createInstrument(@RequestBody CreateInstrumentRequestDto request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(instrumentService.createInstrument(request)));
+        return ResponseEntity.ok(ApiResponse.success(instrumentService.createInstrument(request)));
     }
 
     @GetMapping

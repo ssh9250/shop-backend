@@ -7,6 +7,7 @@ import com.study.shop.domain.instrument.entity.Instrument;
 import com.study.shop.domain.instrument.exception.InstrumentNotFoundException;
 import com.study.shop.domain.instrument.repository.InstrumentRepository;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,11 +16,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@NoArgsConstructor
+@RequiredArgsConstructor
 @Transactional
 public class InstrumentService {
     @Autowired
-    private InstrumentRepository instrumentRepository;
+    private final InstrumentRepository instrumentRepository;
 
     public Long createInstrument(CreateInstrumentRequestDto requestDto) {
         Instrument instrument = Instrument.builder()
