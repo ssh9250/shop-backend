@@ -6,6 +6,8 @@ import com.study.shop.domain.instrument.dto.UpdateInstrumentRequestDto;
 import com.study.shop.domain.instrument.service.InstrumentService;
 import com.study.shop.global.response.ApiResponse;
 import com.study.shop.global.security.auth.CustomUserDetails;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -13,12 +15,15 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Instruments", description = "악기 관리 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/instruments")
 public class InstrumentController {
     private final InstrumentService instrumentService;
 
+    @Operation(summary = "악기 생성", description = "새로운 악기를 생성합니다.")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "생성 성공")
     @PostMapping
     public ResponseEntity<ApiResponse<Long>> createInstrument(@RequestBody CreateInstrumentRequestDto request) {
         return ResponseEntity.ok(ApiResponse.success(instrumentService.createInstrument(request)));
