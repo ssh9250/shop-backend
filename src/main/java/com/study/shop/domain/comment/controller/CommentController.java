@@ -5,6 +5,8 @@ import com.study.shop.domain.comment.dto.CreateCommentRequestDto;
 import com.study.shop.domain.comment.dto.UpdateCommentRequestDto;
 import com.study.shop.domain.comment.service.CommentService;
 import com.study.shop.global.response.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,10 +17,12 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/comments")
+@Tag(name = "Comment", description = "댓글 관련 API")
 public class CommentController {
 
     private final CommentService commentService;
 
+    @Operation(summary = "댓글 작성", description = "")
     @PostMapping
     public ResponseEntity<ApiResponse<Long>> createComment(@RequestBody @Valid CreateCommentRequestDto request) {
         Long commentId = commentService.createComment(request);

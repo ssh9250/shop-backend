@@ -1,10 +1,10 @@
-package com.study.shop.domain.board.controller;
+package com.study.shop.domain.post.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.study.shop.domain.board.dto.CreatePostRequestDto;
-import com.study.shop.domain.board.dto.UpdatePostRequestDto;
-import com.study.shop.domain.board.entity.Post;
-import com.study.shop.domain.board.repository.PostRepository;
+import com.study.shop.domain.post.dto.CreatePostRequestDto;
+import com.study.shop.domain.post.dto.UpdatePostRequestDto;
+import com.study.shop.domain.post.entity.Post;
+import com.study.shop.domain.post.repository.PostRepository;
 import com.study.shop.domain.comment.entity.Comment;
 import com.study.shop.domain.comment.repository.CommentRepository;
 import org.junit.jupiter.api.*;

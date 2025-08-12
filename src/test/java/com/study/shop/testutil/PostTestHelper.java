@@ -1,6 +1,6 @@
 package com.study.shop.testutil;
 
-import com.study.shop.domain.board.entity.Post;
+import com.study.shop.domain.post.entity.Post;
 
 public class PostTestHelper {
     public static Post createPost(String title, String content, String writer) {

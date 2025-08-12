@@ -1,7 +1,7 @@
 package com.study.shop.domain.member.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.study.shop.domain.board.repository.PostRepository;
+import com.study.shop.domain.post.repository.PostRepository;
 import com.study.shop.domain.comment.repository.CommentRepository;
 import com.study.shop.domain.member.dto.ChangePasswordRequestDto;
 import com.study.shop.domain.member.dto.UpdateProfileRequestDto;
@@ -9,7 +9,6 @@ import com.study.shop.domain.member.entity.Member;
 import com.study.shop.domain.member.repository.MemberRepository;
 import com.study.shop.global.enums.RoleType;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

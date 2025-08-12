@@ -29,6 +29,7 @@ public class InstrumentController {
         return ResponseEntity.ok(ApiResponse.success(instrumentService.createInstrument(request)));
     }
 
+    @Operation(summary = "모든 악기 조회")
     @GetMapping
     public ResponseEntity<ApiResponse<List<InstrumentResponseDto>>> getAllInstruments() {
         return ResponseEntity.ok(ApiResponse.success(instrumentService.getAllInstruments()));

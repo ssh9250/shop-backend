@@ -1,6 +1,6 @@
 package com.study.shop.domain.comment.entity;
 
-import com.study.shop.domain.board.entity.Post;
+import com.study.shop.domain.post.entity.Post;
 import com.study.shop.domain.member.entity.Member;
 import com.study.shop.global.util.BaseTimeEntity;
 import jakarta.persistence.*;

@@ -1,7 +1,7 @@
 package com.study.shop.domain.member.service;
 
 import com.study.shop.domain.auth.dto.SignupRequestDto;
-import com.study.shop.domain.board.repository.PostRepository;
+import com.study.shop.domain.post.repository.PostRepository;
 import com.study.shop.domain.comment.repository.CommentRepository;
 import com.study.shop.domain.member.dto.ChangePasswordRequestDto;
 import com.study.shop.domain.member.dto.MemberResponseDto;

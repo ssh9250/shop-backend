@@ -1,4 +1,4 @@
-package com.study.shop.domain.board.entity;
+package com.study.shop.domain.post.entity;
 
 import com.study.shop.domain.comment.entity.Comment;
 import com.study.shop.domain.member.entity.Member;

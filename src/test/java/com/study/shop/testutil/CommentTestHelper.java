@@ -1,6 +1,6 @@
 package com.study.shop.testutil;
 
-import com.study.shop.domain.board.entity.Post;
+import com.study.shop.domain.post.entity.Post;
 import com.study.shop.domain.comment.entity.Comment;
 
 public class CommentTestHelper {

@@ -1,4 +1,4 @@
-package com.study.shop.domain.board.dto;
+package com.study.shop.domain.post.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;

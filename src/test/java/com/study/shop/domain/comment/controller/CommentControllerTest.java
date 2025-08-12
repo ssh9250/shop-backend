@@ -1,8 +1,8 @@
 package com.study.shop.domain.comment.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.study.shop.domain.board.entity.Post;
-import com.study.shop.domain.board.repository.PostRepository;
+import com.study.shop.domain.post.entity.Post;
+import com.study.shop.domain.post.repository.PostRepository;
 import com.study.shop.domain.comment.dto.CreateCommentRequestDto;
 import com.study.shop.domain.comment.dto.UpdateCommentRequestDto;
 import com.study.shop.domain.comment.entity.Comment;

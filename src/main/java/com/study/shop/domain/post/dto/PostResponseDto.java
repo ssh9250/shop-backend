@@ -1,6 +1,6 @@
-package com.study.shop.domain.board.dto;
+package com.study.shop.domain.post.dto;
 
-import com.study.shop.domain.board.entity.Post;
+import com.study.shop.domain.post.entity.Post;
 import lombok.Builder;
 import lombok.Getter;
 

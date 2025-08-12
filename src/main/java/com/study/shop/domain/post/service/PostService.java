@@ -1,11 +1,11 @@
-package com.study.shop.domain.board.service;
+package com.study.shop.domain.post.service;
 
-import com.study.shop.domain.board.dto.CreatePostRequestDto;
-import com.study.shop.domain.board.dto.PostResponseDto;
-import com.study.shop.domain.board.dto.UpdatePostRequestDto;
-import com.study.shop.domain.board.entity.Post;
-import com.study.shop.domain.board.exception.PostNotFoundException;
-import com.study.shop.domain.board.repository.PostRepository;
+import com.study.shop.domain.post.dto.CreatePostRequestDto;
+import com.study.shop.domain.post.dto.PostResponseDto;
+import com.study.shop.domain.post.dto.UpdatePostRequestDto;
+import com.study.shop.domain.post.entity.Post;
+import com.study.shop.domain.post.exception.PostNotFoundException;
+import com.study.shop.domain.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
