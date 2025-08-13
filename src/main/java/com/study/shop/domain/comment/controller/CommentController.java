@@ -29,18 +29,21 @@ public class CommentController {
         return ResponseEntity.ok(ApiResponse.success(commentId));
     }
 
+    @Operation(summary = "", description = "")
     @GetMapping
     public ResponseEntity<ApiResponse<List<CommentResponseDto>>> getCommentsByPostId(@RequestParam Long postId) {
         List<CommentResponseDto> comments = commentService.getCommentsByPostId(postId);
         return ResponseEntity.ok(ApiResponse.success(comments));
     }
 
+    @Operation(summary = "", description = "")
     @PatchMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> updateComment(@PathVariable Long id, @RequestBody @Valid UpdateCommentRequestDto requestDto) {
         commentService.updateComment(id, requestDto);
         return ResponseEntity.ok(ApiResponse.success(null, "댓글이 수정되었습니다."));
     }
 
+    @Operation(summary = "", description = "")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteComment(@PathVariable Long id) {
         commentService.deleteComment(id);
