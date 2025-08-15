@@ -24,7 +24,7 @@ public class MemberController {
     private final PostService postService;
     private final CommentService commentService;
 
-    @Operation(summary = "사용자 LONG ID 조회", description = "현재 로그인된 사용자의 ID 정보를 조회합니다.")
+    @Operation(summary = "사용자 LONG ID 조회", description = "세션 필요<br>현재 로그인된 사용자의 ID 정보를 조회합니다.")
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<MemberResponseDto>> getMember(@AuthenticationPrincipal CustomUserDetails userDetails) {
         Long id = userDetails.getMember().getId();

@@ -1,0 +1,27 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:cruisin;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create  # 개발 편의
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+# 개발에선 Swagger 켜기
+springdoc:
+  swagger-ui:
+    enabled: true
+  api-docs:
+    enabled: true
+
+# 개발 로깅 강화
+logging:
+  level:
+    com.study.cruisin: debug
+    org.hibernate.SQL: info
+    org.hibernate.type.descriptor.sql.BasicBinder: debug

@@ -1,33 +1,12 @@
 spring:
-  security:
-    user:
-      name: user
-      password: 1111
-  datasource:
-#    url: jdbc:h2:tcp://localhost/~/cruisin
-    url: jdbc:h2:mem:cruisin
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
+  application:
+    name: shop
   jpa:
-    hibernate:
-      ddl-auto: create
+    open-in-view: false
     properties:
       hibernate:
-        #        show_sql: true
         format_sql: true
 
-springdoc:
-  api-docs:
-    path: "/v3/api-docs"
-  swagger-ui:
-    path: "/swagger-ui.html"
-
-
-
-#logging:
-#  level:
-#    root: debug
 logging:
   level:
     root: info
@@ -35,4 +14,8 @@ logging:
     org.springframework: warn
     com.study.cruisin: debug
 
-#    org.hibernate.type: trace
+springdoc:
+  api-docs:
+    path: "/v3/api-docs"
+  swagger-ui:
+    path: "/swagger-ui.html"
