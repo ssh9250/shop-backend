@@ -25,17 +25,18 @@ public class AuthController {
     private final AuthService authService;
     private final MemberService memberService;
 
-    @Operation(summary = "로그인 요청", description = "ID, PW로 로그인을 시도합니다.")
-    @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponseDto>> login(@RequestBody LoginRequestDto requestDto) throws Exception {
-        LoginResponseDto responseDto = authService.login(requestDto);
-        return ResponseEntity.ok(ApiResponse.success(responseDto, "로그인 성공"));
-    }
 
-    @Operation(summary = "회원가입 요청", description = "회원가입을 요청합니다.")
+    @Operation(summary = "회원가입", description = "신규 회원을 등록합니다.")
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<SignupRequestDto>> signup(@RequestBody SignupRequestDto requestDto) throws Exception {
         authService.signup(requestDto);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인합니다.")
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<LoginResponseDto>> login(@RequestBody LoginRequestDto requestDto) throws Exception {
+        LoginResponseDto responseDto = authService.login(requestDto);
+        return ResponseEntity.ok(ApiResponse.success(responseDto, "로그인 성공"));
     }
 }

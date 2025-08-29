@@ -22,33 +22,27 @@ import java.util.List;
 public class InstrumentController {
     private final InstrumentService instrumentService;
 
-    @Operation(summary = "악기 생성", description = "새로운 악기를 생성합니다.")
+    @Operation(summary = "악기 생성", description = "악기를 등록합니다.")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "생성 성공")
     @PostMapping
     public ResponseEntity<ApiResponse<Long>> createInstrument(@RequestBody CreateInstrumentRequestDto request) {
         return ResponseEntity.ok(ApiResponse.success(instrumentService.createInstrument(request)));
     }
 
-    @Operation(summary = "모든 악기 조회", description = "모든 악기들을 조회합니다.")
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<InstrumentResponseDto>>> getAllInstruments() {
-        return ResponseEntity.ok(ApiResponse.success(instrumentService.getAllInstruments()));
-    }
-
-    @Operation(summary = "악기 단건 조회", description = "키값을 통해 악기를 조회합니다.")
+    @Operation(summary = "악기 단건 조회", description = "id로 특정 악기를 조회합니다.")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<InstrumentResponseDto>> getInstrument(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(instrumentService.getInstrumentById(id)));
     }
 
-    @Operation(summary = "내 악기 조회", description = "내가 등록한 모든 악기들을 조회합니다.")
+    @Operation(summary = "내 악기 목록 조회", description = "로그인한 사용자의 악기 목록을 조회합니다.")
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<List<InstrumentResponseDto>>> getMyInstruments(@AuthenticationPrincipal CustomUserDetails userDetails) {
         Long id = userDetails.getMember().getId();
         return ResponseEntity.ok(ApiResponse.success(instrumentService.getInstrumentsByMemberId(id)));
     }
 
-    @Operation(summary = "악기 수정", description = "")
+    @Operation(summary = "악기 수정", description = "id로 특정 악기를 수정합니다.")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> updateInstrument(@PathVariable Long id,
                                                               @RequestBody UpdateInstrumentRequestDto request) {
@@ -56,7 +50,7 @@ public class InstrumentController {
         return ResponseEntity.ok(ApiResponse.success(null, "악기가 수정되었습니다."));
     }
 
-    @Operation(summary = "악기 삭제", description = "")
+    @Operation(summary = "악기 삭제", description = "id로 특정 악기를 삭제합니다.")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteInstrument(@PathVariable Long id) {
         instrumentService.deleteInstrument(id);

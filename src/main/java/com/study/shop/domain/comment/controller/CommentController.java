@@ -22,28 +22,28 @@ public class CommentController {
 
     private final CommentService commentService;
 
-    @Operation(summary = "댓글 작성", description = "댓글을 작성합니다.")
+    @Operation(summary = "댓글 작성", description = "새로운 댓글을 작성합니다.")
     @PostMapping
     public ResponseEntity<ApiResponse<Long>> createComment(@RequestBody @Valid CreateCommentRequestDto request) {
         Long commentId = commentService.createComment(request);
         return ResponseEntity.ok(ApiResponse.success(commentId));
     }
 
-    @Operation(summary = "게시글 댓글 조회", description = "게시글 ID를 통해 해당 게시글에 달린 댓글들을 모두 조회합니다.")
+    @Operation(summary = "게시글 댓글 조회", description = "게시글 id로 해당 게시글에 달린 모든 댓글들을 조회합니다.")
     @GetMapping
     public ResponseEntity<ApiResponse<List<CommentResponseDto>>> getCommentsByPostId(@RequestParam Long postId) {
         List<CommentResponseDto> comments = commentService.getCommentsByPostId(postId);
         return ResponseEntity.ok(ApiResponse.success(comments));
     }
 
-    @Operation(summary = "댓글 수정", description = "")
+    @Operation(summary = "댓글 수정", description = "id로 특정 댓글을 수정합니다.")
     @PatchMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> updateComment(@PathVariable Long id, @RequestBody @Valid UpdateCommentRequestDto requestDto) {
         commentService.updateComment(id, requestDto);
         return ResponseEntity.ok(ApiResponse.success(null, "댓글이 수정되었습니다."));
     }
 
-    @Operation(summary = "댓글 삭제", description = "")
+    @Operation(summary = "댓글 삭제", description = "id로 특정 댓글을 삭제합니다.")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteComment(@PathVariable Long id) {
         commentService.deleteComment(id);
