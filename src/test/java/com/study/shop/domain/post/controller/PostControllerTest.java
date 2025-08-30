@@ -66,7 +66,6 @@ class PostControllerTest {
         CreatePostRequestDto requestDto = new CreatePostRequestDto();
         requestDto.setTitle("title");
         requestDto.setContent("content");
-        requestDto.setWriter("writer");
 
         //when
         mockMvc.perform(post(url)

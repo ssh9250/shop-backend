@@ -16,7 +16,4 @@ public class CreatePostRequestDto {
     @NotBlank
     @Schema(description = "게시글 내용", example = "내용을 입력하세요.")
     private String content;
-
-    @NotBlank
-    private String writer;
 }

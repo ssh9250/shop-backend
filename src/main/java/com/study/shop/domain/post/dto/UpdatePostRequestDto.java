@@ -1,5 +1,6 @@
 package com.study.shop.domain.post.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,8 +12,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdatePostRequestDto {
-    @NotBlank
+    @Schema(description = "수정할 제목")
     private String title;
-    @NotBlank
+
+    @Schema(description = "수정할 내용")
     private String content;
 }

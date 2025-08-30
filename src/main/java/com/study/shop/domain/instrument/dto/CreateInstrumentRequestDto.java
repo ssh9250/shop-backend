@@ -1,6 +1,10 @@
 package com.study.shop.domain.instrument.dto;
 
 import com.study.shop.global.enums.InstrumentCategory;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.*;
 
 @Getter
@@ -9,11 +13,32 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class CreateInstrumentRequestDto {
+    @NotBlank
+    @Schema(description = "상품 이름", example = "아이바네즈 일렉 기타")
     private String name;
+
+    @NotBlank
+    @Schema(description = "브랜드", example = "IBANEZ")
     private String brand;
+
+    @Schema(description = "상품 설명", example = "새 상품")
     private String description;
-    private int price;
-    private boolean used;
-    private boolean available;
+
+    @NotNull
+    @PositiveOrZero
+    @Schema(description = "가격(원)", example = "350000", minimum = "0")
+    private Integer price;
+
+    @NotNull
+    @Schema(description = "중고 여부", example = "true")
+    private Boolean used;
+
+    @NotNull
+    @Schema(description = "판매 가능 여부", example = "true")
+    private Boolean available;
+
+    @NotNull
+    @Schema(description = "카테고리", example = "GUITAR",
+            allowableValues = {"GUITAR","BASS","PIANO","DRUM"})
     private InstrumentCategory category;
 }

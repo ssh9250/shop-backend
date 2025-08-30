@@ -23,7 +23,6 @@ public class PostService {
         Post post = Post.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
-                .writer(request.getWriter())
                 .build();
         return postRepository.save(post).getId();
     }
