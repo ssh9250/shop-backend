@@ -14,7 +14,7 @@ import lombok.*;
 @Builder
 public class CreateInstrumentRequestDto {
     @NotBlank
-    @Schema(description = "상품 이름", example = "아이바네즈 일렉 기타")
+    @Schema(description = "상품명", example = "아이바네즈 일렉 기타")
     private String name;
 
     @NotBlank
@@ -39,6 +39,14 @@ public class CreateInstrumentRequestDto {
 
     @NotNull
     @Schema(description = "카테고리", example = "GUITAR",
-            allowableValues = {"GUITAR","BASS","PIANO","DRUM"})
+            allowableValues = {"GUITAR","BASS","PIANO","VIOLIN", "DRUM", "WIND", "ELECTRONIC", "ETC"})
     private InstrumentCategory category;
+
+    public boolean isUsed() {
+        return used;
+    }
+
+    public boolean isAvailable() {
+        return false;
+    }
 }
