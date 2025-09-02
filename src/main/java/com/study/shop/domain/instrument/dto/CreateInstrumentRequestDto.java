@@ -18,7 +18,7 @@ public class CreateInstrumentRequestDto {
     private String name;
 
     @NotBlank
-    @Schema(description = "브랜드", example = "IBANEZ")
+    @Schema(description = "브랜드", example = "Ibanez")
     private String brand;
 
     @Schema(description = "상품 설명", example = "새 상품")
