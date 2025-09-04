@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 public class PostResponseDto {
+    // commit test
     @Schema(description = "게시글 id", example = "1")
     private Long id;
 
