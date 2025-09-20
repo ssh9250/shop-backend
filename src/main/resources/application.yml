@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: shop
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+logging:
+  level:
+    root: info
+    org.hibernate.SQL: warn
+    org.springframework: warn
+    com.study.cruisin: debug
+
+springdoc:
+  api-docs:
+    path: "/v3/api-docs"
+  swagger-ui:
+    path: "/swagger-ui.html"
