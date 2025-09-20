@@ -27,12 +27,19 @@ public class MemberService {
     public void signup(SignupRequestDto requestDto) {
         // 이메일, 닉네임 등 중복체크 작업 필요
         String encryptedPassword = passwordEncoder.encode(requestDto.getPassword());
+
+        // 빈 문자열을 null로 변환
+        String phone = (requestDto.getPhone() != null && !requestDto.getPhone().trim().isEmpty())
+                       ? requestDto.getPhone().trim() : null;
+        String address = (requestDto.getAddress() != null && !requestDto.getAddress().trim().isEmpty())
+                         ? requestDto.getAddress().trim() : null;
+
         Member member = Member.builder()
                 .email(requestDto.getEmail())
                 .password(encryptedPassword)
                 .nickname(requestDto.getNickname())
-                .phone(requestDto.getPhone())
-                .address(requestDto.getAddress())
+                .phone(phone)
+                .address(address)
                 .role(RoleType.USER)
                 .build();
         memberRepository.save(member);

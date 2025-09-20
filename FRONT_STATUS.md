@@ -1,58 +1,75 @@
 # 프론트엔드 구현 상태
 
+## 🚀 **기술 스택**
+- **Vue 3.5.18** - 메인 프레임워크
+- **Vue Router 4.5.1** - 라우팅
+- **Pinia 3.0.3** - 상태 관리
+- **Element Plus 2.11.3** - UI 컴포넌트 라이브러리
+- **Axios 1.12.2** - HTTP 클라이언트
+- **Vite 7.0.6** - 빌드 도구
+- **Bootstrap 5.3.8** - CSS 프레임워크
+- **DayJS 1.11.18** - 날짜 라이브러리
+
 ## 📁 디렉토리 구조
 ```
-src/
-├── components/common/    # 공통 컴포넌트
-├── pages/               # 페이지 컴포넌트
-├── hooks/               # 커스텀 훅
-├── services/            # API 서비스
-├── types/               # TypeScript 타입
-├── styles/              # 글로벌 스타일
-└── utils/               # 유틸리티
+front/src/
+├── components/         # 공통 컴포넌트
+├── stores/            # Pinia 스토어 (상태 관리)
+├── views/             # 페이지 컴포넌트
+│   ├── auth/          # 인증 관련 페이지
+│   ├── post/          # 게시글 관련 페이지
+│   ├── instrument/    # 악기 관련 페이지
+│   └── member/        # 멤버 관련 페이지
+├── router/            # Vue Router 설정
+├── style.css          # 글로벌 스타일
+├── App.vue            # 루트 컴포넌트
+└── main.js            # 애플리케이션 엔트리포인트
 ```
 
 ## ✅ 구현 완료
 
-### 🎨 **UI 컴포넌트**
-- ✅ GlassCard - 글래스모피즘 카드
-- ✅ Button - 다양한 스타일 버튼
-- ✅ Input - 폼 입력 필드
-- ✅ Layout - 페이지 레이아웃
-- ✅ Navbar - 네비게이션
+### 🎨 **컴포넌트**
+- ✅ Navbar.vue - 네비게이션 바
 
 ### 📄 **페이지**
-- ✅ HomePage - 메인 홈페이지
-- ✅ LoginPage - 로그인
-- ✅ SignupPage - 회원가입
-- ✅ InstrumentsPage - 악기 목록
-- ✅ PostsPage - 게시글 목록
-- ✅ TestPage - 테스트 페이지
+- ✅ Home.vue - 메인 홈페이지
+- ✅ Login.vue - 로그인 페이지
+- ✅ Signup.vue - 회원가입 페이지
+- ✅ PostList.vue - 게시글 목록
+- ✅ PostDetail.vue - 게시글 상세
+- ✅ CreatePost.vue - 게시글 작성
+- ✅ EditPost.vue - 게시글 수정
+- ✅ InstrumentList.vue - 악기 목록
+- ✅ CreateInstrument.vue - 악기 등록
+- ✅ EditInstrument.vue - 악기 수정
+- ✅ Profile.vue - 프로필 페이지
 
-### 🔧 **서비스 & API**
-- ✅ authService - 인증 관련
-- ✅ memberService - 회원 관리
-- ✅ instrumentService - 악기 관리
-- ✅ postService - 게시글 관리
-- ✅ commentService - 댓글 관리
+### 🗄️ **상태 관리 (Pinia Stores)**
+- ✅ auth.js - 인증 상태 관리
+- ✅ post.js - 게시글 상태 관리
+- ✅ instrument.js - 악기 상태 관리
+- ✅ comment.js - 댓글 상태 관리
+- ✅ counter.js - 카운터 예제
 
-### 📝 **타입 정의**
-- ✅ API 응답 타입
-- ✅ 인증 관련 타입
-- ✅ 엔티티 타입 (Member, Instrument, Post, Comment)
-
-## ⚠️ 현재 이슈
-- 🔄 경로 매핑(`@/`) 해결 필요
-- 🔄 기존 JS 파일과 TSX 파일 충돌
+### 🔧 **라우팅**
+- ✅ Vue Router 설정
+- ✅ 페이지별 라우트 정의
 
 ## 🔗 **API 연동**
 - Backend: `http://localhost:8080/api`
-- JWT 토큰 기반 인증
-- 자동 에러 처리 및 리다이렉션
+- HTTP 클라이언트: Axios
+- 상태 관리를 통한 API 통합
 
-## 🎯 **미구현 기능**
-- 악기 상세 페이지
-- 게시글 상세 페이지
-- 댓글 시스템
-- 내 악기 관리 페이지
-- 프로필 관리 페이지
+## 🛠️ **개발 도구**
+- ESLint + Prettier 설정
+- Vite 개발 서버
+- Vue DevTools 플러그인
+
+## 📝 **빌드 & 개발 스크립트**
+```bash
+npm run dev      # 개발 서버 실행
+npm run build    # 프로덕션 빌드
+npm run preview  # 빌드 미리보기
+npm run lint     # 코드 린팅
+npm run format   # 코드 포맷팅
+```
