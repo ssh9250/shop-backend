@@ -25,12 +25,11 @@ public class AuthController {
     private final AuthService authService;
     private final MemberService memberService;
 
-
     @Operation(summary = "회원가입", description = "신규 회원을 등록합니다.")
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<SignupRequestDto>> signup(@RequestBody SignupRequestDto requestDto) throws Exception {
         authService.signup(requestDto);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(null, "회원가입에 성공하였습니다."));
     }
 
     @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인합니다.")

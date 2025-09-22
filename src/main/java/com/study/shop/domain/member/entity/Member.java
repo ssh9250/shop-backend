@@ -6,7 +6,6 @@ import com.study.shop.global.enums.RoleType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.util.ArrayList;
@@ -27,8 +26,7 @@ public class Member {
     @Column(nullable = false, unique = true, length = 50)
     private String email;
 
-    @Column(nullable = false, length = 50)
-    @Size(min = 6, max = 50)
+    @Column(nullable = false, length = 200) // password Encrypt 고려
     private String password;
 
     @Column(nullable = false, length = 50)
