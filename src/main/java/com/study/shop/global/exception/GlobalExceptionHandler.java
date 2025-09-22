@@ -29,6 +29,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler
     public ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
+        e.printStackTrace();
         return ResponseEntity.status(500)
                 .body(ApiResponse.fail("서버 내부에 오류가 발생했습니다."));
     }
