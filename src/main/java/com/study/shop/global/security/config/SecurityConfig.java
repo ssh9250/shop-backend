@@ -1,6 +1,7 @@
 package com.study.shop.global.security.config;
 
 import com.study.shop.global.security.auth.CustomUserDetailsService;
+import com.study.shop.global.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,19 +11,21 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
-@EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final CustomUserDetailsService customUserDetailsService;
+    private final JwtTokenProvider jwtTokenProvider;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
@@ -33,13 +36,6 @@ public class SecurityConfig {
                                 "/api/test/**"
                         ).permitAll()
                         .anyRequest().authenticated())
-
-                .formLogin(form -> form
-                        .loginPage("/api/auth/login")
-                        .loginProcessingUrl("/api/auth/login")
-                        .defaultSuccessUrl("/", true)
-                        .permitAll()
-                )
 
                 .logout(logout -> logout
                         .logoutUrl("/api/auth/logout")
@@ -55,6 +51,8 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
     }
+
+    // jwt용 provider 추가하기
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
