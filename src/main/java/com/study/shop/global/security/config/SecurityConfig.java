@@ -1,10 +1,13 @@
 package com.study.shop.global.security.config;
 
 import com.study.shop.global.security.auth.CustomUserDetailsService;
+import com.study.shop.global.security.jwt.JwtAuthenticationFilter;
+import com.study.shop.global.security.jwt.JwtExceptionFilter;
 import com.study.shop.global.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -12,20 +15,26 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final StringRedisTemplate stringRedisTemplate;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtTokenProvider, stringRedisTemplate);
+        JwtExceptionFilter jwtExceptionFilter = new JwtExceptionFilter();
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
@@ -33,15 +42,15 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
+                                "/swagger-resources/**",
+                                "/webjars/**",
                                 "/api/test/**"
                         ).permitAll()
                         .anyRequest().authenticated())
 
-                .logout(logout -> logout
-                        .logoutUrl("/api/auth/logout")
-                        .logoutSuccessUrl("/")
-                        .invalidateHttpSession(true)
-                )
+                .addFilterBefore(jwtExceptionFilter, jwtAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+
                 .authenticationProvider(authenticationProvider());
 
         return http.build();
@@ -52,7 +61,7 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // jwt용 provider 추가하기
+    // jwt용, oauth2용 추가 예정
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
