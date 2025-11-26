@@ -12,6 +12,7 @@ logging:
     root: info
     org.hibernate.SQL: warn
     org.springframework: warn
+    org.springframework.cache: trace
     com.study.cruisin: debug
 
 springdoc:
