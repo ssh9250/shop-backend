@@ -21,10 +21,6 @@ public class CustomUserDetails implements UserDetails {
         return Collections.emptyList();
     }
 
-    public Member getMember() {
-        return member;
-    }
-
     @Override
     public String getPassword() {
         return member.getPassword();
