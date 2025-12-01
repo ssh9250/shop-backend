@@ -30,13 +30,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = jwtTokenProvider.resolveToken(request);
 
         // 토큰 없으면 -> 다음 필터로 넘기기
-        if (!StringUtils.isEmpty(token)) {
+        if (StringUtils.isEmpty(token)) {
             filterChain.doFilter(request, response);
             return;
         }
 
         // 2. redis 블랙리스트 검사 (reids에 키 존재하면 로그아웃된 토큰임)
-        String blacklistKey = "blacklist" + token;
+        String blacklistKey = "blacklist:" + token;
         Boolean isBlacklist = stringRedisTemplate.hasKey(blacklistKey);
 
         if (isBlacklist) {

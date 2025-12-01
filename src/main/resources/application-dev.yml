@@ -19,7 +19,7 @@ spring:
     allow-bean-definition-overriding: true
 
 jwt:
-  secret: replace_with_long_random_secret_at_least_32_chars
+  # secret: local.yml, environment variable에 직접 입력
   access-expiration-ms: 1800000
   refresh-expiration-ms: 1209600000
 
