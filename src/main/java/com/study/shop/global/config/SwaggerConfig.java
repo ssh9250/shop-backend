@@ -25,9 +25,12 @@ public class SwaggerConfig {
                         .contact(new Contact().name("Shop Team").email("support@shop.example"))
                         .license(new License().name("SHOP License")))
                 .addServersItem(new Server().url("http://localhost:8080").description("Local"))
-                .addSecurityItem(new SecurityRequirement().addList(SECURITY_SCHEME_NAME));
+                .addSecurityItem(new SecurityRequirement().addList(SECURITY_SCHEME_NAME))
 
                 // Swagger UI 상단의 Authorize 버튼에 Bearer <token> 입력 가능.
                 // 모든 엔드포인트에 전역 적용하려면 addSecurityItem을 유지(특정 엔드포인트만 적용하려면 제거하고 컨트롤러/메서드에 어노테이션 사용).
+//                .addSecurityItem(new SecurityRequirement().addList(SECURITY_SCHEME_NAME));
+        ;
+
     }
 }

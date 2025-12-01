@@ -10,6 +10,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
 public class RedisConfig {
+    // 문자열 기반 (k/v, 블랙리스트 키 등)
     @Bean
     public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
         StringRedisTemplate template = new StringRedisTemplate(redisConnectionFactory);
@@ -18,6 +19,7 @@ public class RedisConfig {
         return template;
     }
 
+    // 객체 기반 (직렬화 필요한 경우 : dto 같은거)
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
