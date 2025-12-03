@@ -1,13 +1,11 @@
 package com.study.shop.global.security.refresh;
 
 import com.study.shop.global.security.jwt.JwtTokenProvider;
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
-import java.util.UUID;
-
-@Schema
+@Service
 @RequiredArgsConstructor
 public class RefreshTokenService {
     private final RefreshTokenRepository refreshTokenRepository;
@@ -41,7 +39,7 @@ public class RefreshTokenService {
         if (saved == null)
             throw new IllegalStateException("해당 refresh 토큰 없음 ( 또는 로그아웃 됨 )");
         if (!saved.equals(oldRefreshToken)) {
-            refreshTokenRepository.delete(oldRefreshToken);
+            refreshTokenRepository.delete(email);
             throw new IllegalStateException("refresh 토큰 불일치 ( 탈취 가능성 존재 )");
         }
         String newRefreshToken = jwtTokenProvider.createRefreshToken(email);
