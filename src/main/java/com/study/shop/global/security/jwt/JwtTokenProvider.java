@@ -11,6 +11,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
@@ -32,15 +33,23 @@ public class JwtTokenProvider {
 
     @PostConstruct
     public void init() {
-        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
+        // Secret 길이 검증, UTF-8 인코딩 명시
+        byte[] secretBytes = secret.getBytes(StandardCharsets.UTF_8);
+        if (secretBytes.length < 32) {
+            throw new IllegalArgumentException(
+                    "JWT secret key 의 길이는 최소 32바이트 이상이여야 합니다. 현재 길이 : " + secretBytes.length);
+        }
+        this.secretKey = Keys.hmacShaKeyFor(secretBytes);
     }
 
     public String createAccessToken(String email) {
         return createToken(email, accessExpirationMs);
     }
+
     public String createRefreshToken(String email) {
         return createToken(email, refreshExpirationMs);
     }
+
     private String createToken(String email, long expiration) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + expiration);
@@ -70,11 +79,9 @@ public class JwtTokenProvider {
                     .build()
                     .parseClaimsJws(token);
             return true;
-        }
-        catch (ExpiredJwtException e) {
+        } catch (ExpiredJwtException e) {
             return false; // 만료 -> access token 만료 로직에서 refresh token 유효성 검증 완료
-        }
-        catch (JwtException | IllegalArgumentException e) {
+        } catch (JwtException | IllegalArgumentException e) {
             return false;   //  기타 버그
         }
     }
@@ -93,6 +100,6 @@ public class JwtTokenProvider {
         String email = getEmail(token);
         var userDetails = userDetailsService.loadUserByUsername(email);
 
-        return  new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 }
