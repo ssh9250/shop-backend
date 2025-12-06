@@ -35,6 +35,7 @@ public class JwtExceptionFilter extends OncePerRequestFilter {
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(
                 String.format("{\"error\": \"인증 실패\", \"message\": \"%s\"}", message)
+//                기타 front에서 요구하는 응답 포멧 작성 예정
         );
     }
 }
