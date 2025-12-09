@@ -1,10 +1,14 @@
 package com.study.shop.global.security.refresh;
 
+import com.study.shop.global.security.exception.RefreshTokenMismatchException;
+import com.study.shop.global.security.exception.RefreshTokenNotFoundException;
 import com.study.shop.global.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RefreshTokenService {
@@ -36,12 +40,18 @@ public class RefreshTokenService {
 
     public String rotateRefreshToken(String email, String oldRefreshToken) {
         String saved = refreshTokenRepository.findByEmail(email);
-        if (saved == null)
-            throw new IllegalStateException("해당 refresh 토큰 없음 ( 또는 로그아웃 됨 )");
-        if (!saved.equals(oldRefreshToken)) {
-            refreshTokenRepository.delete(email);
-            throw new IllegalStateException("refresh 토큰 불일치 ( 탈취 가능성 존재 )");
+
+        if (saved == null) {
+            log.error("Refresh token not found");
+            throw new RefreshTokenNotFoundException();
         }
+
+        if (!saved.equals(oldRefreshToken)) {
+            log.error("Refresh token does not match");
+            refreshTokenRepository.delete(email);
+            throw new RefreshTokenMismatchException();
+        }
+
         String newRefreshToken = jwtTokenProvider.createRefreshToken(email);
         refreshTokenRepository.store(email, newRefreshToken,  refreshTokenValidityMs);
         return newRefreshToken;
