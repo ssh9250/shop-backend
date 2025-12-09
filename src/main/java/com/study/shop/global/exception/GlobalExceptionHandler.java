@@ -1,6 +1,7 @@
 package com.study.shop.global.exception;
 
 import com.study.shop.global.response.ApiResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -9,12 +10,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.List;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<ApiResponse<Void>> handleCustomException(CustomException e) {
         ErrorCode code = e.getErrorCode();
+        log.error("CustomException: {} - {}", code.name(), code.getMessage());
         return ResponseEntity.status(code.getStatus())
                 .body(ApiResponse.fail(code.getMessage()));
     }
