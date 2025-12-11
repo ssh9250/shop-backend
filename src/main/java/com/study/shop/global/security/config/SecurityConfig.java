@@ -1,6 +1,7 @@
 package com.study.shop.global.security.config;
 
 import com.study.shop.global.security.auth.CustomUserDetailsService;
+import com.study.shop.global.security.handler.JwtAccessDeniedHandler;
 import com.study.shop.global.security.jwt.JwtAuthenticationFilter;
 import com.study.shop.global.security.jwt.JwtExceptionFilter;
 import com.study.shop.global.security.jwt.JwtTokenProvider;
@@ -17,6 +18,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -29,10 +31,13 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final CustomUserDetailsService customUserDetailsService;
-    private final JwtTokenProvider jwtTokenProvider;
-    private final StringRedisTemplate stringRedisTemplate;
+//    private final JwtTokenProvider jwtTokenProvider;
+//    private final StringRedisTemplate stringRedisTemplate;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtExceptionFilter jwtExceptionFilter;
+    private final AuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -56,8 +61,8 @@ public class SecurityConfig {
                         .anyRequest().authenticated())
 
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint()
-                        .accessDeniedHandler()
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                        .accessDeniedHandler(jwtAccessDeniedHandler)
                 )
 
                 .addFilterBefore(jwtExceptionFilter, JwtAuthenticationFilter.class)
