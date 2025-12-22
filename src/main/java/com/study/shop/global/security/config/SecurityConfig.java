@@ -78,7 +78,7 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // jwt용, oauth2용 추가 예정
+    // auth2용 추가 예정
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();

@@ -1,7 +1,6 @@
-커밋 밀린거 분리
-jwt refresh rotation 바뀐거 반영하기
-security 관련 예외 클래스 세분화 + 통합하고 이름 수정
-custom user detail 파보기
+custom user detail 엔티티 대신 필수 정보만 + service 토스 객체도 수정
+tokenDto, jwtProperties
+
 
 feat : 새로운 기능 추가
 fix : 버그 수정

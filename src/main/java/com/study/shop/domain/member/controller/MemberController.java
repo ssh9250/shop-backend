@@ -38,7 +38,7 @@ public class MemberController {
     public ResponseEntity<ApiResponse<Void>> updateProfile(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody UpdateProfileRequestDto requestDto) {
         Long id = userDetails.getMember().getId();
         memberService.updateProfile(id, requestDto);
-        return ResponseEntity.ok(ApiResponse.success(null, "회원정보가 수정되었습니다."));
+        return ResponseEntity.ok(ApiResponse.success(null, "회원정보 수정완료"));
     }
 
     @Operation(summary = "비밀번호 변경", description = "비밀번호를 변경합니다.")

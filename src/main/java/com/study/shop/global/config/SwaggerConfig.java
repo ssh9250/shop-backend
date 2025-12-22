@@ -23,7 +23,7 @@ public class SwaggerConfig {
                         .description("악기 쇼핑몰 B2C 백엔드 API 문서")
                         .version("0.1")
                         .contact(new Contact().name("Shop Team").email("support@shop.example"))
-                        .license(new License().name("SHOP License")))
+                        .license(new License().name("Shop License")))
                 .addServersItem(new Server().url("http://localhost:8080").description("Local"))
                 .addSecurityItem(new SecurityRequirement().addList(SECURITY_SCHEME_NAME))
 
