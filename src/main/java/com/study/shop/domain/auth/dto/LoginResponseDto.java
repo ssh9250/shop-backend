@@ -10,4 +10,6 @@ import lombok.*;
 public class LoginResponseDto {
     private Long memberId;
     private String email;
+    private String accessToken;
+    private String refreshToken;
 }

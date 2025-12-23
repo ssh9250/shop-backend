@@ -20,3 +20,8 @@ springdoc:
     path: "/v3/api-docs"
   swagger-ui:
     path: "/swagger-ui.html"
+
+jwt:
+  # secret: local.yml/environment variable로 관리
+  access-expiration-ms: 1800000
+  refresh-expiration-ms: 1209600000

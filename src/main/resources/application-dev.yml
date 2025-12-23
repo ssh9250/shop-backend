@@ -18,11 +18,6 @@ spring:
   main:
     allow-bean-definition-overriding: true
 
-jwt:
-  # secret: local.yml, environment variable에 직접 입력
-  access-expiration-ms: 1800000
-  refresh-expiration-ms: 1209600000
-
 # 개발에선 Swagger 켜기
 springdoc:
   swagger-ui:
