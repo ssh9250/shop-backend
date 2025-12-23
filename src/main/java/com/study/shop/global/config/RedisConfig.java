@@ -19,7 +19,7 @@ public class RedisConfig {
         return template;
     }
 
-    // 객체 기반 (직렬화 필요한 경우 : dto 같은거)
+    // 객체 기반 (Refresh Token DTO 사용으로 직렬화 필요한 경우, 추후 사용예정)
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();

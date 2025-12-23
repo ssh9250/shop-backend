@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import lombok.RequiredArgsConstructor;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,6 +17,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final StringRedisTemplate stringRedisTemplate;
@@ -31,6 +33,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // 토큰 없으면 -> 다음 필터로 넘기기
         if (StringUtils.isEmpty(token)) {
+            log.debug("token is empty");
             filterChain.doFilter(request, response);
             return;
         }
@@ -40,23 +43,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         Boolean isBlacklist = stringRedisTemplate.hasKey(blacklistKey);
 
         if (isBlacklist) {
+            log.debug("token is in blacklist");
             filterChain.doFilter(request, response);
             return;
         }
 
         // 3. access token 유효성 검증
         if (jwtTokenProvider.validateToken(token)) {
+            log.debug("validation passed");
             // 3-1. 정상 토큰 -> 인증 생성
             Authentication authentication = jwtTokenProvider.getAuthentication(token);
 
             // 3-2. security context에 설정
             SecurityContextHolder.getContext().setAuthentication(authentication);
-        } else {
-            // 4. 만료된 토큰 -> refresh token 검사
-//            SecurityContextHolder.clearContext();
-
         }
-        // 5. 다음 필터 실행
+        // 4. 다음 필터 실행
         filterChain.doFilter(request, response);
     }
 }

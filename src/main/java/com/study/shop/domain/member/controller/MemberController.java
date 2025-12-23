@@ -27,7 +27,7 @@ public class MemberController {
     @Operation(summary = "내 정보 조회", description = "로그인된 사용자의 정보를 조회합니다.")
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<MemberResponseDto>> getMember(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long id = userDetails.getMember().getId();
+        Long id = userDetails.getMemberId();
         return ResponseEntity.ok(ApiResponse.success(memberService.getMemberById(id)));
     }
 
@@ -36,7 +36,7 @@ public class MemberController {
     @Operation(summary = "개인정보 수정", description = "회원 정보를 수정합니다.")
     @PatchMapping("/profile")
     public ResponseEntity<ApiResponse<Void>> updateProfile(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody UpdateProfileRequestDto requestDto) {
-        Long id = userDetails.getMember().getId();
+        Long id = userDetails.getMemberId();
         memberService.updateProfile(id, requestDto);
         return ResponseEntity.ok(ApiResponse.success(null, "회원정보 수정완료"));
     }
@@ -44,7 +44,7 @@ public class MemberController {
     @Operation(summary = "비밀번호 변경", description = "비밀번호를 변경합니다.")
     @PatchMapping("/password")
     public ResponseEntity<ApiResponse<Void>> changePassword(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody ChangePasswordRequestDto requestDto) {
-        Long id = userDetails.getMember().getId();
+        Long id = userDetails.getMemberId();
         memberService.updatePassword(id, requestDto);
         return ResponseEntity.ok(ApiResponse.success(null, "비밀번호가 수정되었습니다."));
     }
@@ -52,7 +52,7 @@ public class MemberController {
     @Operation(summary = "회원 탈퇴", description = "회원 정보를 삭제합니다.")
     @DeleteMapping
     public ResponseEntity<ApiResponse<Void>> deleteMember(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long id = userDetails.getMember().getId();
+        Long id = userDetails.getMemberId();
         memberService.deleteMember(id);
         return ResponseEntity.ok(ApiResponse.success(null, "회원을 탈퇴하였습니다."));
     }

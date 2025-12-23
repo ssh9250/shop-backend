@@ -5,7 +5,13 @@ import com.study.shop.domain.auth.dto.LoginResponseDto;
 import com.study.shop.domain.auth.dto.SignupRequestDto;
 import com.study.shop.domain.member.service.MemberService;
 import com.study.shop.global.security.auth.CustomUserDetails;
+import com.study.shop.global.security.dto.RefreshResponseDto;
+import com.study.shop.global.security.exception.InvalidTokenException;
+import com.study.shop.global.security.exception.RefreshTokenMismatchException;
+import com.study.shop.global.security.jwt.JwtTokenProvider;
+import com.study.shop.global.security.refresh.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -16,9 +22,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final MemberService memberService;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final RefreshTokenService refreshTokenService;
 
     public void signup(SignupRequestDto requestDto) throws Exception {
         memberService.signup(requestDto);
@@ -30,14 +39,38 @@ public class AuthService {
 
         Authentication authentication = authenticationManager.authenticate(authToken);
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-
         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
 
+        String accessToken = jwtTokenProvider.createAccessToken(customUserDetails.getEmail());
+        String refreshToken = refreshTokenService.createAndStoreRefreshToken(jwtTokenProvider.createRefreshToken(customUserDetails.getEmail()));
+
         return LoginResponseDto.builder()
-                .memberId(customUserDetails.getMember().getId())
+                .memberId(customUserDetails.getMemberId())
                 .email(customUserDetails.getUsername())
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
+    }
+
+    // Refresh Token으로 Access Token 갱신
+    public RefreshResponseDto refresh(String refreshToken) {
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
+            throw new InvalidTokenException();
+        }
+
+        String email = jwtTokenProvider.getEmail(refreshToken);
+
+        // Redis 토큰과 비교
+        if (!refreshTokenService.validateRefreshToken(email, refreshToken)) {
+            throw new RefreshTokenMismatchException();
+        }
+
+        String newAccessToken = jwtTokenProvider.createAccessToken(email);
+        String newRefreshToken = refreshTokenService.rotateRefreshToken(email, refreshToken);
+
+        return RefreshResponseDto.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
                 .build();
     }
 }
