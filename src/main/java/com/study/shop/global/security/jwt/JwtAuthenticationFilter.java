@@ -38,7 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        // 2. redis 블랙리스트 검사 (reids에 키 존재하면 로그아웃된 토큰임)
+        // 2. redis 블랙리스트 검사 (reids에 키 존재하면 로그아웃된 토큰임 (access token만, refresh는 불필요)
         String blacklistKey = "blacklist:" + token;
         Boolean isBlacklist = stringRedisTemplate.hasKey(blacklistKey);
 

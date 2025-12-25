@@ -10,6 +10,7 @@ import com.study.shop.global.response.ApiResponse;
 import com.study.shop.global.security.auth.CustomUserDetails;
 import com.study.shop.global.security.dto.RefreshRequestDto;
 import com.study.shop.global.security.dto.RefreshResponseDto;
+import com.study.shop.global.security.jwt.JwtTokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     private final AuthService authService;
     private final MemberService memberService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Operation(summary = "회원가입", description = "신규 회원을 등록합니다.")
     @PostMapping("/signup")
@@ -54,5 +56,22 @@ public class AuthController {
         RefreshResponseDto responseDto = authService.refresh(requestDto.getRefreshToken());
         log.info("refresh success");
         return new ResponseEntity<>(ApiResponse.success(responseDto), HttpStatus.OK);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(@AuthenticationPrincipal CustomUserDetails customUserDetails, HttpServletRequest request) {
+        String email = customUserDetails.getUsername();
+        String accessToken = jwtTokenProvider.resolveToken(request);
+
+        if (accessToken != null) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail("토큰이 없습니다."));
+        }
+
+        log.info("logout attempt for email: {}", email);
+        authService.logout(accessToken, email);
+        log.info("logout success for email: {}", email);
+
+        return ResponseEntity.ok(ApiResponse.success(null, "로그아웃 성공"));
+
     }
 }

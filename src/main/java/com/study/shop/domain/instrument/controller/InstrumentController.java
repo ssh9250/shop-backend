@@ -38,7 +38,7 @@ public class InstrumentController {
     @Operation(summary = "내 악기 목록 조회", description = "로그인한 사용자의 악기 목록을 조회합니다.")
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<List<InstrumentResponseDto>>> getMyInstruments(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long id = userDetails.getMember().getId();
+        Long id = userDetails.getMemberId();
         return ResponseEntity.ok(ApiResponse.success(instrumentService.getInstrumentsByMemberId(id)));
     }
 

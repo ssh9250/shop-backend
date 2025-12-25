@@ -12,6 +12,7 @@ import com.study.shop.global.security.jwt.JwtTokenProvider;
 import com.study.shop.global.security.refresh.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -28,6 +29,7 @@ public class AuthService {
     private final MemberService memberService;
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenService refreshTokenService;
+    private final StringRedisTemplate stringRedisTemplate;
 
     public void signup(SignupRequestDto requestDto) throws Exception {
         memberService.signup(requestDto);
@@ -55,6 +57,7 @@ public class AuthService {
     // Refresh Token으로 Access Token 갱신
     public RefreshResponseDto refresh(String refreshToken) {
         if (!jwtTokenProvider.validateToken(refreshToken)) {
+            log.error("Invalid refresh token");
             throw new InvalidTokenException();
         }
 
@@ -62,6 +65,7 @@ public class AuthService {
 
         // Redis 토큰과 비교
         if (!refreshTokenService.validateRefreshToken(email, refreshToken)) {
+            log.error("Refresh token mismatch");
             throw new RefreshTokenMismatchException();
         }
 
@@ -72,5 +76,12 @@ public class AuthService {
                 .accessToken(newAccessToken)
                 .refreshToken(newRefreshToken)
                 .build();
+    }
+
+    public void logout(String accessToken, String email) {
+        refreshTokenService.removeRefreshToken(email);
+        log.info("refresh token removed from email: {}", email);
+
+        stringRedisTemplate.setb
     }
 }

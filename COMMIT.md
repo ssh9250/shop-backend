@@ -19,12 +19,32 @@ refactor : 코드 리펙토링
 test : 테스트 코드, 리펙토링 테스트 코드 추가
 chore : 빌드 업무 수정, 패키지 매니저 수정
 
-docs: JWT 인증 플로우 문서 추가 (readme.md)
-- 로그인 플로우 및 API 요청 시 인증 플로우 정리
-- 주요 클래스별 역할 명시
+---
 
-feat: Refresh Token 갱신 API 추가 (/api/auth/refresh)
-refactor: CustomUserDetails 엔티티 의존성 제거, 필수 정보만 저장
-refactor: Security 예외 핸들러 및 불필요한 클래스 삭제
-- JwtAuthenticationEntryPoint, JwtAccessDeniedHandler 제거
-- JwtProperties, TokenDto, RefreshToken 빈 파일 삭제
+feat: 로그아웃 API 추가 (진행중)
+- AuthController에 로그아웃 엔드포인트 추가
+- AuthService에 로그아웃 로직 구현 (미완성 - Access Token 블랙리스트 처리 필요)
+- Refresh Token 삭제 기능 포함
+
+feat: Redis 테스트 컨트롤러 추가
+- RedisTestController 생성 및 기본 테스트 엔드포인트 구현
+- /api/test/redis 엔드포인트로 Redis 연결 테스트 가능
+
+refactor: 설정 파일 프로파일 정리
+- application.yml에 active profile 설정 추가 (local)
+- application-dev.yml, application-local.yml에 on-profile 명시
+- application-local.yml 전체 설정 추가 (datasource, jpa, redis, logging 등)
+
+refactor: 불필요한 클래스 및 코드 정리
+- RefreshTokenRotationPolicy.java 삭제 (주석만 있던 정책 파일)
+- MemberRepository.findByEmailWithRoles 쿼리 주석 처리
+
+fix: JwtTokenProvider 오타 수정
+- @Value 어노테이션의 refresh-expiration-ms 속성명 오타 수정
+
+style: 코드 개선
+- JwtAuthenticationFilter, JwtTokenProvider 주석 추가
+- SecurityConfig 필터 순서 조정 (JwtAuthenticationFilter -> JwtExceptionFilter 순으로 변경)
+- InstrumentController CustomUserDetails 사용법 변경 (getMember().getId() -> getMemberId())
+- codeRequest.http 파일 생성 및 테스트 요청 추가
+
