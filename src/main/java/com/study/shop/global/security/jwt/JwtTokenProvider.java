@@ -28,7 +28,7 @@ public class JwtTokenProvider {
     @Value("${jwt.access-expiration-ms}")
     private long accessExpirationMs;
 
-    @Value("${jwt.refresh-expiration-ms")
+    @Value("${jwt.refresh-expiration-ms}")
     private long refreshExpirationMs;
 
     private Key secretKey;
@@ -83,7 +83,7 @@ public class JwtTokenProvider {
             return true;
         } catch (ExpiredJwtException e) {
             log.info("token expired");
-            return false; // 만료 -> access token 만료 로직에서 refresh token 유효성 검증 완료
+            return false; // 만료 -> access token 만료 로직에서 refresh token 유효성 검증 완료 (refresh service)
         } catch (JwtException | IllegalArgumentException e) {
             return false;   //  기타 버그
         }
