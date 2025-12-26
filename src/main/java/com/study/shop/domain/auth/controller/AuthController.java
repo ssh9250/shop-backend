@@ -63,7 +63,8 @@ public class AuthController {
         String email = customUserDetails.getUsername();
         String accessToken = jwtTokenProvider.resolveToken(request);
 
-        if (accessToken != null) {
+        if (accessToken == null) {
+            log.error("token is empty for email: {}", email);
             return ResponseEntity.badRequest().body(ApiResponse.fail("토큰이 없습니다."));
         }
 
@@ -72,6 +73,5 @@ public class AuthController {
         log.info("logout success for email: {}", email);
 
         return ResponseEntity.ok(ApiResponse.success(null, "로그아웃 성공"));
-
     }
 }

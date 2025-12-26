@@ -89,6 +89,21 @@ public class JwtTokenProvider {
         }
     }
 
+    public long getExpiration(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build().parseClaimsJws(token).getBody();
+
+            Date expiration = claims.getExpiration();
+            Date now = new Date();
+
+            return expiration.getTime() - now.getTime();
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
     //토큰에서 email 추출
     public String getEmail(String token) {
         Claims claims = Jwts.parserBuilder()

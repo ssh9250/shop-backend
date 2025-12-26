@@ -20,6 +20,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.concurrent.TimeUnit;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -44,7 +46,7 @@ public class AuthService {
         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
 
         String accessToken = jwtTokenProvider.createAccessToken(customUserDetails.getEmail());
-        String refreshToken = refreshTokenService.createAndStoreRefreshToken(jwtTokenProvider.createRefreshToken(customUserDetails.getEmail()));
+        String refreshToken = refreshTokenService.createAndStoreRefreshToken(customUserDetails.getEmail());
 
         return LoginResponseDto.builder()
                 .memberId(customUserDetails.getMemberId())
@@ -82,6 +84,13 @@ public class AuthService {
         refreshTokenService.removeRefreshToken(email);
         log.info("refresh token removed from email: {}", email);
 
-        stringRedisTemplate.setb
+        long remainingTime = jwtTokenProvider.getExpiration(accessToken);
+
+        stringRedisTemplate.opsForValue().set(
+                "blacklist:" + accessToken,
+                "logged_out",
+                remainingTime, TimeUnit.MILLISECONDS
+        );
+        log.info("access token added to blacklist for email: {}", email);
     }
 }
