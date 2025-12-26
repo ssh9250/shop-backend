@@ -1,1 +1,21 @@
-GET http://localhost:8080/api/test/redis
+### 0. redis test
+GET localhost:8080/api/test/redis
+
+
+### 1. signup
+POST http://localhost:8080/api/auth/signup
+Content-Type: application/json
+
+< ./signup.json
+
+### 2. login
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+< ./login.json
+
+
+### 3. logout
+POST http://localhost:8080/api/auth/logout
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZTFzdEB0ZXN0LmNvbSIsImlhdCI6MTc2Njc1MTA4MywiZXhwIjoxNzY2NzUyODgzfQ.IKmvoKLRkNeNW_EvkurlgoMnIWrKVJXzxaGL5m6IQZ8
+Content-Type: application/json

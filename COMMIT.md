@@ -6,7 +6,7 @@ authservice signup 로직 강화하기 (중복체크, 유효체크 api 추가 �
 swaggerConfig에서 jwt 관련 설정 마무리
 로그아웃 시 refresh token 삭제
 
-Refresh Token Rotation 로직 상세 이해
+ok) Refresh Token Rotation 로직 상세 이해
 
 security config filter bean 중복 생성 문제 해결 issue에 기록
 
@@ -21,30 +21,25 @@ chore : 빌드 업무 수정, 패키지 매니저 수정
 
 ---
 
-feat: 로그아웃 API 추가 (진행중)
-- AuthController에 로그아웃 엔드포인트 추가
-- AuthService에 로그아웃 로직 구현 (미완성 - Access Token 블랙리스트 처리 필요)
-- Refresh Token 삭제 기능 포함
+feat: 로그아웃 API 구현 완료
+- AuthController 로그아웃 엔드포인트 추가 (/api/auth/logout)
+- AuthService 로그아웃 로직 구현 (Refresh Token 삭제 + Access Token 블랙리스트 처리)
+- JwtTokenProvider에 토큰 만료 시간 조회 메서드 추가 (getExpiration)
+- HTTP 테스트 파일 추가 (signup/login/logout 요청)
 
-feat: Redis 테스트 컨트롤러 추가
-- RedisTestController 생성 및 기본 테스트 엔드포인트 구현
-- /api/test/redis 엔드포인트로 Redis 연결 테스트 가능
+refactor: Security 설정 및 로그인 플로우 개선
+- SecurityConfig에서 기본 logout 설정 제거 (커스텀 로그아웃 API 사용)
+- AuthService.login 메서드 리팩토링 (RefreshTokenService 호출 방식 변경)
+- CustomUserDetails 사용법 변경 (InstrumentController)
 
-refactor: 설정 파일 프로파일 정리
-- application.yml에 active profile 설정 추가 (local)
+chore: 설정 파일 프로파일 정리
+- application.yml에 active profile 설정 (local)
 - application-dev.yml, application-local.yml에 on-profile 명시
-- application-local.yml 전체 설정 추가 (datasource, jpa, redis, logging 등)
+- application-local.yml 전체 설정 추가
 
-refactor: 불필요한 클래스 및 코드 정리
-- RefreshTokenRotationPolicy.java 삭제 (주석만 있던 정책 파일)
+refactor: 불필요한 코드 정리
+- RefreshTokenRotationPolicy.java 삭제
 - MemberRepository.findByEmailWithRoles 쿼리 주석 처리
 
-fix: JwtTokenProvider 오타 수정
-- @Value 어노테이션의 refresh-expiration-ms 속성명 오타 수정
-
-style: 코드 개선
-- JwtAuthenticationFilter, JwtTokenProvider 주석 추가
-- SecurityConfig 필터 순서 조정 (JwtAuthenticationFilter -> JwtExceptionFilter 순으로 변경)
-- InstrumentController CustomUserDetails 사용법 변경 (getMember().getId() -> getMemberId())
-- codeRequest.http 파일 생성 및 테스트 요청 추가
-
+fix: JwtTokenProvider 설정 오류 수정
+- @Value 어노테이션 refresh-expiration-ms 오타 수정
