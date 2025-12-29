@@ -5,11 +5,21 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 public enum ErrorCode {
-    // Controller 레벨
+    // MEMBER
     MEMBER_NOT_FOUND("회원을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    DUPLICATE_EMAIL("이미 사용 중인 이메일입니다.", HttpStatus.CONFLICT),
+    DUPLICATE_NICKNAME("이미 사용 중인 닉네임입니다.", HttpStatus.CONFLICT),
+
+    // POST
     POST_NOT_FOUND("게시글을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+
+    // COMMENT
     COMMENT_NOT_FOUND("댓글을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+
+    // INSTRUMENT
     INSTRUMENT_NOT_FOUND("악기를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+
+    // etc
     INVALID_REQUEST("잘못된 요청입니다.", HttpStatus.BAD_REQUEST),
 
     // Security 관련
