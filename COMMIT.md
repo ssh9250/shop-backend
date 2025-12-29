@@ -21,25 +21,11 @@ chore : 빌드 업무 수정, 패키지 매니저 수정
 
 ---
 
-feat: 로그아웃 API 구현 완료
-- AuthController 로그아웃 엔드포인트 추가 (/api/auth/logout)
-- AuthService 로그아웃 로직 구현 (Refresh Token 삭제 + Access Token 블랙리스트 처리)
-- JwtTokenProvider에 토큰 만료 시간 조회 메서드 추가 (getExpiration)
-- HTTP 테스트 파일 추가 (signup/login/logout 요청)
+feat: 회원가입 및 프로필 수정 시 이메일/닉네임 중복 체크 기능 추가
+- DuplicateEmailException, DuplicateNicknameException 커스텀 예외 추가
+- ErrorCode에 DUPLICATE_EMAIL, DUPLICATE_NICKNAME 에러 코드 추가 (HttpStatus.CONFLICT)
+- MemberService에 validateDuplicateEmail, validateDuplicateNickname 검증 메서드 추가
 
-refactor: Security 설정 및 로그인 플로우 개선
-- SecurityConfig에서 기본 logout 설정 제거 (커스텀 로그아웃 API 사용)
-- AuthService.login 메서드 리팩토링 (RefreshTokenService 호출 방식 변경)
-- CustomUserDetails 사용법 변경 (InstrumentController)
+refactor: MemberController 코드 정리
 
-chore: 설정 파일 프로파일 정리
-- application.yml에 active profile 설정 (local)
-- application-dev.yml, application-local.yml에 on-profile 명시
-- application-local.yml 전체 설정 추가
-
-refactor: 불필요한 코드 정리
-- RefreshTokenRotationPolicy.java 삭제
-- MemberRepository.findByEmailWithRoles 쿼리 주석 처리
-
-fix: JwtTokenProvider 설정 오류 수정
-- @Value 어노테이션 refresh-expiration-ms 오타 수정
+refactor: ErrorCode 주석 정리

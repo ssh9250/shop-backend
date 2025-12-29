@@ -1,6 +1,8 @@
 package com.study.shop.domain.member.service;
 
 import com.study.shop.domain.auth.dto.SignupRequestDto;
+import com.study.shop.domain.member.exception.DuplicateEmailException;
+import com.study.shop.domain.member.exception.DuplicateNicknameException;
 import com.study.shop.domain.post.repository.PostRepository;
 import com.study.shop.domain.comment.repository.CommentRepository;
 import com.study.shop.domain.member.dto.ChangePasswordRequestDto;
@@ -25,14 +27,16 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
 
     public void signup(SignupRequestDto requestDto) {
-        // 이메일, 닉네임 등 중복체크 작업 필요
+        validateDuplicateEmail(requestDto.getEmail());
+        validateDuplicateNickname(requestDto.getNickname());
+
         String encryptedPassword = passwordEncoder.encode(requestDto.getPassword());
 
         // 빈 문자열을 null로 변환
         String phone = (requestDto.getPhone() != null && !requestDto.getPhone().trim().isEmpty())
-                       ? requestDto.getPhone().trim() : null;
+                ? requestDto.getPhone().trim() : null;
         String address = (requestDto.getAddress() != null && !requestDto.getAddress().trim().isEmpty())
-                         ? requestDto.getAddress().trim() : null;
+                ? requestDto.getAddress().trim() : null;
 
         Member member = Member.builder()
                 .email(requestDto.getEmail())
@@ -42,6 +46,7 @@ public class MemberService {
                 .address(address)
                 .role(RoleType.USER)
                 .build();
+
         memberRepository.save(member);
     }
 
@@ -60,6 +65,8 @@ public class MemberService {
     }
 
     public void updateProfile(Long id, UpdateProfileRequestDto requestDto) {
+        validateDuplicateNickname(requestDto.getNickname());
+
         Member member = memberRepository.findById(id).orElseThrow(() -> new MemberNotFoundException(id));
         member.updateProfile(requestDto.getNickname(), requestDto.getPhone(), requestDto.getAddress());
     }
@@ -72,5 +79,17 @@ public class MemberService {
     public void deleteMember(Long id) {
         Member member = memberRepository.findById(id).orElseThrow(() -> new MemberNotFoundException(id));
         memberRepository.delete(member);
+    }
+
+    private void validateDuplicateEmail(String email) {
+        if (memberRepository.existsByEmail(email)) {
+            throw new DuplicateEmailException(email);
+        }
+    }
+
+    private void validateDuplicateNickname(String nickname) {
+        if (memberRepository.existsByNickname(nickname)) {
+            throw new DuplicateNicknameException(nickname);
+        }
     }
 }
