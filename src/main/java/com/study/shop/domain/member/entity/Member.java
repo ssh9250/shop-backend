@@ -1,5 +1,6 @@
 package com.study.shop.domain.member.entity;
 
+import com.study.shop.domain.order.Order;
 import com.study.shop.domain.post.entity.Post;
 import com.study.shop.domain.comment.entity.Comment;
 import com.study.shop.global.enums.RoleType;
@@ -42,11 +43,15 @@ public class Member {
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<Post>  posts = new ArrayList<>();
+    private List<Post> posts = new ArrayList<>();
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<Comment> comments =  new ArrayList<>();
+    private List<Comment> comments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Order> orders = new ArrayList<>();
 
     public void updateProfile(String nickname, String phone, String address) {
         this.nickname = nickname;
@@ -76,6 +81,7 @@ public class Member {
         this.posts.remove(post);
         post.setMember(null);
     }
+
     public void removeComment(Comment comment) {
         this.comments.remove(comment);
         comment.setMember(null);

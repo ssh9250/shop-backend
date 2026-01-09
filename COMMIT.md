@@ -18,14 +18,3 @@ style : 코드 포맷팅, 세미콜론 누락, 코드 변경이 없는 경우
 refactor : 코드 리펙토링
 test : 테스트 코드, 리펙토링 테스트 코드 추가
 chore : 빌드 업무 수정, 패키지 매니저 수정
-
----
-
-feat: 회원가입 및 프로필 수정 시 이메일/닉네임 중복 체크 기능 추가
-- DuplicateEmailException, DuplicateNicknameException 커스텀 예외 추가
-- ErrorCode에 DUPLICATE_EMAIL, DUPLICATE_NICKNAME 에러 코드 추가 (HttpStatus.CONFLICT)
-- MemberService에 validateDuplicateEmail, validateDuplicateNickname 검증 메서드 추가
-
-refactor: MemberController 코드 정리
-
-refactor: ErrorCode 주석 정리
