@@ -18,3 +18,13 @@ style : 코드 포맷팅, 세미콜론 누락, 코드 변경이 없는 경우
 refactor : 코드 리펙토링
 test : 테스트 코드, 리펙토링 테스트 코드 추가
 chore : 빌드 업무 수정, 패키지 매니저 수정
+
+---
+
+test: 회원가입 및 로그인 컨트롤러 테스트 코드 추가
+- SignupControllerTest 생성 (회원가입 API 테스트)
+- LoginControllerTest 생성 (로그인 API 테스트)
+- RefreshControllerTest 생성 (토큰 갱신 API 테스트 준비)
+- AuthController에 @Valid 어노테이션 추가 (signup, login 메서드)
+- LoginRequestDto에 @Email validation 추가
+- MemberControllerTest에 @Transactional 추가 및 불필요한 테스트 코드 제거
