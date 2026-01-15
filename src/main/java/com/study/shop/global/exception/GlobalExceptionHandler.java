@@ -2,7 +2,10 @@ package com.study.shop.global.exception;
 
 import com.study.shop.global.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.websocket.AuthenticationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -28,6 +31,15 @@ public class GlobalExceptionHandler {
         List<FieldError> fieldErrors = e.getBindingResult().getFieldErrors();
 
         return ResponseEntity.badRequest().body(ApiResponse.fail("Validation Error"));
+    }
+
+    @ExceptionHandler({
+            BadCredentialsException.class,
+            AuthenticationException.class
+    })
+    public ResponseEntity<ApiResponse<Void>> handleBadCredentialsException(Exception e) {
+        // 보안상의 이유로 세분화하지 않는 것이 바람직
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.fail("로그인에 실패하였습니다."));
     }
 
     @ExceptionHandler

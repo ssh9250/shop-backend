@@ -21,10 +21,11 @@ chore : 빌드 업무 수정, 패키지 매니저 수정
 
 ---
 
-test: 회원가입 및 로그인 컨트롤러 테스트 코드 추가
-- SignupControllerTest 생성 (회원가입 API 테스트)
-- LoginControllerTest 생성 (로그인 API 테스트)
-- RefreshControllerTest 생성 (토큰 갱신 API 테스트 준비)
-- AuthController에 @Valid 어노테이션 추가 (signup, login 메서드)
-- LoginRequestDto에 @Email validation 추가
-- MemberControllerTest에 @Transactional 추가 및 불필요한 테스트 코드 제거
+Fix: 테스트 실행 시 SLF4J 로거 충돌 문제 해결 및 테스트 환경 개선
+- embedded-redis 라이브러리를 최신 버전으로 변경 (it.ozimov -> com.github.codemonstur:1.4.3)
+- IntegrationTestBase 클래스 추가 (통합 테스트용 베이스 클래스)
+- EmbeddedRedisConfig 추가 (테스트용 임베디드 Redis 설정, 포트 6370 사용)
+- application-test.yml 추가 (테스트 프로파일 전용 설정)
+- GlobalExceptionHandler에 BadCredentialsException 핸들러 추가 (401 Unauthorized 응답)
+- CustomUserDetailsService에서 UsernameNotFoundException 사용으로 변경
+- LoginControllerTest를 IntegrationTestBase로 리팩토링

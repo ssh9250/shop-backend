@@ -2,6 +2,7 @@ package com.study.shop.domain.auth.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.study.shop.ShopApplication;
+import com.study.shop.common.IntegrationTestBase;
 import com.study.shop.domain.auth.dto.LoginRequestDto;
 import com.study.shop.domain.member.entity.Member;
 import com.study.shop.domain.member.repository.MemberRepository;
@@ -23,10 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest(classes = ShopApplication.class)
-@AutoConfigureMockMvc
-@Transactional
-class LoginControllerTest {
+class LoginControllerTest extends IntegrationTestBase {
     @Autowired
     private MockMvc mockMvc;
     @Autowired
@@ -88,6 +86,7 @@ class LoginControllerTest {
                             .content(objectMapper.writeValueAsString(requestDto)))
                     .andDo(print())
                     .andExpect(status().isUnauthorized());
+            // todo : 로그인 실패 로직 확인, 응답 체크
         }
 
         @Test

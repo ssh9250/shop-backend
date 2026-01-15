@@ -64,3 +64,51 @@ public ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
 
 ### 교훈
 - 디버깅 친화적인 예외 처리: 개발 중에는 구체적인 에러 정보를 확인할 수 있도록 로깅 필요
+
+---
+
+## Issue #003: 테스트 실행 시 SLF4J 로거 충돌로 ApplicationContext 로딩 실패
+
+**발생일**: 2026-01-15
+
+### 문제 상황
+LoginControllerTest 등 통합 테스트 실행 시 ApplicationContext 로딩 실패로 모든 테스트 실패
+
+### 오류 메시지
+```
+java.lang.IllegalStateException: Failed to load ApplicationContext
+Caused by: java.lang.IllegalArgumentException: LoggerFactory is not a Logback LoggerContext but Logback is on the classpath.
+Either remove Logback or the competing implementation (class org.slf4j.simple.SimpleLoggerFactory)
+```
+
+### 원인 분석
+클래스패스에 두 개의 SLF4J 로거 구현체가 동시에 존재하여 충돌 발생:
+- **Logback** (Spring Boot 기본 로거)
+- **slf4j-simple** (embedded-redis 라이브러리의 전이 의존성)
+
+의존성 트리 분석 결과:
+```
++--- it.ozimov:embedded-redis:0.7.3
+|    +--- org.slf4j:slf4j-simple:1.7.21 -> 2.0.16
+```
+
+### 해결 방법
+build.gradle에서 embedded-redis의 slf4j-simple 의존성 제외:
+
+```gradle
+// 수정 전
+testImplementation 'it.ozimov:embedded-redis:0.7.3'
+
+// 수정 후
+testImplementation('it.ozimov:embedded-redis:0.7.3') {
+    exclude group: 'org.slf4j', module: 'slf4j-simple'
+}
+```
+
+### 관련 파일
+- `build.gradle`
+
+### 교훈
+- 전이 의존성 충돌 주의: 서드파티 라이브러리가 가져오는 전이 의존성이 프로젝트의 기본 설정과 충돌할 수 있음
+- 의존성 분석 도구 활용: `./gradlew dependencies` 명령으로 의존성 트리를 분석하여 충돌 원인 파악 가능
+- 라이브러리 선택 신중: 오래된 라이브러리(embedded-redis 0.7.3, 2017년 릴리즈)는 최신 Spring Boot와 호환성 문제 발생 가능

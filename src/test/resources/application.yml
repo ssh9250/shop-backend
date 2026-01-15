@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: shop
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  profiles:
+    active:
+      test
+
+logging:
+  level:
+    root: info
+    org.hibernate.SQL: warn
+    org.springframework: warn
+    org.springframework.cache: trace
+    com.study.cruisin: debug
+
+springdoc:
+  api-docs:
+    path: "/v3/api-docs"
+  swagger-ui:
+    path: "/swagger-ui.html"
+
+jwt:
+  # secret: local.yml/environment variable로 관리
+  access-expiration-ms: 1800000
+  refresh-expiration-ms: 1209600000
