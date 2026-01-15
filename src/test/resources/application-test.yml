@@ -1,15 +1,19 @@
 spring:
   config:
     activate:
-      on-profile: local
+      on-profile: test
   datasource:
-    url: jdbc:h2:mem:localDB;
+    url: jdbc:h2:mem:testDB; #DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
     username: sa
     password:
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: create-drop  # 개발 편의
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
   h2:
     console:
       enabled: true
@@ -17,16 +21,18 @@ spring:
   data:
     redis:
       host: localhost
-      port: 6379
+      port: 6370  # 테스트용 embedded redis 포트
   main:
     allow-bean-definition-overriding: true
 
+# 개발에선 Swagger 켜기
 springdoc:
   swagger-ui:
     enabled: true
   api-docs:
     enabled: true
 
+# 개발 로깅 강화
 logging:
   level:
     com.study.shop: debug
@@ -37,3 +43,5 @@ logging:
 
 jwt:
   secret: SldUU2lnbmluZ0tleUZvclNlY3VyZUF1dGhlbnRpY2F0aW9uSW5TcHJpbmdCb290QXBwbGljYXRpb25XaXRoSFMyNTZBbGdvcml0aG0=
+  access-expiration-ms: 1800000
+  refresh-expiration-ms: 1209600000
