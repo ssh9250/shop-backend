@@ -40,11 +40,12 @@ class LoginControllerTest extends IntegrationTestBase {
     class Login {
         private final String TEST_EMAIL = "test@example.com";
         private final String TEST_PASSWORD = "password123";
-        private final String TEST_NICKNAME = "테스트유저";
 
         @BeforeEach
         void setUp() {
             // 테스트용 회원 등록
+            String TEST_NICKNAME = "testUser";
+
             Member testMember = Member.builder()
                     .email(TEST_EMAIL)
                     .password(passwordEncoder.encode(TEST_PASSWORD))

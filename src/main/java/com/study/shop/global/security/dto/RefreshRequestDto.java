@@ -1,5 +1,6 @@
 package com.study.shop.global.security.dto;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
