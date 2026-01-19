@@ -40,7 +40,6 @@ class SignupControllerTest {
     @Nested
     @DisplayName("/api/auth/signup - 회원가입")
     class Signup {
-
         @Test
         @DisplayName("정상 회원가입 - 필수 필드만")
         void signupSuccess_WithRequiredFieldsOnly() throws Exception {
