@@ -1,20 +1,16 @@
 package com.study.shop.domain.auth.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.study.shop.ShopApplication;
 import com.study.shop.common.IntegrationTestBase;
 import com.study.shop.domain.auth.dto.LoginRequestDto;
 import com.study.shop.domain.member.entity.Member;
 import com.study.shop.domain.member.repository.MemberRepository;
 import com.study.shop.global.enums.RoleType;
-import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
@@ -87,7 +83,7 @@ class LoginControllerTest extends IntegrationTestBase {
                             .content(objectMapper.writeValueAsString(requestDto)))
                     .andDo(print())
                     .andExpect(status().isUnauthorized());
-            // todo : 로그인 실패 로직 확인, 응답 체크
+            // todo : 로그인 실패 로직 확인, 응답 체크 (해결)
         }
 
         @Test
