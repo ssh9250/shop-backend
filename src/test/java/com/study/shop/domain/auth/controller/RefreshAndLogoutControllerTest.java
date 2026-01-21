@@ -7,16 +7,16 @@ import com.study.shop.domain.auth.dto.LoginRequestDto;
 import com.study.shop.domain.member.entity.Member;
 import com.study.shop.domain.member.repository.MemberRepository;
 import com.study.shop.global.enums.RoleType;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -35,6 +35,8 @@ class RefreshAndLogoutControllerTest extends IntegrationTestBase {
     private final String TEST_EMAIL = "test@example.com";
     private final String TEST_PASSWORD = "password123";
     private final String TEST_NICKNAME = "testUser";
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
     @BeforeEach
     void setUp() {
@@ -46,6 +48,13 @@ class RefreshAndLogoutControllerTest extends IntegrationTestBase {
                 .role(RoleType.USER)
                 .build();
         memberRepository.save(testMember);
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+
+        stringRedisTemplate.getConnectionFactory().getConnection().flushDb();
     }
 
     private TokenInfo loginAndGetTokens() throws Exception {
@@ -149,6 +158,10 @@ class RefreshAndLogoutControllerTest extends IntegrationTestBase {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.message").value("로그아웃 성공"));
+
+            // redis blacklist 검증
+            String blacklistKey = "blacklist:" + tokenInfo.accessToken;
+            assertThat(stringRedisTemplate.hasKey(blacklistKey)).isTrue();
         }
 
         @Test
@@ -157,20 +170,21 @@ class RefreshAndLogoutControllerTest extends IntegrationTestBase {
             // when & then
             mockMvc.perform(post("/api/auth/logout"))
                     .andDo(print())
-                    .andExpect(status().isUnauthorized());
+                    .andExpect(status().isForbidden());
         }
 
         @Test
         @DisplayName("유효하지 않은 토큰으로 로그아웃 시도 시 실패")
         void logoutFail_InvalidToken() throws Exception {
             // given
+            TokenInfo tokenInfo = loginAndGetTokens();
             String invalidToken = "invalid.access.token";
 
             // when & then
             mockMvc.perform(post("/api/auth/logout")
                             .header("Authorization", "Bearer " + invalidToken))
                     .andDo(print())
-                    .andExpect(status().isUnauthorized());
+                    .andExpect(status().isForbidden());
         }
 
         @Test
@@ -188,7 +202,7 @@ class RefreshAndLogoutControllerTest extends IntegrationTestBase {
             mockMvc.perform(post("/api/auth/logout")
                             .header("Authorization", "Bearer " + tokenInfo.accessToken()))
                     .andDo(print())
-                    .andExpect(status().isUnauthorized());
+                    .andExpect(status().isForbidden());
         }
 
         @Test
