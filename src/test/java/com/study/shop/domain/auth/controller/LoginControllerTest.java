@@ -83,7 +83,6 @@ class LoginControllerTest extends IntegrationTestBase {
                             .content(objectMapper.writeValueAsString(requestDto)))
                     .andDo(print())
                     .andExpect(status().isUnauthorized());
-            // todo : 로그인 실패 로직 확인, 응답 체크 (해결)
         }
 
         @Test
