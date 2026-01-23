@@ -112,3 +112,79 @@ testImplementation('it.ozimov:embedded-redis:0.7.3') {
 - 전이 의존성 충돌 주의: 서드파티 라이브러리가 가져오는 전이 의존성이 프로젝트의 기본 설정과 충돌할 수 있음
 - 의존성 분석 도구 활용: `./gradlew dependencies` 명령으로 의존성 트리를 분석하여 충돌 원인 파악 가능
 - 라이브러리 선택 신중: 오래된 라이브러리(embedded-redis 0.7.3, 2017년 릴리즈)는 최신 Spring Boot와 호환성 문제 발생 가능
+
+---
+
+## Issue #004: SecurityConfig에 signup 엔드포인트 permitAll 누락
+
+**발생일**: 2026-01-21
+
+### 문제 상황
+회원가입 API 테스트 시 인증 없이 접근할 수 없어 테스트 실패
+
+### 원인 분석
+SecurityConfig의 `authorizeHttpRequests`에서 `/api/auth/signup` 엔드포인트가 `permitAll()`에 포함되지 않아 인증이 필요한 상태로 설정됨
+
+```java
+// 문제가 된 코드
+.requestMatchers(
+    "/api/auth/login",
+    "/api/auth/refresh",
+    // ... swagger 관련 경로
+).permitAll()
+// /api/auth/signup이 누락됨
+```
+
+### 해결 방법
+```java
+// 수정 후
+.requestMatchers(
+    "/api/auth/signup",  // 추가
+    "/api/auth/login",
+    "/api/auth/refresh",
+    // ... swagger 관련 경로
+).permitAll()
+```
+
+### 관련 파일
+- `src/main/java/com/study/shop/global/security/config/SecurityConfig.java`
+
+### 교훈
+- 인증이 필요 없는 공개 API(회원가입, 로그인 등)는 반드시 `permitAll()`에 명시적으로 추가
+- 새로운 API 엔드포인트 추가 시 Security 설정 검토 필수
+
+---
+
+## Issue #005: 통합 테스트 간 SecurityContext 및 Redis 데이터 격리 실패
+
+**발생일**: 2026-01-21
+
+### 문제 상황
+RefreshAndLogoutControllerTest에서 여러 테스트를 연속 실행 시 일부 테스트 실패
+- 이전 테스트의 인증 정보가 SecurityContext에 남아 있어 다음 테스트에 영향
+- 이전 테스트에서 저장한 Redis 데이터(refreshToken, blacklist)가 다음 테스트에 영향
+
+### 원인 분석
+`@Transactional`은 DB 롤백만 처리하고, SecurityContext와 Redis는 별도로 정리되지 않음
+- SecurityContext: 스레드 로컬에 저장되어 테스트 간 공유됨
+- Redis: 인메모리 저장소로 트랜잭션 롤백 대상이 아님
+
+### 해결 방법
+```java
+@AfterEach
+void tearDown() {
+    // SecurityContext 초기화
+    SecurityContextHolder.clearContext();
+
+    // Redis 데이터 초기화
+    stringRedisTemplate.getConnectionFactory().getConnection().flushDb();
+}
+```
+
+### 관련 파일
+- `src/test/java/com/study/shop/domain/auth/controller/RefreshAndLogoutControllerTest.java`
+
+### 교훈
+- `@Transactional`은 DB만 롤백: SecurityContext, Redis, 외부 시스템 등은 별도 정리 필요
+- 테스트 격리 원칙: 각 테스트는 독립적으로 실행될 수 있어야 하며, 다른 테스트에 영향을 주거나 받지 않아야 함
+- `@AfterEach` 활용: 테스트 후 상태 정리가 필요한 리소스는 명시적으로 초기화
