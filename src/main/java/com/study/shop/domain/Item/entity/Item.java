@@ -1,4 +1,4 @@
-package com.study.shop.domain.instrument.entity;
+package com.study.shop.domain.Item.entity;
 
 import com.study.shop.domain.member.entity.Member;
 import com.study.shop.global.enums.InstrumentCategory;
@@ -11,7 +11,7 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class Instrument extends BaseTimeEntity {
+public class Item extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -1,4 +1,4 @@
-package com.study.shop.domain.instrument.dto;
+package com.study.shop.domain.Item.dto;
 
 import com.study.shop.global.enums.InstrumentCategory;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -12,7 +12,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CreateInstrumentRequestDto {
+public class CreateItemRequestDto {
     @NotBlank
     @Schema(description = "상품명", example = "아이바네즈 일렉 기타")
     private String name;

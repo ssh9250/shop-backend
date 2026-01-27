@@ -23,18 +23,17 @@ chore : 빌드 업무 수정, 패키지 매니저 수정
 
 ---
 
-Test: 토큰 재발급 및 로그아웃 API 테스트 코드 추가
-- RefreshControllerTest를 RefreshAndLogoutControllerTest로 리네이밍
-- IntegrationTestBase 상속으로 테스트 구조 통일
-- 토큰 재발급(Refresh) 테스트 케이스 추가
-  - 정상 토큰 재발급
-  - 유효하지 않은 refreshToken으로 재발급 실패
-  - refreshToken 누락 시 재발급 실패
-  - 빈 문자열 refreshToken으로 재발급 실패
-- 로그아웃(Logout) 테스트 케이스 추가
-  - 정상 로그아웃
-  - 인증 없이 로그아웃 시도 시 실패
-  - 유효하지 않은 토큰으로 로그아웃 시도 시 실패
-  - 로그아웃 후 동일 토큰으로 재요청 시 실패 (블랙리스트 검증)
-  - 로그아웃 후 refreshToken으로 토큰 재발급 실패
-- LoginControllerTest, SignupControllerTest 코드 스타일 정리
+Refactor: Instrument 도메인을 Item으로 리네이밍 및 Order 도메인 구조 개선
+- Instrument 도메인을 Item 도메인으로 전면 리네이밍
+  - 패키지명 변경: domain/instrument → domain/Item
+  - 엔티티 리네이밍: Instrument → Item
+  - 컨트롤러 리네이밍: InstrumentController → ItemController
+  - DTO 리네이밍: CreateInstrumentRequestDto → CreateItemRequestDto
+  - DTO 리네이밍: InstrumentResponseDto → ItemResponseDto
+  - DTO 리네이밍: UpdateInstrumentRequestDto → UpdateItemRequestDto
+  - 서비스 및 레포지토리 import 경로 수정
+- Order 도메인 구조 개선
+  - Order 엔티티를 order/entity/ 하위로 이동
+  - Order 엔티티에 필드 추가 (orderItems, orderDate, totalPrice, orderStatus, address)
+  - OrderItem 엔티티를 order/entity/ 하위로 이동 및 JPA 엔티티로 구현
+  - Order-OrderItem 간 양방향 연관관계 설정

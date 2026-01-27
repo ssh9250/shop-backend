@@ -39,7 +39,7 @@ QueryDSL Q-클래스는 컴파일 시 자동으로 생성됩니다. 생성된 �
 ### 패키지 구조
 애플리케이션은 도메인 주도 설계(DDD) 원칙을 따릅니다:
 
-- `domain/` - 핵심 비즈니스 도메인 (post, comment, member, instrument, auth)
+- `domain/` - 핵심 비즈니스 도메인 (post, comment, member, item, auth)
   - 각 도메인은 다음을 포함: `dto/`, `entity/`, `repository/`, `controller/`, `service/`, `exception/`
 - `global/` - 공통 관심사
   - `config/` - 설정 클래스 (QueryDSL, JPA Auditing, Swagger, Web)

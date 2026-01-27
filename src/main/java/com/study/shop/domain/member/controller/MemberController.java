@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping("/api/members")
 @Tag(name = "Member", description = "회원 관련 API")
+// todo: memberControllerTest 전체 작성하기
 public class MemberController {
     private final MemberService memberService;
 

@@ -1,6 +1,6 @@
-package com.study.shop.domain.instrument.dto;
+package com.study.shop.domain.Item.dto;
 
-import com.study.shop.domain.instrument.entity.Instrument;
+import com.study.shop.domain.Item.entity.Item;
 import com.study.shop.global.enums.InstrumentCategory;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
@@ -8,7 +8,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class InstrumentResponseDto {
+public class ItemResponseDto {
     @Schema(description = "상품 id", example = "101")
     private Long id;
 
@@ -34,16 +34,16 @@ public class InstrumentResponseDto {
             allowableValues = {"GUITAR","BASS","PIANO","VIOLIN", "DRUM", "WIND", "ELECTRONIC", "ETC"})
     private InstrumentCategory category;
 
-    public static InstrumentResponseDto from(Instrument instrument) {
-        return InstrumentResponseDto.builder()
-                .id(instrument.getId())
-                .name(instrument.getName())
-                .brand(instrument.getBrand())
-                .description(instrument.getDescription())
-                .price(instrument.getPrice())
-                .used(instrument.isUsed())
-                .available(instrument.isAvailable())
-                .category(instrument.getCategory())
+    public static ItemResponseDto from(Item item) {
+        return ItemResponseDto.builder()
+                .id(item.getId())
+                .name(item.getName())
+                .brand(item.getBrand())
+                .description(item.getDescription())
+                .price(item.getPrice())
+                .used(item.isUsed())
+                .available(item.isAvailable())
+                .category(item.getCategory())
                 .build();
     }
 }
