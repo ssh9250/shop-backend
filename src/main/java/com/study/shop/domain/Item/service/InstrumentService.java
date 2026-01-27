@@ -1,12 +1,11 @@
-package com.study.shop.domain.instrument.service;
+package com.study.shop.domain.Item.service;
 
-import com.study.shop.domain.instrument.dto.CreateInstrumentRequestDto;
-import com.study.shop.domain.instrument.dto.InstrumentResponseDto;
-import com.study.shop.domain.instrument.dto.UpdateInstrumentRequestDto;
-import com.study.shop.domain.instrument.entity.Instrument;
-import com.study.shop.domain.instrument.exception.InstrumentNotFoundException;
-import com.study.shop.domain.instrument.repository.InstrumentRepository;
-import lombok.NoArgsConstructor;
+import com.study.shop.domain.Item.dto.CreateItemRequestDto;
+import com.study.shop.domain.Item.dto.ItemResponseDto;
+import com.study.shop.domain.Item.dto.UpdateItemRequestDto;
+import com.study.shop.domain.Item.entity.Item;
+import com.study.shop.domain.Item.exception.InstrumentNotFoundException;
+import com.study.shop.domain.Item.repository.InstrumentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,8 +21,8 @@ public class InstrumentService {
     @Autowired
     private final InstrumentRepository instrumentRepository;
 
-    public Long createInstrument(CreateInstrumentRequestDto requestDto) {
-        Instrument instrument = Instrument.builder()
+    public Long createInstrument(CreateItemRequestDto requestDto) {
+        Item item = Item.builder()
                 .name(requestDto.getName())
                 .brand(requestDto.getBrand())
                 .description(requestDto.getDescription())
@@ -32,34 +31,34 @@ public class InstrumentService {
                 .available(requestDto.isAvailable())
                 .category(requestDto.getCategory())
                 .build();
-        return instrumentRepository.save(instrument).getId();
+        return instrumentRepository.save(item).getId();
     }
 
     @Transactional(readOnly = true)
-    public List<InstrumentResponseDto> getAllInstruments() {
+    public List<ItemResponseDto> getAllInstruments() {
         return instrumentRepository.findAll().stream()
-                .map(InstrumentResponseDto::from)
+                .map(ItemResponseDto::from)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public InstrumentResponseDto getInstrumentById(Long id) {
+    public ItemResponseDto getInstrumentById(Long id) {
         return instrumentRepository.findById(id)
-                .map(InstrumentResponseDto::from)
+                .map(ItemResponseDto::from)
                 .orElseThrow(() -> new InstrumentNotFoundException(id));
     }
 
     @Transactional(readOnly = true)
-    public List<InstrumentResponseDto> getInstrumentsByMemberId(Long memberId) {
+    public List<ItemResponseDto> getInstrumentsByMemberId(Long memberId) {
         return instrumentRepository.findBySellerId(memberId).stream()
-                .map(InstrumentResponseDto::from)
+                .map(ItemResponseDto::from)
                 .collect(Collectors.toList());
     }
 
-    public void updateInstrument(Long id, UpdateInstrumentRequestDto request) {
-        Instrument instrument = instrumentRepository.findById(id)
+    public void updateInstrument(Long id, UpdateItemRequestDto request) {
+        Item item = instrumentRepository.findById(id)
                 .orElseThrow(() -> new InstrumentNotFoundException(id));
-        instrument.update(
+        item.update(
                 request.getName(),
                 request.getBrand(),
                 request.getDescription(),
@@ -71,7 +70,7 @@ public class InstrumentService {
     }
 
     public void deleteInstrument(Long id) {
-        Instrument instrument = instrumentRepository.findById(id)
+        Item item = instrumentRepository.findById(id)
                 .orElseThrow(() -> new InstrumentNotFoundException(id));
         instrumentRepository.deleteById(id);
     }

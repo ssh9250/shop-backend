@@ -1,6 +1,6 @@
 package com.study.shop.domain.member.entity;
 
-import com.study.shop.domain.order.Order;
+import com.study.shop.domain.order.entity.Order;
 import com.study.shop.domain.post.entity.Post;
 import com.study.shop.domain.comment.entity.Comment;
 import com.study.shop.global.enums.RoleType;
