@@ -22,18 +22,3 @@ test : 테스트 코드, 리펙토링 테스트 코드 추가
 chore : 빌드 업무 수정, 패키지 매니저 수정
 
 ---
-
-Refactor: Instrument 도메인을 Item으로 리네이밍 및 Order 도메인 구조 개선
-- Instrument 도메인을 Item 도메인으로 전면 리네이밍
-  - 패키지명 변경: domain/instrument → domain/Item
-  - 엔티티 리네이밍: Instrument → Item
-  - 컨트롤러 리네이밍: InstrumentController → ItemController
-  - DTO 리네이밍: CreateInstrumentRequestDto → CreateItemRequestDto
-  - DTO 리네이밍: InstrumentResponseDto → ItemResponseDto
-  - DTO 리네이밍: UpdateInstrumentRequestDto → UpdateItemRequestDto
-  - 서비스 및 레포지토리 import 경로 수정
-- Order 도메인 구조 개선
-  - Order 엔티티를 order/entity/ 하위로 이동
-  - Order 엔티티에 필드 추가 (orderItems, orderDate, totalPrice, orderStatus, address)
-  - OrderItem 엔티티를 order/entity/ 하위로 이동 및 JPA 엔티티로 구현
-  - Order-OrderItem 간 양방향 연관관계 설정
