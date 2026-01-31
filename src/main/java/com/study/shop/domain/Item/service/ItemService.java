@@ -35,27 +35,27 @@ public class ItemService {
     }
 
     @Transactional(readOnly = true)
-    public List<ItemResponseDto> getAllInstruments() {
+    public List<ItemResponseDto> getAllItems() {
         return itemRepository.findAll().stream()
                 .map(ItemResponseDto::from)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public ItemResponseDto getInstrumentById(Long id) {
+    public ItemResponseDto getItemById(Long id) {
         return itemRepository.findById(id)
                 .map(ItemResponseDto::from)
                 .orElseThrow(() -> new ItemNotFoundException(id));
     }
 
     @Transactional(readOnly = true)
-    public List<ItemResponseDto> getInstrumentsByMemberId(Long memberId) {
+    public List<ItemResponseDto> getItemsByMemberId(Long memberId) {
         return itemRepository.findBySellerId(memberId).stream()
                 .map(ItemResponseDto::from)
                 .collect(Collectors.toList());
     }
 
-    public void updateInstrument(Long id, UpdateItemRequestDto request) {
+    public void updateItem(Long id, UpdateItemRequestDto request) {
         Item item = itemRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException(id));
         item.update(
@@ -69,11 +69,9 @@ public class ItemService {
         );
     }
 
-    public void deleteInstrument(Long id) {
+    public void deleteItem(Long id) {
         Item item = itemRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException(id));
         itemRepository.deleteById(id);
     }
-
-
 }
