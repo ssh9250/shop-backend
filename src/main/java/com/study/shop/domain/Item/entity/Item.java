@@ -1,10 +1,14 @@
 package com.study.shop.domain.Item.entity;
 
+import com.study.shop.domain.category.entity.Category;
 import com.study.shop.domain.member.entity.Member;
 import com.study.shop.global.enums.InstrumentCategory;
 import com.study.shop.global.util.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -24,8 +28,9 @@ public class Item extends BaseTimeEntity {
     private boolean used;
     private boolean available;
 
-    @Enumerated(EnumType.STRING)
-    private InstrumentCategory category;
+    @ManyToMany(mappedBy = "items")
+    private List<Category> categories =  new ArrayList<>();
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Member seller;
