@@ -28,8 +28,8 @@ public class Item extends BaseTimeEntity {
     private boolean used;
     private boolean available;
 
-    @ManyToMany(mappedBy = "items")
-    private List<Category> categories =  new ArrayList<>();
+    @OneToMany(mappedBy = "items")
+    private List<Category> categoryItems =  new ArrayList<>();
 
 
     @ManyToOne(fetch = FetchType.LAZY)
