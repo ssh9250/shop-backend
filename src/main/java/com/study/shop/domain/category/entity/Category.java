@@ -18,7 +18,6 @@ public class Category {
     private Long id;
     private String name;
 
-    // todo: 중간 엔티티 생성 예정.
     @OneToMany(mappedBy = "category")
     private List<CategoryItem> categoryItems = new ArrayList<>();
 
@@ -45,12 +44,14 @@ public class Category {
     }
 
     public void addItem(Item item) {
-        this.items.add(item);
-        item.getCategories().add(this);
+        CategoryItem itemCategory = CategoryItem.builder()
+                .category(this)
+                .item(item)
+                .build();
+        this.categoryItems.add(itemCategory);
     }
 
     public void removeItem(Item item) {
-        this.items.remove(item);
-        item.getCategories().remove(this);
+        this.categoryItems.removeIf(ci -> ci.getItem().equals(item));
     }
 }
