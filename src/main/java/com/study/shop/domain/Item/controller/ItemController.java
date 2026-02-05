@@ -21,7 +21,6 @@ import java.util.List;
 @Tag(name = "Items", description = "상품 관리 API")
 public class ItemController {
     private final ItemService itemService;
-    // todo: 리팩토링 및 검증
 
     @Operation(summary = "상품 생성", description = "상품을 등록합니다.")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "생성 성공")
@@ -45,16 +44,18 @@ public class ItemController {
 
     @Operation(summary = "상품 수정", description = "id로 특정 상품을 수정합니다.")
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> updateItem(@PathVariable Long id,
-                                                              @RequestBody UpdateItemRequestDto request) {
-        itemService.updateItem(id, request);
+    public ResponseEntity<ApiResponse<Void>> updateItem(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                                        @PathVariable Long id,
+                                                        @RequestBody UpdateItemRequestDto request) {
+        itemService.updateItem(id, request, userDetails.getMemberId());
         return ResponseEntity.ok(ApiResponse.success(null, "상품이 수정되었습니다."));
     }
 
     @Operation(summary = "상품 삭제", description = "id로 특정 상품을 삭제합니다.")
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteItem(@PathVariable Long id) {
-        itemService.deleteItem(id);
+    public ResponseEntity<ApiResponse<Void>> deleteItem(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                                        @PathVariable Long id) {
+        itemService.deleteItem(id, userDetails.getMemberId());
         return ResponseEntity.ok(ApiResponse.success(null, "상품이 삭제되었습니다."));
     }
 }

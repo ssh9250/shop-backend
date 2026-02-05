@@ -48,10 +48,14 @@ public class Category {
                 .category(this)
                 .item(item)
                 .build();
-        this.categoryItems.add(itemCategory);
+        if (!this.categoryItems.contains(itemCategory)){
+            this.categoryItems.add(itemCategory);
+            item.getCategoryItems().add(itemCategory);
+        }
     }
 
     public void removeItem(Item item) {
         this.categoryItems.removeIf(ci -> ci.getItem().equals(item));
+        item.getCategoryItems().removeIf(ci -> ci.getCategory().equals(this));
     }
 }
