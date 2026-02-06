@@ -24,6 +24,7 @@ public class Order {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
+    // todo: order, orderItem 진행하면서 item 오류 있는지 간간히 체크
     @OneToMany(mappedBy = "orderItem", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<OrderItem> orderItems = new ArrayList<>();
