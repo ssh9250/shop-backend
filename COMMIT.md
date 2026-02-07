@@ -23,7 +23,7 @@ chore : 빌드 업무 수정, 패키지 매니저 수정
 
 ---
 
-Feat: Item 도메인 권한 검증 및 CategoryItem 연동 작업
+Feat: Item 권한 검증 및 CategoryItem 연동
 - Item DTO에서 brand, category 필드 제거
-- 상품 수정/삭제 시 판매자 본인 또는 ADMIN 권한 검증 추가
-- Item, Category 엔티티에 양방향 연관관계 편의 메서드 추가
+- 상품 수정/삭제 시 권한 검증 추가 (판매자 또는 ADMIN)
+- Item, Category 양방향 연관관계 편의 메서드 추가
