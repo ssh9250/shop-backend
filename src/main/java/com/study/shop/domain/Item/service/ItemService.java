@@ -78,9 +78,9 @@ public class ItemService {
         itemRepository.deleteById(id);
     }
 
-    private void validateItemAccess(Item item, Long userId) {
-        Member member = memberRepository.findById(userId)
-                .orElseThrow(() -> new MemberNotFoundException(userId));
+    private void validateItemAccess(Item item, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberNotFoundException(memberId));
 
         if (!member.getRole().equals(RoleType.ADMIN) && !item.getSeller().getId().equals(member.getId())) {
             throw new AccessDeniedException("상품에 접근할 권한이 없습니다.");
