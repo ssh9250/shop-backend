@@ -1,7 +1,10 @@
 package com.study.shop.domain.order.entity;
 
+import com.study.shop.domain.Item.entity.Item;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.math.BigDecimal;
 
 @Entity
 @Getter
@@ -17,5 +20,12 @@ public class OrderItem {
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
-    // todo: 잴 급한 이거부터, 탑다운 말고 바텀업으로 ㄱㄱㄱ
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "item_id")
+    private Item item;
+    private String ItemName;
+    private Integer quantity;
+    private BigDecimal price;
+
+    // todo: 잴 급한 이거부터, 강의 보면서 완성하기
 }

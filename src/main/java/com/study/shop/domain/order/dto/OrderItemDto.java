@@ -1,5 +1,6 @@
 package com.study.shop.domain.order.dto;
 
+import com.study.shop.domain.order.entity.OrderItem;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,4 +17,10 @@ public class OrderItemDto {
     private String ItemName;
     private Integer quantity;
     private BigDecimal price;
+
+    public OrderItemDto from(OrderItem orderItem) {
+        this.orderId = orderItem.getId();
+        this.orderItemId = orderItem.getId();
+
+    }
 }

@@ -24,5 +24,12 @@ public class OrderResponseDto {
     private LocalDateTime orderDate;
     private String address;
 
+    public OrderResponseDto from(Order order) {
+        this.orderId = order.getId();
+        this.memberEmail = order.getMember().getEmail();
+        this.memberNickname = order.getMember().getNickname();
+
+    }
+
 
 }
