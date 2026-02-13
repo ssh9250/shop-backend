@@ -26,11 +26,12 @@ public class Item extends BaseTimeEntity {
 //    private String brand;
     private String description;
 
+    private int stock;
     private int price;
     private boolean used;
     private boolean available;
 
-    @OneToMany(mappedBy = "items")
+    @OneToMany(mappedBy = "item")
     private List<CategoryItem> categoryItems =  new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -58,5 +59,12 @@ public class Item extends BaseTimeEntity {
         this.price = requestDto.getPrice();
         this.used = requestDto.isUsed();
         this.available = requestDto.isAvailable();
+    }
+
+    public void addStock(int quantity) {
+        this.stock += quantity;
+    }
+    public void removeStock(int quantity) {
+        this.stock -= quantity;
     }
 }

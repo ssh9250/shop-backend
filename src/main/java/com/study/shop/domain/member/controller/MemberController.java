@@ -1,13 +1,11 @@
 package com.study.shop.domain.member.controller;
 
-import com.study.shop.domain.post.service.PostService;
-import com.study.shop.domain.comment.service.CommentService;
 import com.study.shop.domain.member.dto.ChangePasswordRequestDto;
 import com.study.shop.domain.member.dto.MemberResponseDto;
 import com.study.shop.domain.member.dto.UpdateProfileRequestDto;
 import com.study.shop.domain.member.service.MemberService;
 import com.study.shop.global.response.ApiResponse;
-import com.study.shop.global.security.auth.CustomUserDetails;
+import com.study.shop.security.auth.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping("/api/members")
 @Tag(name = "Member", description = "회원 관련 API")
-// todo: memberControllerTest 전체 작성하기
 public class MemberController {
     private final MemberService memberService;
 

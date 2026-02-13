@@ -1,4 +1,4 @@
-package com.study.shop.global.security.util;
+package com.study.shop.security.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.study.shop.global.exception.ErrorCode;

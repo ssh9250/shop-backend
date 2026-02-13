@@ -1,4 +1,4 @@
-package com.study.shop.global.security.dto;
+package com.study.shop.security.dto;
 
 import lombok.Builder;
 import lombok.Getter;

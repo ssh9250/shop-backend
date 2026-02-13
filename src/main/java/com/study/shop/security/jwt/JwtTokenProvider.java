@@ -1,6 +1,6 @@
-package com.study.shop.global.security.jwt;
+package com.study.shop.security.jwt;
 
-import com.study.shop.global.security.auth.CustomUserDetailsService;
+import com.study.shop.security.auth.CustomUserDetailsService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;

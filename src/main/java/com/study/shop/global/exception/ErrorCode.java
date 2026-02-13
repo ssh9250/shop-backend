@@ -16,8 +16,12 @@ public enum ErrorCode {
     // COMMENT
     COMMENT_NOT_FOUND("댓글을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
-    // INSTRUMENT
+    // ITEM
     ITEM_NOT_FOUND("상품을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    STOCK_NOT_ENOUGH("재고가 부족합니다.", HttpStatus.CONFLICT),
+
+    // ORDER
+    ORDER_NOT_FOUND("주문을 찾을 수 없습니다.",  HttpStatus.NOT_FOUND),
 
     // etc
     INVALID_REQUEST("잘못된 요청입니다.", HttpStatus.BAD_REQUEST),

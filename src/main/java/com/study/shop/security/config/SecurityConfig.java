@@ -1,13 +1,11 @@
-package com.study.shop.global.security.config;
+package com.study.shop.security.config;
 
-import com.study.shop.global.security.auth.CustomUserDetailsService;
-import com.study.shop.global.security.jwt.JwtAuthenticationFilter;
-import com.study.shop.global.security.jwt.JwtExceptionFilter;
-import com.study.shop.global.security.jwt.JwtTokenProvider;
+import com.study.shop.security.auth.CustomUserDetailsService;
+import com.study.shop.security.jwt.JwtAuthenticationFilter;
+import com.study.shop.security.jwt.JwtExceptionFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;

@@ -1,4 +1,4 @@
-package com.study.shop.global.security.refresh;
+package com.study.shop.security.refresh;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
