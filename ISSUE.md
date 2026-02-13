@@ -335,3 +335,107 @@ public List<Item> findItemsByCategory(Long categoryId) {
 - 설계 결정은 단계적으로: 초기 개발 시에는 단순한 구조로 시작하고, 필요에 따라 리팩토링하는 접근도 유효
 
 **상태:** 미해결 (추후 리팩토링 예정)
+
+---
+
+## Issue #008: Order 엔티티 접근 제어자를 활용한 DDD 캡슐화 설계
+
+**발생일**: 2026-02-13
+
+### 배경
+Order 도메인 엔티티를 설계하면서 메서드의 접근 제어자를 역할에 따라 구분하여 DDD 원칙을 준수하는 캡슐화 전략을 적용
+
+### 적용한 접근 제어자 전략
+
+#### 1. `public` - 핵심 비즈니스 로직 (외부 레이어에서 호출)
+```java
+// Order.java - 주문 생성
+public Order create(Member member, OrderItem... orderItems) { ... }
+
+// Order.java - 주문 취소
+public void cancel() {
+    if (this.orderStatus != OrderStatus.PENDING) {
+        throw new IllegalStateException("주문 수락 전에만 취소할 수 있습니다.");
+    }
+    this.orderStatus = OrderStatus.CANCELLED;
+}
+
+// OrderItem.java - 주문 항목 생성, 취소
+public static OrderItem create(Order order, Item item, Integer quantity) { ... }
+public void cancel() { ... }
+```
+
+**장점:**
+- Service 레이어에서 명확하게 호출 가능하여 비즈니스 유스케이스를 직관적으로 표현
+- 도메인 모델의 공개 API 역할을 하여 엔티티가 어떤 행위를 할 수 있는지 명확히 드러남
+- 테스트 작성이 용이 (외부에서 직접 호출 가능)
+
+**단점:**
+- 어디서든 호출 가능하므로 의도하지 않은 곳에서 사용될 위험
+- 공개 범위가 넓어 변경 시 영향 범위가 큼
+
+#### 2. 패키지 프라이빗 (default) - 연관관계 편의 메서드 (같은 도메인 패키지 내에서만 호출)
+```java
+// Order.java
+void assignMember(Member member) {
+    this.member = member;
+    member.getOrders().add(this);
+}
+
+void addOrderItem(OrderItem orderItem) {
+    this.orderItems.add(orderItem);
+    orderItem.assignOrder(this);
+}
+
+// OrderItem.java
+void assignOrder(Order order) {
+    this.order = order;
+}
+```
+
+**장점:**
+- 같은 `domain.order.entity` 패키지 내의 엔티티끼리만 호출 가능하여 도메인 내부 협력을 안전하게 캡슐화
+- Service 레이어에서 직접 호출 불가 → 연관관계 설정을 반드시 엔티티의 public 메서드를 통해 수행하도록 강제
+- public setter 노출 없이 양방향 연관관계 동기화 가능 (Issue #006의 교훈 적용)
+
+**단점:**
+- 같은 패키지에 다른 클래스가 추가되면 의도치 않게 접근 가능
+- Java의 패키지 프라이빗은 하위 패키지까지 적용되지 않음 (예: `entity.sub` 패키지에서는 접근 불가)
+- 접근 제어자가 명시적으로 보이지 않아 코드 리뷰 시 놓칠 수 있음
+
+#### 3. `private` - 내부 검증 로직 (엔티티 자기 자신만 호출)
+```java
+// 예시: 주문 상태 검증, 가격 계산 등 내부 로직
+private void validateOrderStatus() {
+    if (this.orderStatus != OrderStatus.PENDING) {
+        throw new IllegalStateException("주문 수락 전에만 취소할 수 있습니다.");
+    }
+}
+```
+
+**장점:**
+- 완전한 캡슐화: 외부에서 절대 접근 불가하여 내부 구현 변경이 자유로움
+- 검증 로직이나 계산 로직을 분리하여 public 메서드의 가독성 향상
+- 변경 시 영향 범위가 해당 엔티티로 한정
+
+**단점:**
+- 테스트에서 직접 호출 불가하여 public 메서드를 통해 간접적으로만 테스트 가능
+- 과도하게 사용하면 같은 도메인 내 엔티티 간 협력이 어려워질 수 있음
+
+### 접근 제어자별 역할 요약
+
+| 접근 제어자 | 역할 | 호출 범위 | 예시 |
+|---|---|---|---|
+| `public` | 핵심 비즈니스 로직 | Service, 외부 레이어 | `create()`, `cancel()` |
+| 패키지 프라이빗 | 연관관계 편의 메서드 | 같은 패키지 내 엔티티 | `assignMember()`, `addOrderItem()` |
+| `private` | 내부 검증/계산 로직 | 엔티티 자기 자신 | `validateOrderStatus()` |
+
+### 관련 파일
+- `src/main/java/com/study/shop/domain/order/entity/Order.java`
+- `src/main/java/com/study/shop/domain/order/entity/OrderItem.java`
+
+### 교훈
+- **접근 제어자는 설계 의도를 표현하는 도구**: 단순히 컴파일 에러를 막기 위한 것이 아니라, 각 메서드의 역할과 호출 범위를 명확히 전달하는 수단
+- **DDD에서 엔티티는 자신의 상태를 스스로 관리**: public 메서드로 비즈니스 행위를 노출하고, 내부 상태 변경은 패키지 프라이빗 또는 private으로 보호
+- **패키지 구조가 접근 제어의 핵심**: `domain.order.entity` 패키지에 Order와 OrderItem을 함께 두어 패키지 프라이빗의 이점을 최대한 활용
+- **Issue #006의 연장선**: Category에서 배운 캡슐화 원칙을 Order 도메인에도 일관되게 적용

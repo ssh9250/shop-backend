@@ -5,7 +5,7 @@ import com.study.shop.domain.Item.dto.ItemResponseDto;
 import com.study.shop.domain.Item.dto.UpdateItemRequestDto;
 import com.study.shop.domain.Item.service.ItemService;
 import com.study.shop.global.response.ApiResponse;
-import com.study.shop.global.security.auth.CustomUserDetails;
+import com.study.shop.security.auth.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

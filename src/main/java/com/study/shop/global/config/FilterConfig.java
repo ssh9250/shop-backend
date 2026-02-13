@@ -1,8 +1,8 @@
 package com.study.shop.global.config;
 
-import com.study.shop.global.security.jwt.JwtAuthenticationFilter;
-import com.study.shop.global.security.jwt.JwtExceptionFilter;
-import com.study.shop.global.security.jwt.JwtTokenProvider;
+import com.study.shop.security.jwt.JwtAuthenticationFilter;
+import com.study.shop.security.jwt.JwtExceptionFilter;
+import com.study.shop.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

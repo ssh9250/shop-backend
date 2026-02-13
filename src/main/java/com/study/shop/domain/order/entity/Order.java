@@ -24,14 +24,53 @@ public class Order {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    // todo: order, orderItem 진행하면서 item 오류 있는지 간간히 체크
-    @OneToMany(mappedBy = "orderItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<OrderItem> orderItems = new ArrayList<>();
 
     private LocalDateTime orderDate;
-    private BigDecimal totalPrice;
+    private int totalPrice;
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
     private String address;
+
+    void assignMember(Member member) {
+        this.member = member;
+        member.getOrders().add(this);
+    }
+
+    public void addOrderItem(OrderItem orderItem) {
+        this.orderItems.add(orderItem);
+        // 패키지 프라이빗
+        orderItem.assignOrder(this);
+    }
+
+    private void calculateTotalPrice() {
+        this.totalPrice = this.orderItems.stream().mapToInt(OrderItem::getTotalPrice).sum();
+    }
+
+    // 생성 메서드
+    public static Order create(Member member, String address) {
+        Order order = Order.builder()
+                .orderDate(LocalDateTime.now())
+                .orderStatus(OrderStatus.PENDING)
+                .address(address)
+                .build();
+
+        order.assignMember(member);
+        order.calculateTotalPrice();
+
+        return order;
+    }
+
+    // 비즈니스 로직
+    public void cancel() {
+        if (this.orderStatus != OrderStatus.PENDING){
+            throw new IllegalStateException("주문 수락 전에만 취소할 수 있습니다.");
+        }
+        this.orderStatus = OrderStatus.CANCELLED;
+        for (OrderItem orderItem : orderItems) {
+            orderItem.cancel();
+        }
+    }
 }

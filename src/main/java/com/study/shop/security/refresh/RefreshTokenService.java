@@ -1,8 +1,8 @@
-package com.study.shop.global.security.refresh;
+package com.study.shop.security.refresh;
 
-import com.study.shop.global.security.exception.RefreshTokenMismatchException;
-import com.study.shop.global.security.exception.RefreshTokenNotFoundException;
-import com.study.shop.global.security.jwt.JwtTokenProvider;
+import com.study.shop.security.exception.RefreshTokenMismatchException;
+import com.study.shop.security.exception.RefreshTokenNotFoundException;
+import com.study.shop.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

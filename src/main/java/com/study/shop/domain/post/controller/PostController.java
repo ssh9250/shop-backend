@@ -21,7 +21,7 @@ import java.util.List;
 public class PostController {
     private final PostService postService;
 
-    // todo: 게시글 작성 시 유저 정보 주입
+    // todo: 게시글 작성 시 유저 정보 주입, 파일 업로드 구현
     @Operation(summary = "게시글 작성", description = "게시글을 생성합니다.")
     @PostMapping
     public ResponseEntity<ApiResponse<Long>> createPost(@RequestBody @Valid CreatePostRequestDto requestDto) {

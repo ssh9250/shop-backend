@@ -1,4 +1,4 @@
-package com.study.shop.global.security.exception;
+package com.study.shop.security.exception;
 
 import com.study.shop.global.exception.CustomException;
 import com.study.shop.global.exception.ErrorCode;

@@ -1,9 +1,9 @@
-package com.study.shop.global.security.jwt;
+package com.study.shop.security.jwt;
 
 import com.study.shop.global.exception.ErrorCode;
-import com.study.shop.global.security.exception.ExpiredTokenException;
-import com.study.shop.global.security.exception.InvalidTokenException;
-import com.study.shop.global.security.util.SecurityResponseUtil;
+import com.study.shop.security.exception.ExpiredTokenException;
+import com.study.shop.security.exception.InvalidTokenException;
+import com.study.shop.security.util.SecurityResponseUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.MalformedJwtException;

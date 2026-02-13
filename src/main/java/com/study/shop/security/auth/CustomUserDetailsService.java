@@ -1,7 +1,6 @@
-package com.study.shop.global.security.auth;
+package com.study.shop.security.auth;
 
 import com.study.shop.domain.member.entity.Member;
-import com.study.shop.domain.member.exception.MemberNotFoundException;
 import com.study.shop.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
