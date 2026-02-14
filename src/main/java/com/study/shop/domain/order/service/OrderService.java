@@ -61,7 +61,7 @@ public class OrderService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
 
-        if (!member.getRole().equals(RoleType.ADMIN) && !order.getMember().getId().equals(member.getId())) {
+        if (!order.getMember().getId().equals(member.getId())) {
             throw new AccessDeniedException("주문에 접근할 권한이 없습니다.");
         }
     }
