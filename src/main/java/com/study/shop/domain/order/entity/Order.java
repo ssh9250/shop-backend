@@ -73,4 +73,40 @@ public class Order {
             orderItem.cancel();
         }
     }
+
+    public void accept() {
+        validateStatusTransition(OrderStatus.PENDING, OrderStatus.ORDERED);
+        this.orderStatus = OrderStatus.ORDERED;
+    }
+
+    public void startDelivery() {
+        validateStatusTransition(OrderStatus.ORDERED, OrderStatus.IN_DELIVERY);
+        this.orderStatus = OrderStatus.IN_DELIVERY;
+    }
+
+    public void complete() {
+        validateStatusTransition(OrderStatus.IN_DELIVERY, OrderStatus.COMPLETED);
+        this.orderStatus = OrderStatus.COMPLETED;
+    }
+
+    public void forceCancel() {
+        if (this.orderStatus == OrderStatus.CANCELLED) {
+            throw new IllegalStateException("이미 취소된 주문입니다.");
+        }
+        if (this.orderStatus == OrderStatus.COMPLETED) {
+            throw new IllegalStateException("완료된 주문은 취소할 수 없습니다.");
+        }
+        this.orderStatus = OrderStatus.CANCELLED;
+        for (OrderItem orderItem : orderItems) {
+            orderItem.cancel();
+        }
+    }
+
+    private void validateStatusTransition(OrderStatus expected, OrderStatus next) {
+        if (this.orderStatus != expected) {
+            throw new IllegalStateException(
+                    String.format("주문 상태를 %s(으)로 변경할 수 없습니다. 현재 상태: %s", next, this.orderStatus)
+            );
+        }
+    }
 }

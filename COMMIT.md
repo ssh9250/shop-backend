@@ -36,3 +36,8 @@ Feat: Order 도메인 비즈니스 로직 구현 및 관리자 기능 분리
 - security 패키지 global에서 최상위로 이동
 - StockNotEnoughException, OrderNotFoundException 커스텀 예외 추가
 - ISSUE.md에 접근 제어자 활용 DDD 캡슐화 설계 기록 추가
+
+Feat: 관리자 주문 관리 API 구현
+- Order 엔티티에 상태 전이 메서드 추가 (accept, startDelivery, complete, forceCancel)
+- OrderAdminController/Service에 상태별/회원별 조회 및 주문 상태 변경 API 구현
+- OrderRepository에 상태별, 회원별 조회 쿼리 메서드 추가
