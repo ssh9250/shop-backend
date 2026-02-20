@@ -16,6 +16,8 @@ public class Comment extends BaseTimeEntity {
     @GeneratedValue
     private Long id;
 
+    private boolean deleted = false;
+
     @Column(nullable = false)
     private String writer;
 
@@ -40,5 +42,9 @@ public class Comment extends BaseTimeEntity {
 
     public void update(String content) {
         this.content = content;
+    }
+
+    public void delete(){
+        this.deleted = true;
     }
 }

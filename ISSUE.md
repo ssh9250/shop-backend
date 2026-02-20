@@ -1,6 +1,66 @@
 # Issues Log
 
-## Issue #001: 회원가입 시 서버 500 에러 발생
+## Issue #001: 공통 API 응답 객체(ApiResponse) 도입
+
+### 배경
+프로젝트 초기에는 Controller에서 반환 타입을 기본적인 Response Entity로 설정함
+
+### 문제 상황
+1. **일관성 없는 응답 형식**: 성공/실패 여부를 판단하는 기준이 API마다 달라 프론트엔드에서 분기 처리가 복잡해짐
+2. **에러 응답 구조 부재**: 예외 발생 시 Spring 기본 에러 응답(Whitelabel Error Page 등)이 그대로 노출되어 클라이언트가 에러 메시지를 파싱하기 어려움
+3. **GlobalExceptionHandler와의 연동 필요**: 전역 예외 핸들러에서도 동일한 형식으로 에러 응답을 내려줘야 하는데, 공통 응답 객체가 없으면 핸들러마다 별도의 응답 구조를 정의해야 함
+
+### 해결 방법
+제네릭 기반의 공통 응답 래퍼 클래스 `ApiResponse<T>` 도입
+
+```java
+@Getter
+@AllArgsConstructor
+public class ApiResponse<T> {
+    private final boolean success;
+    private final T data;
+    private final String message;
+
+    public static <T> ApiResponse<T> success(T data) {
+        return new ApiResponse<>(true, data, null);
+    }
+
+    public static <T> ApiResponse<T> success(T data, String message) {
+        return new ApiResponse<>(true, data, message);
+    }
+
+    public static <T> ApiResponse<T> fail(String message) {
+        return new ApiResponse<>(false, null, message);
+    }
+}
+```
+
+**적용 예시:**
+```java
+// Controller - 성공 응답
+return ResponseEntity.ok(ApiResponse.success(orderService.createOrder(memberId, requestDto)));
+
+// Controller - 메시지 포함 성공 응답
+return ResponseEntity.ok(ApiResponse.success(orderId, "주문이 취소되었습니다."));
+
+// GlobalExceptionHandler - 실패 응답
+return ResponseEntity.status(code.getStatus())
+        .body(ApiResponse.fail(code.getMessage()));
+```
+
+### 관련 파일
+- `src/main/java/com/study/shop/global/response/ApiResponse.java`
+- `src/main/java/com/study/shop/global/exception/GlobalExceptionHandler.java`
+
+### 교훈
+- **응답 일관성은 초기에 확립**: API가 늘어난 뒤 응답 형식을 통일하면 모든 Controller를 수정해야 하므로, 프로젝트 초기에 공통 응답 객체를 정의하는 것이 효율적
+- **정적 팩토리 메서드 활용**: `success()`, `fail()` 정적 메서드로 생성을 단순화하여 Controller 코드의 가독성을 높임
+- **제네릭으로 유연성 확보**: `ApiResponse<T>`로 어떤 타입의 데이터든 동일한 구조로 감쌀 수 있어 DTO 변경에 영향을 받지 않음
+- **GlobalExceptionHandler와의 시너지**: 성공/실패 모두 `ApiResponse` 형식으로 통일되어 클라이언트는 항상 `success` 필드로 결과를 판단할 수 있음
+
+---
+
+## Issue #002: 회원가입 시 서버 500 에러 발생
 
 **발생일**: 2025-09-22
 
@@ -31,7 +91,7 @@ private String password;
 
 ---
 
-## Issue #002: 전역 예외 핸들러로 인한 디버깅 어려움
+## Issue #003: 전역 예외 핸들러로 인한 디버깅 어려움
 
 **발생일**: 2025-09-22
 
@@ -67,7 +127,7 @@ public ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
 
 ---
 
-## Issue #003: 테스트 실행 시 SLF4J 로거 충돌로 ApplicationContext 로딩 실패
+## Issue #004: 테스트 실행 시 SLF4J 로거 충돌로 ApplicationContext 로딩 실패
 
 **발생일**: 2026-01-15
 
@@ -115,7 +175,7 @@ testImplementation('it.ozimov:embedded-redis:0.7.3') {
 
 ---
 
-## Issue #004: SecurityConfig에 signup 엔드포인트 permitAll 누락
+## Issue #005: SecurityConfig에 signup 엔드포인트 permitAll 누락
 
 **발생일**: 2026-01-21
 
@@ -155,7 +215,7 @@ SecurityConfig의 `authorizeHttpRequests`에서 `/api/auth/signup` 엔드포인�
 
 ---
 
-## Issue #005: 통합 테스트 간 SecurityContext 및 Redis 데이터 격리 실패
+## Issue #006: 통합 테스트 간 SecurityContext 및 Redis 데이터 격리 실패
 
 **발생일**: 2026-01-21
 
@@ -191,7 +251,7 @@ void tearDown() {
 
 ---
 
-## Issue #006: Category 엔티티 도메인 메서드에서 캡슐화 위반
+## Issue #007: Category 엔티티 도메인 메서드에서 캡슐화 위반
 
 **발생일**: 2026-02-01
 
@@ -245,7 +305,7 @@ void changeParent(Category parent) {
 
 ---
 
-## Issue #007: Item-Category 양방향 ManyToMany 연관관계 구조 개선 필요
+## Issue #008: Item-Category 양방향 ManyToMany 연관관계 구조 개선 필요
 
 **발생일**: 2026-02-01
 
@@ -338,7 +398,7 @@ public List<Item> findItemsByCategory(Long categoryId) {
 
 ---
 
-## Issue #008: Order 엔티티 접근 제어자를 활용한 DDD 캡슐화 설계
+## Issue #009: Order 엔티티 접근 제어자를 활용한 DDD 캡슐화 설계
 
 **발생일**: 2026-02-13
 
@@ -396,7 +456,7 @@ void assignOrder(Order order) {
 **장점:**
 - 같은 `domain.order.entity` 패키지 내의 엔티티끼리만 호출 가능하여 도메인 내부 협력을 안전하게 캡슐화
 - Service 레이어에서 직접 호출 불가 → 연관관계 설정을 반드시 엔티티의 public 메서드를 통해 수행하도록 강제
-- public setter 노출 없이 양방향 연관관계 동기화 가능 (Issue #006의 교훈 적용)
+- public setter 노출 없이 양방향 연관관계 동기화 가능 (Issue #007의 교훈 적용)
 
 **단점:**
 - 같은 패키지에 다른 클래스가 추가되면 의도치 않게 접근 가능
@@ -438,4 +498,58 @@ private void validateOrderStatus() {
 - **접근 제어자는 설계 의도를 표현하는 도구**: 단순히 컴파일 에러를 막기 위한 것이 아니라, 각 메서드의 역할과 호출 범위를 명확히 전달하는 수단
 - **DDD에서 엔티티는 자신의 상태를 스스로 관리**: public 메서드로 비즈니스 행위를 노출하고, 내부 상태 변경은 패키지 프라이빗 또는 private으로 보호
 - **패키지 구조가 접근 제어의 핵심**: `domain.order.entity` 패키지에 Order와 OrderItem을 함께 두어 패키지 프라이빗의 이점을 최대한 활용
-- **Issue #006의 연장선**: Category에서 배운 캡슐화 원칙을 Order 도메인에도 일관되게 적용
+- **Issue #007의 연장선**: Category에서 배운 캡슐화 원칙을 Order 도메인에도 일관되게 적용
+
+---
+
+## Issue #010: Post.removeComment()에서 연관관계만 끊어지고 실제 삭제가 이루어지지 않는 문제
+
+**발생일**: 2026-02-20
+
+### 문제 상황
+`Post.removeComment()` 메서드 호출 시 컬렉션에서 Comment를 제거하고 `comment.setPost(null)`로 연관관계를 끊지만, Comment 엔티티 자체는 DB에서 삭제되지 않음
+
+#### 현재 코드
+```java
+public void removeComment(Comment comment) {
+    this.comments.remove(comment);
+    comment.setPost(null);  // 연관관계만 끊김, DB에서 삭제되지 않음
+}
+```
+
+### 원인 분석
+`comment.setPost(null)`은 Comment 엔티티의 외래키(post_id)를 null로 설정할 뿐, Comment 레코드 자체를 삭제하지 않음. 이로 인해:
+1. **내가 작성한 댓글 조회 시 삭제된 댓글이 여전히 조회됨**: `CommentRepository.findActiveCommentByMemberId()`는 `deleted = false`인 댓글을 조회하는데, `removeComment()`는 `deleted` 플래그를 변경하지 않으므로 해당 댓글이 계속 조회됨
+2. **고아 데이터 발생**: post_id가 null인 Comment가 DB에 남아 데이터 정합성 저하
+
+### 검토한 대안
+
+#### 1. orphanRemoval 활용
+Post 엔티티의 `@OneToMany`에 이미 `orphanRemoval = true`가 설정되어 있으므로, `comments.remove(comment)` 호출 시 JPA가 자동으로 Comment를 DB에서 삭제함. 단, `comment.setPost(null)` 없이 컬렉션에서 제거만 하면 orphanRemoval이 동작함
+
+```java
+public void removeComment(Comment comment) {
+    this.comments.remove(comment);
+    // orphanRemoval = true이므로 컬렉션에서 제거되면 JPA가 자동 DELETE
+}
+```
+
+#### 2. 소프트 삭제
+Comment 엔티티의 `deleted` 플래그를 활용하여 논리적 삭제 수행. 데이터 보존이 필요한 경우에 적합
+
+```java
+public void removeComment(Comment comment) {
+    comment.markAsDeleted();  // deleted = true로 변경
+}
+```
+
+### 관련 파일
+- `src/main/java/com/study/shop/domain/post/entity/Post.java`
+- `src/main/java/com/study/shop/domain/comment/repository/CommentRepository.java`
+
+### 교훈
+- **연관관계 해제 ≠ 삭제**: `setPost(null)`은 FK를 null로 설정할 뿐 레코드를 삭제하지 않으므로, 삭제 의도라면 orphanRemoval 또는 명시적 삭제가 필요
+- **orphanRemoval과 연관관계 편의 메서드의 조합 주의**: orphanRemoval이 설정된 상태에서 `setPost(null)`을 먼저 호출하면 JPA가 orphan 감지를 제대로 하지 못할 수 있음
+- **소프트 삭제와 하드 삭제 전략 통일**: 프로젝트 내에서 삭제 전략을 일관되게 유지해야 조회 로직의 혼란을 방지할 수 있음
+
+**상태:** 미해결 (소프트 삭제 방안 적용 고려중)

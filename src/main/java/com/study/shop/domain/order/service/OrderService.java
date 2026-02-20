@@ -12,12 +12,14 @@ import com.study.shop.domain.order.entity.Order;
 import com.study.shop.domain.order.entity.OrderItem;
 import com.study.shop.domain.order.exception.OrderNotFoundException;
 import com.study.shop.domain.order.repository.OrderRepository;
+import com.study.shop.global.enums.OrderStatus;
 import com.study.shop.global.enums.RoleType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -55,15 +57,52 @@ public class OrderService {
         return OrderResponseDto.from(order);
     }
 
-
-    // todo: 관리자 권한 admin으로 분리하기
-    public void validateOrderAccess(Order order, Long memberId) {
+    public List<OrderResponseDto> getOrdersByStatus(Long memberId, OrderStatus status) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
 
-        if (!order.getMember().getId().equals(member.getId())) {
-            throw new AccessDeniedException("주문에 접근할 권한이 없습니다.");
+        List<Order> orders = orderRepository.findByStatusAndMemberId(status, memberId);
+
+        List<OrderResponseDto> responseDtos = new ArrayList<>();
+
+        for (Order order : orders) {
+            responseDtos.add(OrderResponseDto.from(order));
         }
+//        orders.forEach(order -> {responseDtos.add(OrderResponseDto.from(order));});
+
+        return responseDtos;
+    }
+
+    public OrderResponseDto acceptOrder(Long memberId, Long orderId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberNotFoundException(memberId));
+
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
+
+        validateOrderAccess(order, memberId);
+
+        order.accept();
+
+        return OrderResponseDto.from(order);
+    }
+
+    public OrderResponseDto startDelivery(Long memberId, Long orderId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberNotFoundException(memberId));
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
+
+        validateOrderAccess(order, memberId);
+        order.startDelivery();
+        return OrderResponseDto.from(order);
+    }
+
+    public OrderResponseDto completeOrder(Long memberId, Long orderId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberNotFoundException(memberId));
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
+        validateOrderAccess(order, memberId);
+        order.complete();
+        return OrderResponseDto.from(order);
     }
 
     public Long cancelOrder(Long memberId, Long orderId) {
@@ -71,5 +110,14 @@ public class OrderService {
         validateOrderAccess(order, memberId);
         order.cancel();
         return order.getId();
+    }
+
+    public void validateOrderAccess(Order order, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberNotFoundException(memberId));
+
+        if (!order.getMember().getId().equals(member.getId())) {
+            throw new AccessDeniedException("주문에 접근할 권한이 없습니다.");
+        }
     }
 }

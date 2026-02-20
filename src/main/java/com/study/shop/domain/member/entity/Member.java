@@ -49,6 +49,7 @@ public class Member {
     @Builder.Default
     private List<Comment> comments = new ArrayList<>();
 
+    //  todo: 만약 다른 사람과의 거래 내역에서 한쪽이 탈퇴한다면? -> 내일 물어보기
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Order> orders = new ArrayList<>();
