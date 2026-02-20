@@ -23,21 +23,9 @@ chore : 빌드 업무 수정, 패키지 매니저 수정
 
 ---
 
-Feat: Item 권한 검증 및 CategoryItem 연동
-- Item DTO에서 brand, category 필드 제거
-- 상품 수정/삭제 시 권한 검증 추가 (판매자 또는 ADMIN)
-- Item, Category 양방향 연관관계 편의 메서드 추가
-
-Feat: Order 도메인 비즈니스 로직 구현 및 관리자 기능 분리
-- Order, OrderItem 엔티티에 create/cancel 비즈니스 로직 및 연관관계 편의 메서드 작성
-- OrderService 주문 생성/조회/취소 구현, OrderController 완성
-- OrderResponseDto, OrderItemResponseDto 정적 팩토리 메서드(from) 적용
-- 관리자 전체 주문 조회를 admin 패키지(OrderAdminController/Service)로 분리
-- security 패키지 global에서 최상위로 이동
-- StockNotEnoughException, OrderNotFoundException 커스텀 예외 추가
-- ISSUE.md에 접근 제어자 활용 DDD 캡슐화 설계 기록 추가
-
-Feat: 관리자 주문 관리 API 구현
-- Order 엔티티에 상태 전이 메서드 추가 (accept, startDelivery, complete, forceCancel)
-- OrderAdminController/Service에 상태별/회원별 조회 및 주문 상태 변경 API 구현
-- OrderRepository에 상태별, 회원별 조회 쿼리 메서드 추가
+Feat: Post 인증 적용 및 Comment 소프트 삭제, Order 상태 관리 API 확장
+- PostController/Service에 인증 정보(@AuthenticationPrincipal) 적용, PostFile 엔티티 추가
+- Comment 엔티티에 소프트 삭제(deleted 필드, delete 메서드) 추가, CommentRepository에 활성 댓글 조회 쿼리 추가
+- OrderController/Service에 상태별 조회, 주문 수락/배송/완료 API 추가
+- PostAdminController/Service 스켈레톤 코드 작성
+- ISSUE.md에 ApiResponse 도입 기록 추가 및 번호 재정리, removeComment 삭제 미동작 이슈(#010) 기록

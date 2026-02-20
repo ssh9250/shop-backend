@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional
 public class ItemService {
-    // todo: 이것도 관리자 분리
     @Autowired
     private final ItemRepository itemRepository;
     @Autowired
