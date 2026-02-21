@@ -29,3 +29,4 @@ Feat: Post 인증 적용 및 Comment 소프트 삭제, Order 상태 관리 API �
 - OrderController/Service에 상태별 조회, 주문 수락/배송/완료 API 추가
 - PostAdminController/Service 스켈레톤 코드 작성
 - ISSUE.md에 ApiResponse 도입 기록 추가 및 번호 재정리, removeComment 삭제 미동작 이슈(#010) 기록
+- 커밋 메시지 오류로 재전송
