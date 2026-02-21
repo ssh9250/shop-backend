@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -16,8 +18,4 @@ public class CreatePostRequestDto {
     @NotBlank
     @Schema(description = "게시글 내용", example = "내용을 입력하세요.")
     private String content;
-
-    @Schema(description = "첨부파일")
-    private
-
 }
