@@ -553,3 +553,158 @@ public void removeComment(Comment comment) {
 - **소프트 삭제와 하드 삭제 전략 통일**: 프로젝트 내에서 삭제 전략을 일관되게 유지해야 조회 로직의 혼란을 방지할 수 있음
 
 **상태:** 미해결 (소프트 삭제 방안 적용 고려중)
+
+---
+
+## Issue #011: Order-OrderItem 양방향 연관관계의 순환 의존성 문제
+
+**발생일**: 2026-02-23
+
+### 배경
+`OrderService`에서 주문 생성 로직을 구현하는 과정에서 Order와 OrderItem이 양방향 연관관계를 맺고 있어 생성 순서에 대한 순환 의존성이 발생함.
+
+### 문제 상황
+```
+OrderItem 생성 → Order 참조 필요 (FK: order_id)
+Order 생성 → OrderItem 참조 필요 (비즈니스 로직)
+```
+
+두 엔티티가 서로를 참조하는 구조로 인해 어느 것을 먼저 생성해야 할지 결정하지 못하는 전형적인 순환 의존성 문제였음.
+
+### 검토한 방안
+
+"먼저 생성하고 나중에 연관관계 설정" 3단계 패턴:
+
+```java
+// 1. OrderItem을 먼저 생성 (Order 없이)
+List<OrderItem> orderItems = requestDto.getOrderItems().stream()
+    .map(dto -> {
+        Item item = itemRepository.findById(dto.getItemId());
+        return OrderItem.createOrderItem(item, dto.getQuantity());
+    })
+    .collect(toList());
+
+// 2. Order 생성
+Order order = Order.createOrder(member, requestDto.getAddress());
+
+// 3. 연관관계 나중에 설정
+orderItems.forEach(order::addOrderItem);
+```
+
+
+**실제 구현 코드:**
+
+```java
+// OrderItem.java - Order 없이 생성하는 정적 팩토리
+public static OrderItem create(Item item, Integer quantity) {
+    if (item.getStock() < quantity) {
+        throw new StockNotEnoughException(item.getId()); // 재고 검증 추가
+    }
+    item.removeStock(quantity);
+    return OrderItem.builder()
+            .item(item)
+            .quantity(quantity)
+            .price(item.getPrice()) // 주문 당시 가격 스냅샷 추가
+            .build();
+    // order 필드는 설정하지 않음
+}
+
+// 패키지 프라이빗 - Order.addOrderItem() 에서만 호출 가능
+void assignOrder(Order order) {
+    this.order = order;
+}
+
+// Order.java - 연관관계 진입점
+public void addOrderItem(OrderItem orderItem) {
+    this.orderItems.add(orderItem);
+    orderItem.assignOrder(this); // 패키지 프라이빗 메서드 호출
+}
+
+// OrderService.java - 실제 서비스 레이어
+List<OrderItem> orderItems = requestDto.getOrderItems().stream()
+    .map(dto -> {
+        Item item = itemRepository.findById(dto.getItemId())
+                .orElseThrow(() -> new ItemNotFoundException(dto.getItemId()));
+        return OrderItem.create(item, dto.getQuantity()); // 1단계: Order 없이 생성
+    }).toList();
+
+Order order = Order.create(member, requestDto.getAddress()); // 2단계: Order 생성
+orderItems.forEach(order::addOrderItem); // 3단계: 연관관계 설정
+```
+
+### 대안 분석
+
+#### 대안 1: 단방향 연관관계로 변경
+```java
+// OrderItem이 Order를 참조하지 않는 구조
+@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+@JoinColumn(name = "order_id") // Order가 FK 주인
+private List<OrderItem> orderItems;
+```
+
+**장점:**
+- 순환 의존성 문제 자체가 사라짐
+- 코드 단순화
+
+**단점:**
+- `@OneToMany`에 `@JoinColumn`을 사용하면 INSERT 후 별도의 UPDATE SQL이 추가 발생하는 JPA 특성 문제 (성능 저하)
+- OrderItem → Order 역탐색 불가 (별도 Repository 쿼리 필요)
+
+#### 대안 2: 중간 단계 저장 (지연 초기화)
+```java
+// OrderItem 먼저 저장 후 Order에 추가
+OrderItem savedItem = orderItemRepository.save(
+    OrderItem.builder().item(item).quantity(qty).build()
+);
+order.addOrderItem(savedItem);
+```
+
+**장점:** 구현이 직관적이고 단순함
+
+**단점:**
+- 불완전한 상태(order_id = null)의 OrderItem이 DB에 저장될 위험
+- 불필요한 UPDATE SQL 추가 발생
+- 트랜잭션 내 중간 저장이 복잡성을 높임
+
+#### 대안 3: 생성 메서드에 Order를 직접 전달 (원래 시도했던 방식)
+```java
+// 문제가 된 방식 - 순환 의존성
+public static OrderItem create(Order order, Item item, Integer quantity) {
+    // Order 생성 시 OrderItem 필요, OrderItem 생성 시 Order 필요 → 교착 상태
+}
+```
+
+**결론:** 양쪽 모두 상대방을 먼저 요구하므로 근본적으로 해결 불가. 채택 방식(Order 없이 생성 → 나중에 연관관계 설정)이 이 제약을 우회하는 유일한 실용적 해결책임.
+
+#### 대안 4: 현재 채택 방식 - "먼저 생성, 나중에 연관관계 설정"
+
+**장점:**
+- 직관적이고 가독성 높음
+- JPA 영속성 전이(`cascade = ALL`)를 통해 Order 저장 시 OrderItem 자동 저장
+- `orphanRemoval`과 함께 엔티티 생명주기 자동 관리
+- 패키지 프라이빗 `assignOrder()`로 외부 레이어의 직접 조작 차단
+
+**단점:**
+- OrderItem 생성 시점과 연관관계 설정 시점이 분리되어 중간에 불완전한 상태(order = null)로 존재
+- `assignOrder()`의 이점을 살리려면 Order와 OrderItem이 같은 패키지에 위치해야 함
+
+### 실제 구현의 추가 개선 사항
+
+제안된 해결책에서 실제 구현으로 오면서 다음이 추가됨:
+
+1. **재고 검증 (`StockNotEnoughException`)**: `OrderItem.create()` 내에서 생성 시점에 즉시 재고 부족 여부를 검증하여 생성 후 롤백 없이 빠른 실패(fail-fast) 처리
+2. **가격 스냅샷**: 주문 당시의 `item.getPrice()`를 `price` 필드로 캡처하여 이후 상품 가격 변경 시에도 주문 금액의 데이터 정합성 유지
+3. **패키지 프라이빗 `assignOrder()`**: Issue #009의 교훈 적용 - Service 레이어에서 직접 연관관계 조작 불가, 반드시 `order.addOrderItem()`을 통해서만 설정 가능
+
+### 관련 파일
+- `src/main/java/com/study/shop/domain/order/entity/Order.java`
+- `src/main/java/com/study/shop/domain/order/entity/OrderItem.java`
+- `src/main/java/com/study/shop/domain/order/service/OrderService.java`
+
+### 교훈
+- **"먼저 생성, 나중에 연관관계 설정" 패턴**: JPA 양방향 연관관계의 순환 의존성은 한쪽을 먼저 생성(빈 상태)하고, 편의 메서드(`addOrderItem`)로 나중에 연결하는 방식으로 해결
+- **패키지 프라이빗과 순환 의존성 해결의 시너지**: 연관관계 설정 메서드를 패키지 프라이빗으로 관리하면 Service가 직접 조작할 수 없어 자연스럽게 올바른 생성 순서가 강제됨
+- **팩토리 메서드에서 불변 데이터 캡처**: 가격 등 시간이 지나면 변할 수 있는 데이터는 생성 시점에 스냅샷으로 저장하여 데이터 정합성 유지 (e-커머스의 기본 원칙)
+- **Issue #009와의 연계**: 접근 제어자 전략(public/패키지 프라이빗/private 분리)이 순환 의존성 해결과 자연스럽게 결합되어 더 나은 설계로 발전
+
+**상태:** 해결됨

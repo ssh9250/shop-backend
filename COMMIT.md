@@ -23,10 +23,11 @@ chore : 빌드 업무 수정, 패키지 매니저 수정
 
 ---
 
-Feat: Post 인증 적용 및 Comment 소프트 삭제, Order 상태 관리 API 확장
-- PostController/Service에 인증 정보(@AuthenticationPrincipal) 적용, PostFile 엔티티 추가
-- Comment 엔티티에 소프트 삭제(deleted 필드, delete 메서드) 추가, CommentRepository에 활성 댓글 조회 쿼리 추가
-- OrderController/Service에 상태별 조회, 주문 수락/배송/완료 API 추가
-- PostAdminController/Service 스켈레톤 코드 작성
-- ISSUE.md에 ApiResponse 도입 기록 추가 및 번호 재정리, removeComment 삭제 미동작 이슈(#010) 기록
-- 커밋 메시지 오류로 재전송
+Feat: Post 파일 첨부 기능 구현 완료
+- FileStorageService 구현 (로컬 파일 시스템, UUID 기반 파일명으로 저장/삭제)
+- PostController createPost/updatePost를 @RequestPart 기반 멀티파트로 전환
+- Post 엔티티에 create(정적 팩토리), update, addPostFile, removePostFile 도메인 메서드 추가
+- PostFile 엔티티에 Lombok 및 패키지 프라이빗 assignPost() 추가
+- PostService에 파일 업로드/삭제 통합, updatePost/deletePost에 접근 권한 검증 추가
+- application.yml에 file.upload-dir 설정 추가
+- ISSUE.md에 #011 Order-OrderItem 순환 의존성 해결 분석 기록

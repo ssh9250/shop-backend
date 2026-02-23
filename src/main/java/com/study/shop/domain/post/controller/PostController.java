@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -25,8 +26,12 @@ public class PostController {
 
     @Operation(summary = "게시글 작성", description = "게시글을 생성합니다.")
     @PostMapping
-    public ResponseEntity<ApiResponse<Long>> createPost(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody @Valid CreatePostRequestDto requestDto) {
-        return ResponseEntity.ok(ApiResponse.success(postService.createPost(userDetails.getMemberId(), requestDto)));
+    public ResponseEntity<ApiResponse<Long>> createPost(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestPart("request") @Valid CreatePostRequestDto requestDto,
+            @RequestPart(value = "files", required = false) List<MultipartFile> files
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(postService.createPost(userDetails.getMemberId(), requestDto, files)));
     }
 
     @Operation(summary = "전체 게시글 조회", description = "모든 게시글을 조회합니다.")
@@ -43,8 +48,12 @@ public class PostController {
 
     @Operation(summary = "게시글 수정", description = "id를 통해 특정 게시글을 수정합니다.")
     @PatchMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> updatePost(@AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable Long id, @RequestBody @Valid UpdatePostRequestDto requestDto) {
-        postService.updatePost(userDetails.getMemberId(), id, requestDto);
+    public ResponseEntity<ApiResponse<Void>> updatePost(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long id,
+            @RequestPart("request") @Valid UpdatePostRequestDto requestDto,
+            @RequestPart(value = "files", required = false) List<MultipartFile> files) {
+        postService.updatePost(userDetails.getMemberId(), id, requestDto, files);
         return ResponseEntity.ok(ApiResponse.success(null, "게시글이 수정되었습니다."));
     }
 
