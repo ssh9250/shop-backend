@@ -1,8 +1,13 @@
 package com.study.shop.domain.post.entity;
 
 import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
+@Getter
+@Builder
+@RequiredArgsConstructor
+@AllArgsConstructor
 public class PostFile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,4 +21,8 @@ public class PostFile {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
     private Post post;
+
+    void assignPost(Post post) {
+        this.post = post;
+    }
 }

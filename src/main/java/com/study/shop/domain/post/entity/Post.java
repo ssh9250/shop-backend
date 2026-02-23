@@ -38,6 +38,27 @@ public class Post extends BaseTimeEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
+    void assignMember(Member member) {
+        this.member = member;
+        member.getPosts().add(this);
+    }
+
+    public static Post create(String title, String content, Member member) {
+        Post post = Post.builder().title(title).content(content).build();
+        post.assignMember(member);
+        return post;
+    }
+
+    public void update(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
+
+    public void addPostFile(PostFile postFile) {
+        postFiles.add(postFile);
+        postFile.assignPost(this);
+    }
+
     public void addComment(Comment comment) {
         if (comment != null && !this.comments.contains(comment)) {
             this.comments.add(comment);
@@ -52,5 +73,9 @@ public class Post extends BaseTimeEntity {
     public void removeComment(Comment comment) {
         this.comments.remove(comment);
         comment.setPost(null);
+    }
+
+    public void removePostFile(PostFile postFile) {
+        this.postFiles.remove(postFile);
     }
 }

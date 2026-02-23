@@ -28,3 +28,6 @@ jwt:
   # secret: local.yml/environment variable로 관리
   access-expiration-ms: 1800000
   refresh-expiration-ms: 1209600000
+
+file:
+  upload-dir: /uploads/posts
