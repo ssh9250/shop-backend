@@ -23,11 +23,12 @@ chore : 빌드 업무 수정, 패키지 매니저 수정
 
 ---
 
-Feat: Post 파일 첨부 기능 구현 완료
-- FileStorageService 구현 (로컬 파일 시스템, UUID 기반 파일명으로 저장/삭제)
-- PostController createPost/updatePost를 @RequestPart 기반 멀티파트로 전환
-- Post 엔티티에 create(정적 팩토리), update, addPostFile, removePostFile 도메인 메서드 추가
-- PostFile 엔티티에 Lombok 및 패키지 프라이빗 assignPost() 추가
-- PostService에 파일 업로드/삭제 통합, updatePost/deletePost에 접근 권한 검증 추가
-- application.yml에 file.upload-dir 설정 추가
-- ISSUE.md에 #011 Order-OrderItem 순환 의존성 해결 분석 기록
+Feat: Item/Comment 도메인 인증 적용 및 ItemStatus 도입
+- Item 엔티티에 ItemStatus 열거형 도입 (available → ON_SALE/RESERVED/SOLD_OUT/HIDDEN), create() 정적 팩토리 및 validateOrderable() 추가
+- ItemController/Service에 @AuthenticationPrincipal 적용, getAllItem() 엔드포인트 추가, ON_SALE 상태 검증 추가
+- Comment 엔티티에 create() 정적 팩토리 및 assignPost/assignMember 도메인 메서드 추가
+- CommentController/Service에 인증 적용, CreateCommentRequestDto에서 writer 필드 제거
+- Member 엔티티에 items 연관관계(@OneToMany) 추가
+- OrderItem.create()에 validateOrderable() 호출 추가, OrderService.validateOrderAccess() 불필요한 Member 조회 제거
+- FileStorageService 오타 수정 (delteFile → deleteFile)
+- Relation.md 추가 (엔티티 연관관계 및 N+1 분석 문서화)

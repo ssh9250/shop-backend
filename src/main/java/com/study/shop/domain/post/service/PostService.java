@@ -7,7 +7,6 @@ import com.study.shop.domain.post.dto.CreatePostRequestDto;
 import com.study.shop.domain.post.dto.PostResponseDto;
 import com.study.shop.domain.post.dto.UpdatePostRequestDto;
 import com.study.shop.domain.post.entity.Post;
-import com.study.shop.domain.post.entity.PostFile;
 import com.study.shop.domain.post.exception.PostNotFoundException;
 import com.study.shop.domain.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
@@ -74,7 +73,7 @@ public class PostService {
         post.update(requestDto.getTitle(), requestDto.getContent());
 
         post.getPostFiles().forEach(file -> {
-            fileStorageService.delteFile(file.getStoredFileName());
+            fileStorageService.deleteFile(file.getStoredFileName());
         });
         post.getPostFiles().clear();
 
@@ -100,7 +99,7 @@ public class PostService {
         validatePostAccess(memberId, post);
 
         post.getPostFiles().forEach(file -> {
-            fileStorageService.delteFile(file.getStoredFileName());
+            fileStorageService.deleteFile(file.getStoredFileName());
         });
 
         postRepository.delete(post);

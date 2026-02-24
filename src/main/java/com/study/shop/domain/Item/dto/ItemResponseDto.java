@@ -2,6 +2,7 @@ package com.study.shop.domain.Item.dto;
 
 import com.study.shop.domain.Item.entity.Item;
 import com.study.shop.global.enums.InstrumentCategory;
+import com.study.shop.global.enums.ItemStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,8 +25,8 @@ public class ItemResponseDto {
     @Schema(description = "중고 여부", example = "true")
     private boolean used;
 
-    @Schema(description = "판매 가능 여부", example = "true")
-    private boolean available;
+    @Schema(description = "현재 상태", example = "ON_SALE")
+    private ItemStatus status;
 
     public static ItemResponseDto from(Item item) {
         return ItemResponseDto.builder()
@@ -34,7 +35,7 @@ public class ItemResponseDto {
                 .description(item.getDescription())
                 .price(item.getPrice())
                 .used(item.isUsed())
-                .available(item.isAvailable())
+                .status(item.getItemStatus())
                 .build();
     }
 }

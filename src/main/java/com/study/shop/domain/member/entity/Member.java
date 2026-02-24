@@ -1,5 +1,6 @@
 package com.study.shop.domain.member.entity;
 
+import com.study.shop.domain.Item.entity.Item;
 import com.study.shop.domain.order.entity.Order;
 import com.study.shop.domain.post.entity.Post;
 import com.study.shop.domain.comment.entity.Comment;
@@ -49,10 +50,14 @@ public class Member {
     @Builder.Default
     private List<Comment> comments = new ArrayList<>();
 
-    //  todo: 만약 다른 사람과의 거래 내역에서 한쪽이 탈퇴한다면? -> 내일 물어보기
+    //  todo: 만약 다른 사람과의 거래 내역에서 한쪽이 탈퇴한다면?
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Order> orders = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Item> items = new ArrayList<>();
 
     public void updateProfile(String nickname, String phone, String address) {
         this.nickname = nickname;

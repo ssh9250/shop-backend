@@ -28,7 +28,6 @@ public class Post extends BaseTimeEntity {
     @Builder.Default
     private List<Comment> comments = new ArrayList<>();
 
-    // todo: 단방향으로 연결할때에는 어떻게 할 지 생각해보기
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<PostFile> postFiles = new ArrayList<>();
@@ -59,6 +58,7 @@ public class Post extends BaseTimeEntity {
         postFile.assignPost(this);
     }
 
+    // 행위의 주체가 되는 엔티티(comment)에서 실행하는 것이 좋으므로 현재는 안쓰는 로직
     public void addComment(Comment comment) {
         if (comment != null && !this.comments.contains(comment)) {
             this.comments.add(comment);
@@ -75,7 +75,9 @@ public class Post extends BaseTimeEntity {
         comment.setPost(null);
     }
 
+    // 어차피 updatePost 시 변경감지를 위해 clear 사용으로 안 쓰여질 것 같음
     public void removePostFile(PostFile postFile) {
         this.postFiles.remove(postFile);
+        postFile.assignPost(null);
     }
 }

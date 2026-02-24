@@ -34,7 +34,7 @@ public class PostResponseDto {
                 .id(post.getId())
                 .title(post.getTitle())
                 .content(post.getContent())
-                .writer(post.getWriter())
+                .writer(post.getMember().getEmail())
                 .createdAt(post.getCreatedAt() != null ? post.getCreatedAt() : null)
                 .updatedAt(post.getUpdatedAt() != null ? post.getUpdatedAt() : null)
                 .build();

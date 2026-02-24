@@ -34,12 +34,28 @@ public class Comment extends BaseTimeEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    public Comment(String writer, String content, Post post) {
-        this.writer = writer;
-        this.content = content;
+    void assignPost(Post post) {
         this.post = post;
+        post.getComments().add(this);
+    }
+    void assignMember(Member member) {
+        this.member = member;
+        member.getComments().add(this);
     }
 
+    public static Comment create(Member member, Post post, String content) {
+        Comment comment = Comment.builder()
+                .writer(member.getEmail())
+                .content(content)
+                .post(post)
+                .member(member)
+                .build();
+
+        comment.assignPost(post);
+        comment.assignMember(member);
+
+        return comment;
+    }
     public void update(String content) {
         this.content = content;
     }
