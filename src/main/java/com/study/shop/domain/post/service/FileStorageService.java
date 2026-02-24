@@ -16,7 +16,6 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-// todo: 전체적으로 재확인
 public class FileStorageService {
     @Value("${file.upload-dir}")
     private String uploadDir;
@@ -42,7 +41,7 @@ public class FileStorageService {
                 .build();
     }
 
-    public void delteFile(String storedFileName) {
+    public void deleteFile(String storedFileName) {
         try {
             Path filePath = Paths.get(uploadDir).resolve(storedFileName);
             Files.deleteIfExists(filePath);

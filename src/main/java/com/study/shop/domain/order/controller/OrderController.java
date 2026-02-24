@@ -37,6 +37,7 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.success(orderService.findOrderById(userDetails.getMemberId(), id)));
     }
 
+    // *todo: 주문 로직 좀 더 살펴보기, n+1 문제 해결
     @Operation(summary = "주문 상태별 조회", description = "주문 상태(PENDING, ORDERED, IN_DELIVERY, COMPLETED, CANCELLED)로 필터링하여 조회합니다.")
     @GetMapping("/status/{status}")
     public ResponseEntity<ApiResponse<List<OrderResponseDto>>> getOrdersByStatus(@PathVariable OrderStatus status, @AuthenticationPrincipal CustomUserDetails userDetails) {

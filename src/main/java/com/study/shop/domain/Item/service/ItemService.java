@@ -9,6 +9,8 @@ import com.study.shop.domain.Item.repository.ItemRepository;
 import com.study.shop.domain.member.entity.Member;
 import com.study.shop.domain.member.exception.MemberNotFoundException;
 import com.study.shop.domain.member.repository.MemberRepository;
+import com.study.shop.domain.order.entity.Order;
+import com.study.shop.global.enums.ItemStatus;
 import com.study.shop.global.enums.RoleType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,14 +30,11 @@ public class ItemService {
     @Autowired
     private MemberRepository memberRepository;
 
-    public Long createItem(CreateItemRequestDto requestDto) {
-        Item item = Item.builder()
-                .name(requestDto.getName())
-                .description(requestDto.getDescription())
-                .price(requestDto.getPrice())
-                .used(requestDto.isUsed())
-                .available(requestDto.isAvailable())
-                .build();
+    public Long createItem(Long memberId, CreateItemRequestDto requestDto) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberNotFoundException(memberId));
+
+        Item item = Item.create(member, requestDto.getName(), requestDto.getDescription(), requestDto.getStock(), requestDto.getPrice(), requestDto.getUsed());
         return itemRepository.save(item).getId();
     }
 
@@ -47,10 +46,10 @@ public class ItemService {
     }
 
     @Transactional(readOnly = true)
-    public ItemResponseDto getItemById(Long id) {
-        return itemRepository.findById(id)
+    public ItemResponseDto getItemById(Long memberId) {
+        return itemRepository.findById(memberId)
                 .map(ItemResponseDto::from)
-                .orElseThrow(() -> new ItemNotFoundException(id));
+                .orElseThrow(() -> new ItemNotFoundException(memberId));
     }
 
     @Transactional(readOnly = true)
@@ -60,30 +59,38 @@ public class ItemService {
                 .collect(Collectors.toList());
     }
 
-    public void updateItem(Long id, UpdateItemRequestDto request, Long userId) {
-        Item item = itemRepository.findById(id)
-                .orElseThrow(() -> new ItemNotFoundException(id));
+    public void updateItem(Long memberId, Long itemId, UpdateItemRequestDto request) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new ItemNotFoundException(itemId));
 
-        validateItemAccess(item, userId);
+        validateItemAccess(item, memberId);
+
+        if (!item.getItemStatus().equals(ItemStatus.ON_SALE)) {
+            throw new AccessDeniedException("판매중인 상품만 수정할 수 있습니다.");
+        }
 
         item.update(request);
     }
 
-    public void deleteItem(Long id, Long userId) {
-        Item item = itemRepository.findById(id)
-                .orElseThrow(() -> new ItemNotFoundException(id));
+    public void deleteItem(Long memberId, Long itemId) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new ItemNotFoundException(itemId));
 
-        validateItemAccess(item, userId);
+        validateItemAccess(item, memberId);
 
-        itemRepository.deleteById(id);
+        if (!item.getItemStatus().equals(ItemStatus.ON_SALE)) {
+            throw new AccessDeniedException("판매중인 상품만 삭제할 수 있습니다.");
+        }
+
+        itemRepository.deleteById(itemId);
     }
 
     private void validateItemAccess(Item item, Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
 
-        if (!member.getRole().equals(RoleType.ADMIN) && !item.getSeller().getId().equals(member.getId())) {
-            throw new AccessDeniedException("상품에 접근할 권한이 없습니다.");
+        if (!item.getSeller().getId().equals(member.getId())) {
+            throw new AccessDeniedException("해당 작업을 수행할 권한이 없습니다.");
         }
     }
 }

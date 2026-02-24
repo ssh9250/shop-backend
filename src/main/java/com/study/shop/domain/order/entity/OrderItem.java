@@ -37,6 +37,8 @@ public class OrderItem {
 
     // 생성 메서드
     public static OrderItem create(Item item, Integer quantity) {
+        item.validateOrderable();
+
         if (item.getStock() < quantity) {
             throw new StockNotEnoughException(item.getId());
         }

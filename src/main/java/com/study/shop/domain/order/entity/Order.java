@@ -1,6 +1,7 @@
 package com.study.shop.domain.order.entity;
 
 import com.study.shop.domain.member.entity.Member;
+import com.study.shop.global.enums.ItemStatus;
 import com.study.shop.global.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -31,7 +32,8 @@ public class Order {
     private LocalDateTime orderDate;
     private int totalPrice;
     @Enumerated(EnumType.STRING)
-    private OrderStatus orderStatus;
+    @Builder.Default
+    private OrderStatus orderStatus = OrderStatus.PENDING;
     private String address;
 
     void assignMember(Member member) {
@@ -53,7 +55,7 @@ public class Order {
     public static Order create(Member member, String address) {
         Order order = Order.builder()
                 .orderDate(LocalDateTime.now())
-                .orderStatus(OrderStatus.PENDING)
+                .orderStatus(OrderStatus.PENDING) // 그래도
                 .address(address)
                 .build();
 

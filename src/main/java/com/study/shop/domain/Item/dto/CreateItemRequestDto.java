@@ -20,6 +20,8 @@ public class CreateItemRequestDto {
     @Schema(description = "상품 설명", example = "새 상품")
     private String description;
 
+    private Integer stock;
+
     @NotNull
     @PositiveOrZero
     @Schema(description = "가격(원)", example = "350000", minimum = "0")
@@ -28,10 +30,6 @@ public class CreateItemRequestDto {
     @NotNull
     @Schema(description = "중고 여부", example = "true")
     private Boolean used;
-
-    @NotNull
-    @Schema(description = "판매 가능 여부", example = "true")
-    private Boolean available;
 
     public boolean isUsed() {
         return used;

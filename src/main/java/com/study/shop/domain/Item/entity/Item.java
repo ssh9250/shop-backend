@@ -5,6 +5,7 @@ import com.study.shop.domain.category.entity.Category;
 import com.study.shop.domain.category.entity.CategoryItem;
 import com.study.shop.domain.member.entity.Member;
 import com.study.shop.global.enums.InstrumentCategory;
+import com.study.shop.global.enums.ItemStatus;
 import com.study.shop.global.util.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -29,7 +30,7 @@ public class Item extends BaseTimeEntity {
     private int stock;
     private int price;
     private boolean used;
-    private boolean available;
+    private ItemStatus itemStatus;
 
     @OneToMany(mappedBy = "item")
     private List<CategoryItem> categoryItems =  new ArrayList<>();
@@ -53,12 +54,37 @@ public class Item extends BaseTimeEntity {
         category.getCategoryItems().removeIf(ci -> ci.getCategory().equals(this));
     }
 
+    void assignMember(Member member) {
+        this.seller = member;
+        member.getItems().add(this);
+    }
+
+    public void validateOrderable() {
+        if (!this.itemStatus.equals(ItemStatus.ON_SALE)) {
+            throw new IllegalStateException("주문할 수 없는 상품입니다.");
+        }
+    }
+
+    public static Item create(Member seller, String name, String description, int stock, int price, boolean used) {
+        Item item = Item.builder()
+                .name(name)
+                .description(description)
+                .stock(stock)
+                .price(price)
+                .used(used)
+                .itemStatus(ItemStatus.ON_SALE)
+                .build();
+        item.assignMember(seller);
+
+        return item;
+    }
+
     public void update(UpdateItemRequestDto requestDto) {
         this.name = requestDto.getName();
         this.description = requestDto.getDescription();
         this.price = requestDto.getPrice();
         this.used = requestDto.isUsed();
-        this.available = requestDto.isAvailable();
+        this.itemStatus = requestDto.getStatus();
     }
 
     public void addStock(int quantity) {

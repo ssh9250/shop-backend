@@ -25,8 +25,16 @@ public class ItemController {
     @Operation(summary = "상품 생성", description = "상품을 등록합니다.")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "생성 성공")
     @PostMapping
-    public ResponseEntity<ApiResponse<Long>> createItems(@RequestBody CreateItemRequestDto request) {
-        return ResponseEntity.ok(ApiResponse.success(itemService.createItem(request)));
+    public ResponseEntity<ApiResponse<Long>> createItems(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody CreateItemRequestDto request) {
+        return ResponseEntity.ok(ApiResponse.success(itemService.createItem(userDetails.getMemberId(), request)));
+    }
+
+    @Operation(summary = "모든 상품 조회", description = "모든 상품을 조회합니다.")
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<ItemResponseDto>>> getAllItem() {
+        return ResponseEntity.ok(ApiResponse.success(itemService.getAllItems()));
     }
 
     @Operation(summary = "상품 단건 조회", description = "id로 특정 상품을 조회합니다.")
@@ -43,19 +51,19 @@ public class ItemController {
     }
 
     @Operation(summary = "상품 수정", description = "id로 특정 상품을 수정합니다.")
-    @PutMapping("/{id}")
+    @PutMapping("/{itemId}")
     public ResponseEntity<ApiResponse<Void>> updateItem(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                                        @PathVariable Long id,
+                                                        @PathVariable Long itemId,
                                                         @RequestBody UpdateItemRequestDto request) {
-        itemService.updateItem(id, request, userDetails.getMemberId());
+        itemService.updateItem(userDetails.getMemberId(), itemId, request);
         return ResponseEntity.ok(ApiResponse.success(null, "상품이 수정되었습니다."));
     }
 
     @Operation(summary = "상품 삭제", description = "id로 특정 상품을 삭제합니다.")
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{itemId}")
     public ResponseEntity<ApiResponse<Void>> deleteItem(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                                        @PathVariable Long id) {
-        itemService.deleteItem(id, userDetails.getMemberId());
+                                                        @PathVariable Long itemId) {
+        itemService.deleteItem(userDetails.getMemberId(), itemId);
         return ResponseEntity.ok(ApiResponse.success(null, "상품이 삭제되었습니다."));
     }
 }

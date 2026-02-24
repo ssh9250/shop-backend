@@ -12,8 +12,5 @@ public class CreateCommentRequestDto {
     private Long postId;
 
     @NotBlank
-    private String writer;
-
-    @NotBlank
     private String content;
 }
