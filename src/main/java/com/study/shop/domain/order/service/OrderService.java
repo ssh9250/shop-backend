@@ -97,6 +97,7 @@ public class OrderService {
     }
 
     public OrderResponseDto completeOrder(Long memberId, Long orderId) {
+        // 불필요한 검증 로직 (JWT를 통해 회원이 존재한다는 것이 보장됨)
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));

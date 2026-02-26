@@ -23,7 +23,7 @@ import java.util.List;
 public class OrderController {
     private final OrderService orderService;
 
-    // todo: 복잡한 로직 추가 + queryDSL 적용
+    // todo: n+1 문제 해결 + 복잡한 로직 추가 + queryDSL 적용
 
     @Operation(summary = "주문 생성", description = "주문을 생성합니다.")
     @PostMapping
@@ -37,7 +37,6 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.success(orderService.findOrderById(userDetails.getMemberId(), id)));
     }
 
-    // *todo: 주문 로직 좀 더 살펴보기, n+1 문제 해결
     @Operation(summary = "주문 상태별 조회", description = "주문 상태(PENDING, ORDERED, IN_DELIVERY, COMPLETED, CANCELLED)로 필터링하여 조회합니다.")
     @GetMapping("/status/{status}")
     public ResponseEntity<ApiResponse<List<OrderResponseDto>>> getOrdersByStatus(@PathVariable OrderStatus status, @AuthenticationPrincipal CustomUserDetails userDetails) {
