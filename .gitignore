@@ -1,6 +1,4 @@
 COMMIT.md
-CLAUDE.md
-REVIEW.md
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar

@@ -69,6 +69,9 @@ public class Member {
         this.password = newPassword;
     }
 
+
+
+    // 행위의 주체가 되는 post, comment 쪽에서 연관관계 편의 메서드로 양방향 동기화
     public void addPost(Post post) {
         if (post != null && !this.posts.contains(post)) {
             this.posts.add(post);
@@ -82,6 +85,8 @@ public class Member {
             comment.setMember(this);
         }
     }
+
+    // orphan removal, cascade로 필요없음
 
     public void removePost(Post post) {
         this.posts.remove(post);

@@ -47,8 +47,6 @@ public class Comment extends BaseTimeEntity {
         Comment comment = Comment.builder()
                 .writer(member.getEmail())
                 .content(content)
-                .post(post)
-                .member(member)
                 .build();
 
         comment.assignPost(post);
