@@ -44,8 +44,6 @@ class MemberControllerTest {
 
     private static final Logger logger = LoggerFactory.getLogger(MemberControllerTest.class);
 
-    // todo: jacoco, test coverage 적용 해보기
-
     @BeforeEach
     void setUp() {
         memberRepository.deleteAll();

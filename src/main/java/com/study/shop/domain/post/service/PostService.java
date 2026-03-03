@@ -10,6 +10,8 @@ import com.study.shop.domain.post.entity.Post;
 import com.study.shop.domain.post.exception.PostNotFoundException;
 import com.study.shop.domain.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,11 +50,9 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public List<PostResponseDto> getAllPosts() {
-        return postRepository.findAll()
-                .stream()
-                .map(PostResponseDto::from)
-                .collect(Collectors.toList());
+    public Page<PostResponseDto> getAllPosts(Pageable pageable) {
+        return postRepository.findAllWithMember(pageable)
+                .map(PostResponseDto::from);
     }
 
     @Transactional(readOnly = true)

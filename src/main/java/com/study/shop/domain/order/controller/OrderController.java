@@ -23,8 +23,6 @@ import java.util.List;
 public class OrderController {
     private final OrderService orderService;
 
-    // todo: n+1 문제 해결 + 복잡한 로직 추가 + queryDSL 적용
-
     @Operation(summary = "주문 생성", description = "주문을 생성합니다.")
     @PostMapping
     public ResponseEntity<ApiResponse<OrderResponseDto>> createOrder(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CreateOrderRequestDto requestDto) {

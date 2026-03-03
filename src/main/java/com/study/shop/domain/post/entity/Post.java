@@ -32,6 +32,7 @@ public class Post extends BaseTimeEntity {
     @Builder.Default
     private List<PostFile> postFiles = new ArrayList<>();
 
+    //  todo: 외래키에 index 추가해보기
     @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)

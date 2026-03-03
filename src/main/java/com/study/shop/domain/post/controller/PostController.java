@@ -10,6 +10,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -36,8 +40,11 @@ public class PostController {
 
     @Operation(summary = "전체 게시글 조회", description = "모든 게시글을 조회합니다.")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<PostResponseDto>>> getAllPosts() {
-        return ResponseEntity.ok(ApiResponse.success(postService.getAllPosts()));
+    public ResponseEntity<ApiResponse<Page<PostResponseDto>>> getAllPosts(
+            // 요청 예시 : GET /api/posts?page=0&size=20&sort=createdAt,desc
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(postService.getAllPosts(pageable)));
     }
 
     @Operation(summary = "게시글 단건 조회", description = "id를 통해 특정 게시글을 조회합니다.")
