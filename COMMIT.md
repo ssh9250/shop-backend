@@ -11,6 +11,7 @@ ok) Refresh Token Rotation 로직 상세 이해
 security config filter bean 중복 생성 문제 해결 issue에 기록
 
 마지막 커밋 이후의 변경사항에 대한 작업 내용을 이전 커밋 메시지들을 참고하여 가능한 간단하게 COMMIT.md의 맨 마지막에 작성해주시고, 커밋은 하지마세요.
+현재까지 진행된 내용을 project_knowledge.md에 반영하여 업데이트해주세요.
 
 
 feat : 새로운 기능 추가
@@ -23,12 +24,10 @@ chore : 빌드 업무 수정, 패키지 매니저 수정
 
 ---
 
-Feat: Item/Comment 도메인 인증 적용 및 ItemStatus 도입
-- Item 엔티티에 ItemStatus 열거형 도입 (available → ON_SALE/RESERVED/SOLD_OUT/HIDDEN), create() 정적 팩토리 및 validateOrderable() 추가
-- ItemController/Service에 @AuthenticationPrincipal 적용, getAllItem() 엔드포인트 추가, ON_SALE 상태 검증 추가
-- Comment 엔티티에 create() 정적 팩토리 및 assignPost/assignMember 도메인 메서드 추가
-- CommentController/Service에 인증 적용, CreateCommentRequestDto에서 writer 필드 제거
-- Member 엔티티에 items 연관관계(@OneToMany) 추가
-- OrderItem.create()에 validateOrderable() 호출 추가, OrderService.validateOrderAccess() 불필요한 Member 조회 제거
-- FileStorageService 오타 수정 (delteFile → deleteFile)
-- Relation.md 추가 (엔티티 연관관계 및 N+1 분석 문서화)
+Feat: Board 관리자 API 구현 및 Post 페이징 적용
+- Post, Comment 관련 관리자 로직은 BoardAdminController/Service로 통합
+- BoardAdminController에 @PreAuthorize("hasRole('ADMIN')") 적용, 게시글/댓글 조회·강제삭제 구현
+- AdminCommentResponseDto 추가 (deleted 필드 포함, 소프트 삭제 상태 노출)
+- CommentRepository에 findAllByPostId() 추가 (소프트 삭제 포함 관리자 전용 조회)
+- PostRepository에 findAllWithMember() (fetch join, countQuery 분리), findByMemberId() 추가
+- PostController/Service getAllPosts()를 Page 기반 페이징으로 전환 (@PageableDefault size=20, createdAt DESC)
