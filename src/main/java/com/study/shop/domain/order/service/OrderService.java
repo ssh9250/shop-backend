@@ -61,7 +61,7 @@ public class OrderService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
 
-        List<Order> orders = orderRepository.findByStatusAndMemberId(status, memberId);
+        List<Order> orders = orderRepository.findByOrderStatusAndMemberId(status, memberId);
 
         List<OrderResponseDto> responseDtos = new ArrayList<>();
 

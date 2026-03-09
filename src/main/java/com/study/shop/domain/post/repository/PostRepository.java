@@ -8,8 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
-public interface PostRepository extends JpaRepository<Post, Long> {
-    //  *todo: paging 도입
+public interface PostRepository extends JpaRepository<Post, Long>,PostRepositoryCustom {
     @Query("select p from Post p where p.member.id = :memberId")
     List<Post> findByMemberId(Long memberId);
 

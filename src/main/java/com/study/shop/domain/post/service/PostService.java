@@ -5,6 +5,7 @@ import com.study.shop.domain.member.exception.MemberNotFoundException;
 import com.study.shop.domain.member.repository.MemberRepository;
 import com.study.shop.domain.post.dto.CreatePostRequestDto;
 import com.study.shop.domain.post.dto.PostResponseDto;
+import com.study.shop.domain.post.dto.PostSearchConditionDto;
 import com.study.shop.domain.post.dto.UpdatePostRequestDto;
 import com.study.shop.domain.post.entity.Post;
 import com.study.shop.domain.post.exception.PostNotFoundException;

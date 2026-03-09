@@ -8,6 +8,24 @@ swaggerConfig에서 jwt 관련 설정 마무리
 
 ok) Refresh Token Rotation 로직 상세 이해
 
+1. QueryDSL 동적 검색 + 페이징
+   면접 포인트: "왜 JPQL 안 쓰고 QueryDSL?"
+   → 타입 안전성, 컴파일 타임 오류 감지, 동적 조건 조합
+   → count 쿼리 분리로 성능 최적화까지 설명 가능
+2. Cursor 기반 페이징 (상품/피드)
+   면접 포인트: "Offset과 Cursor의 차이?"
+   → 대용량 데이터에서 offset의 성능 저하 (LIMIT 10000, 20)
+   → 복합 커서 (createdAt + id) 로 안정성 확보
+   → 실무에서 무한스크롤은 거의 Cursor 사용
+3. Redis 활용 다양화
+   현재: Refresh Token + Blacklist
+   추가: 인기글 캐싱, 조회수 증가 (Write-behind)
+   면접 포인트: "Redis를 어떤 문제를 해결하기 위해 썼나요?"
+   → DB 부하 분산, 실시간 카운터, TTL 기반 캐시 전략
+
+
+// -Dsun.java2d.metal=false
+
 security config filter bean 중복 생성 문제 해결 issue에 기록
 
 마지막 커밋 이후의 변경사항에 대한 작업 내용을 이전 커밋 메시지들을 참고하여 가능한 간단하게 COMMIT.md의 맨 마지막에 작성해주시고, 커밋은 하지마세요.
@@ -24,10 +42,8 @@ chore : 빌드 업무 수정, 패키지 매니저 수정
 
 ---
 
-Feat: Board 관리자 API 구현 및 Post 페이징 적용
-- Post, Comment 관련 관리자 로직은 BoardAdminController/Service로 통합
-- BoardAdminController에 @PreAuthorize("hasRole('ADMIN')") 적용, 게시글/댓글 조회·강제삭제 구현
-- AdminCommentResponseDto 추가 (deleted 필드 포함, 소프트 삭제 상태 노출)
-- CommentRepository에 findAllByPostId() 추가 (소프트 삭제 포함 관리자 전용 조회)
-- PostRepository에 findAllWithMember() (fetch join, countQuery 분리), findByMemberId() 추가
-- PostController/Service getAllPosts()를 Page 기반 페이징으로 전환 (@PageableDefault size=20, createdAt DESC)
+Feat: Member·Order 소프트 삭제 적용 및 Post QueryDSL 동적 검색 구현
+- Member, Order 엔티티에 @SQLDelete + @SQLRestriction으로 소프트 삭제 적용 (deleted 컬럼 추가)
+- PostRepositoryCustom/Impl 추가, QueryDSL로 title·nickname 동적 검색 구현
+- PostSearchConditionDto 추가 (title, nickname, hidden, from, to)
+- OrderRepository 메서드명 오타 수정 (findByStatusAndMemberId → findByOrderStatusAndMemberId)
