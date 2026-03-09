@@ -9,6 +9,9 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.annotations.Where;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +21,8 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+@SQLDelete(sql = "update member set deleted = true where id = ?")
+@SQLRestriction("deleted = false")
 public class Member {
     @Id
     @GeneratedValue
@@ -42,6 +47,9 @@ public class Member {
     @Enumerated(EnumType.STRING)
     private RoleType role;
 
+    @Column(nullable = false)
+    private Boolean deleted = false;
+
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Post> posts = new ArrayList<>();
@@ -50,7 +58,6 @@ public class Member {
     @Builder.Default
     private List<Comment> comments = new ArrayList<>();
 
-    //  todo: 만약 다른 사람과의 거래 내역에서 한쪽이 탈퇴한다면?
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Order> orders = new ArrayList<>();
@@ -68,7 +75,6 @@ public class Member {
     public void updatePassword(String newPassword) {
         this.password = newPassword;
     }
-
 
 
     // 행위의 주체가 되는 post, comment 쪽에서 연관관계 편의 메서드로 양방향 동기화

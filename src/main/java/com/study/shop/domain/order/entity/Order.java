@@ -5,6 +5,8 @@ import com.study.shop.global.enums.ItemStatus;
 import com.study.shop.global.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -16,6 +18,8 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+@SQLDelete(sql = "UPDATE orders SET deleted = true WHERE id = ?")
+@SQLRestriction("deleted = false")
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,6 +39,9 @@ public class Order {
     @Builder.Default
     private OrderStatus orderStatus = OrderStatus.PENDING;
     private String address;
+
+    @Column(nullable = false)
+    private Boolean deleted = false;
 
     void assignMember(Member member) {
         this.member = member;
@@ -64,6 +71,8 @@ public class Order {
 
         return order;
     }
+
+    // *todo: 소프트 삭제 시 재고 복구 로직 추가하기
 
     // 비즈니스 로직
     public void cancel() {
