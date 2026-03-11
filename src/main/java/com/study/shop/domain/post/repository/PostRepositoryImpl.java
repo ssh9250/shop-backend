@@ -17,6 +17,9 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
+    public List<PostListDto>
+
+    @Override
     public List<Post> searchPosts(PostSearchConditionDto cond) {
         return queryFactory
                 .selectFrom(post)

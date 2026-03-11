@@ -16,3 +16,12 @@ public interface PostRepository extends JpaRepository<Post, Long>,PostRepository
             countQuery = "select count(p) from Post p")
     Page<Post> findAllWithMember(Pageable pageable);
 }
+
+// 회원목록 -> 한 회원 조회 -> 회원이 쓴 글 목록 -> 글 클릭 시 포스트로 이동
+// find all,
+
+// json 직렬화 n+1
+
+// queryDSL dto projection
+
+// member 조회할때 post fetch join
