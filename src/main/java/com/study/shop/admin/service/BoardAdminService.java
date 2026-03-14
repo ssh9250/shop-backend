@@ -4,7 +4,7 @@ import com.study.shop.admin.dto.AdminCommentResponseDto;
 import com.study.shop.domain.comment.entity.Comment;
 import com.study.shop.domain.comment.exception.CommentNotFoundException;
 import com.study.shop.domain.comment.repository.CommentRepository;
-import com.study.shop.domain.post.dto.PostResponseDto;
+import com.study.shop.domain.post.dto.PostDetailDto;
 import com.study.shop.domain.post.entity.Post;
 import com.study.shop.domain.post.exception.PostNotFoundException;
 import com.study.shop.domain.post.repository.PostRepository;
@@ -28,23 +28,23 @@ public class BoardAdminService {
     // ==================== 게시글 ====================
 
     @Transactional(readOnly = true)
-    public List<PostResponseDto> getAllPosts() {
+    public List<PostDetailDto> getAllPosts() {
         return postRepository.findAll().stream()
-                .map(PostResponseDto::from)
+                .map(PostDetailDto::from)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public PostResponseDto getPostById(Long postId) {
+    public PostDetailDto getPostById(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new PostNotFoundException(postId));
-        return PostResponseDto.from(post);
+        return PostDetailDto.from(post);
     }
 
     @Transactional(readOnly = true)
-    public List<PostResponseDto> getPostsByMemberId(Long memberId) {
+    public List<PostDetailDto> getPostsByMemberId(Long memberId) {
         return postRepository.findByMemberId(memberId).stream()
-                .map(PostResponseDto::from)
+                .map(PostDetailDto::from)
                 .collect(Collectors.toList());
     }
 

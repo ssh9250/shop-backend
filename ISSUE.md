@@ -708,3 +708,165 @@ public static OrderItem create(Order order, Item item, Integer quantity) {
 - **Issue #009와의 연계**: 접근 제어자 전략(public/패키지 프라이빗/private 분리)이 순환 의존성 해결과 자연스럽게 결합되어 더 나은 설계로 발전
 
 **상태:** 해결됨
+
+---
+
+## [IMPORTANT] Issue #012: N+1 문제 해결 과정 — findAllPosts 메서드 개선
+
+**작성일**: 2026-03-14
+**관련 작업**: `findAllPosts` 메서드 개선 (JpaRepository → QueryDSL + Paging + DTO Projection)
+
+---
+
+### 배경
+
+모든 Post를 조회하는 `findAllPosts` 메서드를 단순 JpaRepository 방식에서, N+1 문제를 해결하고 페이징 및 댓글 수 집계 기능을 제공하는 방식으로 단계적으로 개선함.
+
+---
+
+### Inner Join vs Left Join 선택 기준
+
+- **Left Join**: 연관 엔티티가 없는 경우에도 기준 엔티티 조회 가능 → 항상 안전
+- **Inner Join**: 연관 엔티티가 반드시 존재함이 보장될 때 사용
+
+**Post → Member 경우:**
+- 일반적으로 게시글에는 작성자가 반드시 존재 → Inner Join 안전
+- 단, 탈퇴 회원을 Hard Delete로 처리하되 Cascade 삭제 미적용 구조라면 `post.member`가 `null`이 될 수 있으므로 → Left Join 필요
+
+---
+
+### N:1 vs 1:N Fetch Join의 차이
+
+**N:1 조회 (예: Post → Member)**
+- Join 결과 row 수 = Post 수와 동일 → Cartesian Product 없음
+- Fetch Join + Paging 함께 사용 안전
+
+**1:N 조회 (예: Post → Comments, Collection Fetch Join)**
+- Join 시 결과 row가 Comment 수만큼 증가 → Cartesian Product 발생
+- **Join 결과 row가 자식 엔티티(Comment) 수 N배만큼 증가**
+- JPA는 이 경우 **페이징을 메모리에서 처리**하여 OOM 위험 발생
+  → Hibernate 경고: `HHH90003004: firstResult/maxResults specified with collection fetch; applying in memory`
+- **따라서 Collection Fetch Join + Paging은 일반적으로 금지**
+
+**Collection Fetch Join + Paging이 꼭 필요한 경우 대안:**
+1. **2단계 조회**: 부모(Post)를 먼저 Paging 조회 후, 자식(Comment)을 `IN` 조건으로 별도 조회
+2. **Batch Size**: `@BatchSize` 또는 `hibernate.default_batch_fetch_size` 설정으로 N+1을 IN 쿼리로 최적화
+3. **DTO Projection**: 집계 함수(`count()`)로 필요한 값만 선택 조회 → 이 방법을 최종 채택
+
+> 참고: 1:N Fetch Join이 필요한 단건 조회는 애초에 Paging이 필요한 상황이 거의 없다.
+
+---
+
+### 쿼리 설계 원칙
+
+> **비즈니스 요구사항(필요한 데이터)을 먼저 파악하고, 그에 맞는 쿼리 전략을 선택하는 것이 가장 중요하다.**
+
+| 상황 | 필요 데이터 | 페이징 | 적합한 전략 |
+|---|---|---|---|
+| Post 목록 조회 | Post, Member, 댓글 수 | 필요 | N:1 Join + DTO Projection + Paging |
+| Post 단건 조회 | Post, Comments, Member | 불필요 | 1:N Fetch Join 또는 2단계 조회 |
+
+---
+
+### Count Query 분리의 중요성
+
+→ **페이징(Page) 사용 시 content 쿼리와 count 쿼리를 분리해야, 집계에 불필요한 Join/orderBy를 제거하여 성능을 최적화할 수 있다.**
+
+- content 쿼리와 count 쿼리의 `from`, `join`, `where` 절은 기본적으로 일치시켜야 하지만,
+- **집계 목적상 불필요한 join이나 orderBy는 count 쿼리에서 생략 가능**
+
+```java
+Long total = queryFactory
+    .select(post.count())
+    .from(post)
+    // .join(post.member, member)
+    // ↑ member가 반드시 존재한다는 보장 하에 생략 가능
+    //   보장이 없으면 left join 필요 → 구조 복잡도 증가
+    .fetchOne();
+```
+
+---
+
+### 단계별 코드 개선 이력
+
+#### 1단계: JPA @Query (초기)
+
+```java
+@Query(value = "select p from Post p join fetch p.member",
+       countQuery = "select count(p) from Post p")
+Page<Post> findAllWithMember(Pageable pageable);
+```
+
+- N+1 해결 + 페이징 지원
+- 동적 조건 추가 어려움, 댓글 수 집계 불가
+
+#### 2단계: QueryDSL 전환
+
+```java
+@Override
+public List<PostListDto> findAllPosts() {
+    return queryFactory
+        .selectFrom(post)
+        .join(post.member, member)
+        .orderBy(post.createdAt.desc())
+        .fetch();
+}
+```
+
+- 타입 안전성, 컴파일 타임 오류 감지, 동적 조건 조합 가능
+- 페이징 및 댓글 수 집계 여전히 미지원
+
+#### 3단계: QueryDSL + DTO Projection + Paging (최종)
+
+```java
+@Override
+public Page<PostListDto> findAllPosts(Pageable pageable) {
+    List<PostListDto> content = queryFactory
+        .select(Projections.constructor(PostListDto.class,
+            post.id, post.title, post.content, post.createdAt, comment.count()
+        ))
+        .from(post)
+        .join(post.member, member)
+        .leftJoin(post.comments, comment) // 댓글 없는 게시글도 포함 → leftJoin
+        .groupBy(post.id)
+        .orderBy(post.createdAt.desc())
+        .offset(pageable.getOffset())
+        .limit(pageable.getPageSize())
+        .fetch();
+
+    Long total = queryFactory
+        .select(post.count())
+        .from(post)
+        .fetchOne();
+
+    return new PageImpl<>(content, pageable, total);
+}
+```
+
+> **왜 이 코드는 Post → Comments(1:N) + Paging임에도 안전한가?**
+>
+> `Fetch Join`이 아닌 **일반 Join + `groupBy` + `count()` 구조**이기 때문.
+> - Fetch Join: 연관 엔티티 객체 전체를 영속성 컨텍스트에 로딩 → row 뻥튀기 발생, JPA가 메모리 페이징 시도
+> - 일반 Join + groupBy: SQL 집계 결과를 DTO로 받음 → row 뻥튀기 없음, DB 레벨 페이징 안전
+
+---
+
+### Fetch Join vs 일반 Join 정리
+
+| 구분 | Fetch Join | 일반 Join |
+|---|---|---|
+| 목적 | 연관 엔티티 객체를 영속성 컨텍스트에 로딩 | 집계/필터 조건으로 연관 테이블 활용 |
+| 반환 타입 | Entity | DTO (Projection) |
+| 1:N + Paging | 위험 (메모리 페이징 경고, OOM 가능) | 안전 (groupBy + 집계 함수 활용 시) |
+
+---
+
+### 핵심 요약
+
+1. **N:1 Fetch Join + Paging → 안전**
+2. **1:N (Collection) Fetch Join + Paging → 위험, 대안 필요**
+3. **일반 Join + groupBy + 집계 함수 → 1:N이라도 Paging 안전**
+4. **Count Query는 content 쿼리와 분리하여 불필요한 Join 제거로 성능 최적화**
+5. **비즈니스 요구사항 → 필요 데이터 파악 → 쿼리 전략 선택 순서로 설계**
+
+**상태:** 해결됨

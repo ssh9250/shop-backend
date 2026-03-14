@@ -1,15 +1,17 @@
 package com.study.shop.domain.post.dto;
 
+import com.study.shop.domain.comment.dto.CommentResponseDto;
 import com.study.shop.domain.post.entity.Post;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Builder
-public class PostResponseDto {
+public class PostDetailDto {
     // commit test
     @Schema(description = "게시글 id", example = "1")
     private Long id;
@@ -29,8 +31,10 @@ public class PostResponseDto {
     @Schema(description = "수정 일시", format = "date-time", example = "2025-01-01T00:00:01")
     private LocalDateTime updatedAt;
 
-    public static PostResponseDto from(Post post) {
-        return PostResponseDto.builder()
+    private List<CommentResponseDto> comments;
+
+    public static PostDetailDto from(Post post) {
+        return PostDetailDto.builder()
                 .id(post.getId())
                 .title(post.getTitle())
                 .content(post.getContent())
