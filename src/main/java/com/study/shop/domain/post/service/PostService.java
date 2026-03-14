@@ -3,10 +3,7 @@ package com.study.shop.domain.post.service;
 import com.study.shop.domain.member.entity.Member;
 import com.study.shop.domain.member.exception.MemberNotFoundException;
 import com.study.shop.domain.member.repository.MemberRepository;
-import com.study.shop.domain.post.dto.CreatePostRequestDto;
-import com.study.shop.domain.post.dto.PostResponseDto;
-import com.study.shop.domain.post.dto.PostSearchConditionDto;
-import com.study.shop.domain.post.dto.UpdatePostRequestDto;
+import com.study.shop.domain.post.dto.*;
 import com.study.shop.domain.post.entity.Post;
 import com.study.shop.domain.post.exception.PostNotFoundException;
 import com.study.shop.domain.post.repository.PostRepository;
@@ -20,7 +17,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -51,21 +47,23 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public Page<PostResponseDto> getAllPosts(Pageable pageable) {
-        return postRepository.findAllWithMember(pageable)
-                .map(PostResponseDto::from);
+    public Page<PostListDto> getAllPosts(Pageable pageable) {
+        return postRepository.findAllPosts(pageable);
     }
 
     @Transactional(readOnly = true)
-    public PostResponseDto getPostById(Long id) {
+    public PostDetailDto getPostById(Long id) {
+
         return postRepository.findById(id)
-                .map(PostResponseDto::from)
+                .map(PostDetailDto::from)
                 .orElseThrow(() -> new PostNotFoundException(id));
     }
 
     public void updatePost(Long memberId, Long postId, UpdatePostRequestDto requestDto, List<MultipartFile> files) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
+        // 역시 불필요코드, validate 에서 이미 불러오고, 그 전에 토큰에서 한번 걸러지므로.
+
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new PostNotFoundException(postId));
 

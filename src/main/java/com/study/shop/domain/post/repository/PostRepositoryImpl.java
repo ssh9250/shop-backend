@@ -7,6 +7,9 @@ import com.study.shop.domain.post.dto.PostListDto;
 import com.study.shop.domain.post.dto.PostSearchConditionDto;
 import com.study.shop.domain.post.entity.Post;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -20,17 +23,28 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<PostListDto> findAllPosts() {
-        return queryFactory
+    public Page<PostListDto> findAllPosts(Pageable pageable) {
+        // DTO Projection
+        List<PostListDto> content = queryFactory
                 .select(Projections.constructor(PostListDto.class,
-                        post.id, post.title, post.content, post.writer, post.createdAt, comment.id.count()
+                        post.id, post.title, post.content, post.writer, post.createdAt, comment.count()
                 ))
                 .from(post)
                 .join(post.member, member)
                 .leftJoin(post.comments, comment)
                 .groupBy(post.id)
                 .orderBy(post.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
                 .fetch();
+
+        Long total = queryFactory
+                .select(post.count())
+                .from(post)
+//                .join(post.member, member) 현재는 생략 가능 (member가 반드시 있다는 보장 하에, 애초에 보장이 없으면 위에도 left join 해야되서 복잡해짐)
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total);
     }
 
     @Override

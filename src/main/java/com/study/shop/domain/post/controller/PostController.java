@@ -1,7 +1,8 @@
 package com.study.shop.domain.post.controller;
 
 import com.study.shop.domain.post.dto.CreatePostRequestDto;
-import com.study.shop.domain.post.dto.PostResponseDto;
+import com.study.shop.domain.post.dto.PostListDto;
+import com.study.shop.domain.post.dto.PostDetailDto;
 import com.study.shop.domain.post.dto.UpdatePostRequestDto;
 import com.study.shop.domain.post.service.PostService;
 import com.study.shop.global.response.ApiResponse;
@@ -40,7 +41,7 @@ public class PostController {
 
     @Operation(summary = "전체 게시글 조회", description = "모든 게시글을 조회합니다.")
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<PostResponseDto>>> getAllPosts(
+    public ResponseEntity<ApiResponse<Page<PostListDto>>> getAllPosts(
             // 요청 예시 : GET /api/posts?page=0&size=20&sort=createdAt,desc
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
@@ -49,7 +50,7 @@ public class PostController {
 
     @Operation(summary = "게시글 단건 조회", description = "id를 통해 특정 게시글을 조회합니다.")
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<PostResponseDto>> getPost(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<PostDetailDto>> getPost(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(postService.getPostById(id)));
     }
 

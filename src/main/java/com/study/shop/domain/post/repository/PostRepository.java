@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long>,PostRepositoryCustom {
     @Query("select p from Post p where p.member.id = :memberId")
@@ -15,6 +16,14 @@ public interface PostRepository extends JpaRepository<Post, Long>,PostRepository
     @Query(value = "select p from Post p join fetch p.member",
             countQuery = "select count(p) from Post p")
     Page<Post> findAllWithMember(Pageable pageable);
+
+    // jpa에서는 기본적으로 1:n 중복 열에 대한 처리를 하긴 하지만, 그래도 distinct 작성해주자
+    @Query("select distinct p " +
+            "from Post p " +
+            "left join fetch p.comments c " +
+            "left join fetch c.member " +
+            "where p.id = :postId")
+    Optional<Post> findPostByIdWithComment(Long postId);
 }
 
 // 회원목록 -> 한 회원 조회 -> 회원이 쓴 글 목록 -> 글 클릭 시 포스트로 이동

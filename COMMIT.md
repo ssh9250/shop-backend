@@ -42,8 +42,12 @@ chore : 빌드 업무 수정, 패키지 매니저 수정
 
 ---
 
-Feat: Member·Order 소프트 삭제 적용 및 Post QueryDSL 동적 검색 구현
-- Member, Order 엔티티에 @SQLDelete + @SQLRestriction으로 소프트 삭제 적용 (deleted 컬럼 추가)
-- PostRepositoryCustom/Impl 추가, QueryDSL로 title·nickname 동적 검색 구현
-- PostSearchConditionDto 추가 (title, nickname, hidden, from, to)
-- OrderRepository 메서드명 오타 수정 (findByStatusAndMemberId → findByOrderStatusAndMemberId)
+Refactor: Post DTO 분리 및 findAllPosts 페이징 전환
+- PostResponseDto → PostDetailDto (단건 조회용) / PostListDto (목록 조회용) 로 역할 분리
+- PostRepositoryCustom·Impl의 findAllPosts()를 Page<PostListDto> + Pageable 기반으로 전환
+  - DTO Projection (Projections.constructor), leftJoin comments, groupBy, count() 적용
+  - count 쿼리 분리 (PageImpl 반환)
+- PostRepository에 findPostByIdWithComment() 추가 (댓글+작성자 fetch join, distinct)
+- PostService.getAllPosts() → findAllWithMember() 대신 findAllPosts() 사용으로 전환
+- BoardAdminController·Service PostResponseDto → PostDetailDto 로 변경
+- issue.md 추가 (N+1 문제 해결 과정 기록)
