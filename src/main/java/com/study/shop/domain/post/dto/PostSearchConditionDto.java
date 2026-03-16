@@ -9,7 +9,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class PostSearchConditionDto {
     private String title;
-    private String nickname;
+    private String writer;
+    private String content;
     private Boolean hidden;
     private LocalDateTime from;
     private LocalDateTime to;

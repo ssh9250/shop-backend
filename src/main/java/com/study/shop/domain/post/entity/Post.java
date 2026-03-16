@@ -38,6 +38,8 @@ public class Post extends BaseTimeEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
+    private Boolean hidden = false;
+
     void assignMember(Member member) {
         this.member = member;
         member.getPosts().add(this);

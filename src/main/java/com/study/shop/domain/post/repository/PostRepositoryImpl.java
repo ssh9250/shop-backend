@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.study.shop.domain.comment.entity.QComment.comment;
@@ -27,7 +28,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
         // DTO Projection
         List<PostListDto> content = queryFactory
                 .select(Projections.constructor(PostListDto.class,
-                        post.id, post.title, post.content, post.writer, post.createdAt, comment.count()
+                        post.id, post.title, member.nickname, post.createdAt, comment.count()
                 ))
                 .from(post)
                 .join(post.member, member)
@@ -48,23 +49,67 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
     }
 
     @Override
-    public List<Post> searchPosts(PostSearchConditionDto cond) {
-        return queryFactory
-                .selectFrom(post)
-                .join(post.member, member).fetchJoin()
+    public Page<PostListDto> searchPosts(PostSearchConditionDto cond, Pageable pageable) {
+        List<PostListDto> content = queryFactory
+                .select(Projections.constructor(PostListDto.class,
+                        post.id, post.title, member.nickname, post.createdAt, comment.count()
+                ))
+                .from(post)
+                .join(post.member, member)
+                .leftJoin(post.comments, comment)
                 .where(
                         titleContains(cond.getTitle()),
-                        nicknameEq(cond.getNickname())
+                        contentContains(cond.getContent()),
+                        writerContains(cond.getWriter()),
+//                        hiddenEq(cond.getHidden()) 관리자용
+                        hiddenEq(false),
+                        createdAtAfter(cond.getFrom()),
+                        createdAtBefore(cond.getTo())
                 )
+                .groupBy(post.id)
                 .orderBy(post.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
                 .fetch();
+
+        Long total = queryFactory
+                .select(post.count())
+                .from(post)
+                .where(
+                        titleContains(cond.getTitle()),
+                        contentContains(cond.getContent()),
+                        writerContains(cond.getWriter()),
+//                        hiddenEq(cond.getHidden()) 관리자용
+                        hiddenEq(false),
+                        createdAtAfter(cond.getFrom()),
+                        createdAtBefore(cond.getTo())
+                )
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total);
     }
 
     private BooleanExpression titleContains(String title) {
         return hasText(title) ? post.title.containsIgnoreCase(title) : null;
     }
 
-    private BooleanExpression nicknameEq(String nickname) {
-        return hasText(nickname) ? member.nickname.eq(nickname) : null;
+    private BooleanExpression contentContains(String content) {
+        return hasText(content) ? post.content.containsIgnoreCase(content) : null;
+    }
+
+    private BooleanExpression writerContains(String writer) {
+        return hasText(writer) ? member.nickname.containsIgnoreCase(writer) : null;
+    }
+
+    private BooleanExpression hiddenEq(Boolean hidden) {
+        return hidden != null ? post.hidden.eq(hidden) : null;
+    }
+
+    private BooleanExpression createdAtAfter(LocalDateTime from) {
+        return from != null ? post.createdAt.goe(from) : null;
+    }
+
+    private BooleanExpression createdAtBefore(LocalDateTime to) {
+        return to != null ? post.createdAt.loe(to) : null;
     }
 }
