@@ -870,3 +870,228 @@ public Page<PostListDto> findAllPosts(Pageable pageable) {
 5. **비즈니스 요구사항 → 필요 데이터 파악 → 쿼리 전략 선택 순서로 설계**
 
 **상태:** 해결됨
+
+---
+
+## [IMPORTANT] Issue #013: 소프트 삭제(Soft Delete) 도입 — 구현 전략과 Cascade/orphanRemoval 충돌 관리
+
+**작성일**: 2026-03-16
+**관련 도메인**: Member, Order, Comment
+
+---
+
+### 소프트 삭제를 도입한 이유
+
+하드 삭제(Hard Delete)는 DB에서 레코드를 완전히 제거하지만, 다음과 같은 문제가 발생할 수 있다.
+
+| 문제 | 설명 |
+|---|---|
+| 데이터 복구 불가 | 실수로 삭제한 경우 복원 수단 없음 |
+| 참조 무결성 파괴 | 연관 엔티티의 FK가 null/dangling 상태가 됨 |
+| 감사 추적 불가 | 누가 언제 삭제했는지 이력 없음 |
+| 통계/분석 데이터 손실 | 탈퇴 회원의 주문·게시글 집계 불가 |
+
+소프트 삭제는 `deleted = true` 플래그만 설정하고 레코드는 보존하여 위 문제들을 해결한다.
+
+---
+
+### 도메인별 소프트 삭제 적용 현황
+
+#### Member — `@SQLDelete` + `@SQLRestriction` (Hibernate 자동 처리)
+
+```java
+@SQLDelete(sql = "UPDATE member SET deleted = true WHERE id = ?")
+@SQLRestriction("deleted = false")
+public class Member {
+    @Column(nullable = false)
+    private Boolean deleted = false;
+}
+```
+
+- `@SQLDelete`: `repository.delete(member)` 호출 시 JPA가 `DELETE` 대신 `UPDATE` SQL을 실행
+- `@SQLRestriction`: 이 엔티티를 포함하는 모든 JPA/JPQL 쿼리에 `WHERE deleted = false` 조건 자동 추가
+- 서비스 코드 변경 없이 탈퇴 회원이 조회에서 자동으로 제외됨
+
+#### Order — `@SQLDelete` + `@SQLRestriction` (동일 방식)
+
+```java
+@SQLDelete(sql = "UPDATE orders SET deleted = true WHERE id = ?")
+@SQLRestriction("deleted = false")
+public class Order {
+    @Column(nullable = false)
+    private Boolean deleted = false;
+}
+```
+
+- **미해결 TODO**: 주문 소프트 삭제 시 OrderItem의 재고 복구 로직 미구현 (`Order.java` 주석 참고)
+
+#### Comment — 수동 소프트 삭제 (엔티티 메서드 + Repository 명시 필터링)
+
+```java
+// @SQLDelete/@SQLRestriction 없음 — 수동 처리
+public class Comment {
+    private boolean deleted = false;
+
+    public void delete() {
+        this.deleted = true;
+    }
+}
+```
+
+```java
+// 일반 조회: 명시적으로 deleted = false 필터링
+@Query("select c from Comment c where c.member.id = :memberId and c.deleted = false")
+List<Comment> findActiveCommentByMemberId(Long memberId);
+
+// 관리자 조회: 소프트 삭제 댓글 포함 전체 조회
+@Query("select c from Comment c where c.post.id = :postId")
+List<Comment> findAllByPostId(Long postId);
+```
+
+- `@SQLRestriction`이 없으므로 조회 시 `deleted = false` 조건을 **직접 명시**해야 함
+- 빠뜨릴 경우 삭제된 댓글도 함께 조회되는 버그 위험이 있음
+
+---
+
+### `@SQLDelete` + Cascade/orphanRemoval 충돌 문제
+
+#### 충돌 시나리오: Member 소프트 삭제 시 자식 처리
+
+Member는 Post, Comment, Order, Item에 `cascade = ALL, orphanRemoval = true`가 적용되어 있다.
+
+```java
+// Member.java
+@OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+private List<Post> posts;
+
+@OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+private List<Comment> comments;
+
+@OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+private List<Order> orders;
+```
+
+`memberRepository.delete(member)` 호출 시 실제 실행 흐름:
+
+1. JPA → `em.remove(member)` 호출
+2. `cascade = ALL(REMOVE)` → 자식 엔티티들에도 `em.remove()` 전파
+3. **Member**: `@SQLDelete` 가로챔 → `UPDATE member SET deleted = true` (소프트 삭제)
+4. **Post**: `@SQLDelete` 없음 → `DELETE FROM post WHERE id = ?` **(하드 삭제)**
+5. **Comment**: `@SQLDelete` 없음 → `DELETE FROM comment WHERE id = ?` **(하드 삭제)**
+6. **Order**: `@SQLDelete` 있음 → `UPDATE orders SET deleted = true` (소프트 삭제)
+
+**Member 소프트 삭제 시 Post와 Comment는 하드 삭제된다.** 설계 의도와 불일치할 수 있다.
+
+#### 충돌 시나리오: orphanRemoval + Comment 수동 소프트 삭제
+
+```java
+// Post.java
+@OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+private List<Comment> comments;
+```
+
+Post 삭제 또는 `post.getComments().remove(comment)` 호출 시:
+- `orphanRemoval = true` → JPA가 Comment에 `em.remove()` 호출
+- Comment에 `@SQLDelete` 없음 → **하드 DELETE** 실행
+- `comment.delete()`로 소프트 삭제하려던 의도와 충돌
+
+| 삭제 주체 | 자식 엔티티 | 결과 | 비고 |
+|---|---|---|---|
+| Member 소프트 삭제 | Post | 하드 삭제 | 설계에 따라 의도적일 수 있음 |
+| Member 소프트 삭제 | Comment | 하드 삭제 | 동일 |
+| Member 소프트 삭제 | Order | 소프트 삭제 | 일관성 있음 |
+| Post 삭제 (orphanRemoval) | Comment | 하드 삭제 | Comment 수동 소프트 삭제 의도와 충돌 |
+
+---
+
+### Cascade/orphanRemoval 충돌 최소화 전략
+
+#### 전략 1: 자식 엔티티에도 `@SQLDelete` 적용 (일관성 확보)
+
+Post와 Comment에도 `@SQLDelete`를 추가하면 cascade REMOVE가 전파되더라도 하드 삭제 대신 소프트 삭제로 처리된다.
+
+```java
+@SQLDelete(sql = "UPDATE post SET deleted = true WHERE id = ?")
+@SQLRestriction("deleted = false")
+public class Post {
+    private Boolean deleted = false;
+}
+```
+
+**장점**: cascade 흐름을 유지하면서 전 도메인 소프트 삭제 일관성 확보, 서비스 코드 변경 최소화
+**단점**: 모든 자식 엔티티에 `deleted` 컬럼 추가 필요, 관리 포인트 증가
+
+#### 전략 2: orphanRemoval 제거 + 명시적 소프트 삭제 메서드 사용
+
+```java
+// cascade에서 REMOVE 제거, orphanRemoval = false
+@OneToMany(mappedBy = "post", cascade = CascadeType.PERSIST, orphanRemoval = false)
+private List<Comment> comments;
+
+// 삭제 시 명시적으로 comment.delete() 호출
+public void removeComment(Comment comment) {
+    comment.delete(); // 소프트 삭제
+}
+```
+
+**장점**: orphanRemoval로 인한 의도치 않은 하드 삭제 방지
+**단점**: 자동 삭제 보장이 없어지므로 서비스 로직에서 명시적 삭제 처리 필요
+
+#### 현재 프로젝트 상태
+
+Member/Order는 `@SQLDelete` 방식, Comment는 수동 방식으로 **혼용** 중.
+단기적으로는 동작하지만 삭제 전략 문서화 및 통일이 필요하다.
+
+---
+
+### `@SQLRestriction` 동작 방식과 관리자 우회 패턴
+
+`@SQLRestriction("deleted = false")`는 해당 엔티티에 대한 모든 JPA 쿼리에 조건을 자동 추가한다.
+
+```sql
+-- @SQLRestriction 적용 시
+SELECT * FROM member WHERE email = ?
+→ 실제 실행: SELECT * FROM member WHERE email = ? AND deleted = false
+```
+
+**관리자 기능에서 우회가 필요한 경우:**
+- 네이티브 쿼리(`nativeQuery = true`)를 사용하면 `@SQLRestriction` 우회 가능
+- 또는 Comment처럼 `@SQLRestriction` 없이 Repository 쿼리에서 조건을 직접 제어
+
+```java
+// @SQLRestriction 없는 Comment: Repository에서 직접 구분
+@Query("select c from Comment c where c.member.id = :memberId and c.deleted = false") // 일반 조회
+@Query("select c from Comment c where c.post.id = :postId")                           // 관리자 조회
+```
+
+`@SQLRestriction` 방식은 실수를 방지하는 대신 관리자 기능 구현이 복잡하고,
+수동 방식은 유연하지만 필터 누락 버그 위험이 있다.
+
+---
+
+### 남은 과제 (TODO)
+
+- [ ] **Order 소프트 삭제 시 재고 복구 로직 추가** (`Order.java` 주석 참고)
+- [ ] **Post 소프트 삭제 적용 여부 결정** (현재 cascade REMOVE → 하드 삭제)
+- [ ] **Comment 소프트 삭제 전략 통일** (`@SQLDelete` 방식 전환 or 현행 유지)
+- [ ] **삭제 전략 명문화**: 하드/소프트 삭제 기준을 프로젝트 차원에서 정의
+
+---
+
+### 핵심 요약
+
+1. **`@SQLDelete`**: JPA의 `delete()` 호출을 가로채어 UPDATE로 변환 → 서비스 코드 변경 없이 소프트 삭제 적용
+2. **`@SQLRestriction`**: 모든 JPA 쿼리에 자동 필터 추가 → 실수 방지, 단 관리자 우회 처리 필요
+3. **cascade REMOVE + 소프트 삭제**: 자식 엔티티에 `@SQLDelete` 없으면 하드 삭제 발생 → 반드시 확인 필요
+4. **orphanRemoval + 소프트 삭제**: 컬렉션에서 제거 시 orphanRemoval이 하드 삭제를 유발 → 충돌 주의
+5. **전략 일관성**: 도메인마다 삭제 방식이 다르면 조회 로직 혼란 발생 → 프로젝트 전체에서 통일된 전략 권장
+
+### 관련 파일
+
+- `src/main/java/com/study/shop/domain/member/entity/Member.java`
+- `src/main/java/com/study/shop/domain/order/entity/Order.java`
+- `src/main/java/com/study/shop/domain/comment/entity/Comment.java`
+- `src/main/java/com/study/shop/domain/comment/repository/CommentRepository.java`
+- `src/main/java/com/study/shop/admin/dto/AdminCommentResponseDto.java`
+
+**상태:** 부분 적용 (전략 통일 필요)

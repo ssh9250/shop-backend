@@ -51,6 +51,8 @@ public class PostService {
         return postRepository.findAllPosts(pageable);
     }
 
+    // todo: filter 적용된 searched post 목록 구현하기 + 단건 조회 첨부파일 구현
+
     @Transactional(readOnly = true)
     public PostDetailDto getPostById(Long id) {
 
