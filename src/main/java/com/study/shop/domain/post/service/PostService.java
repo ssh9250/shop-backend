@@ -48,11 +48,16 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public Page<PostListDto> getAllPosts(Pageable pageable) {
-        return postRepository.findAllPosts(pageable);
+        return postRepository.findAllPostsWithComments(pageable);
     }
 
-    // todo: filter 적용된 searched post 목록 구현하기 + 단건 조회 첨부파일 구현
+    @Transactional(readOnly = true)
+    public Page<PostListDto> searchPosts(Pageable pageable, PostSearchConditionDto condition) {
+        return postRepository.searchPosts(condition, pageable);
+    }
 
+
+    // todo*: 단건 조회에 첨부파일 구현
     @Transactional(readOnly = true)
     public PostDetailDto getPostById(Long id) {
 
@@ -114,4 +119,5 @@ public class PostService {
             throw new AccessDeniedException("해당 작업을 수행할 권한이 없습니다.");
         }
     }
+
 }

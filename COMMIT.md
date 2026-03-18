@@ -42,24 +42,10 @@ chore : 빌드 업무 수정, 패키지 매니저 수정
 
 ---
 
-Refactor: Post DTO 분리 및 findAllPosts 페이징 전환
-- PostResponseDto → PostDetailDto (단건 조회용) / PostListDto (목록 조회용) 로 역할 분리
-- PostRepositoryCustom·Impl의 findAllPosts()를 Page<PostListDto> + Pageable 기반으로 전환
-  - DTO Projection (Projections.constructor), leftJoin comments, groupBy, count() 적용
-  - count 쿼리 분리 (PageImpl 반환)
-- PostRepository에 findPostByIdWithComment() 추가 (댓글+작성자 fetch join, distinct)
-- PostService.getAllPosts() → findAllWithMember() 대신 findAllPosts() 사용으로 전환
-- BoardAdminController·Service PostResponseDto → PostDetailDto 로 변경
-- issue.md 추가 (N+1 문제 해결 과정 기록)
-
-Feat: Post 동적 검색 개선 및 issue.md 소프트 삭제 이슈 추가
-- PostSearchConditionDto: nickname → writer + content 필드로 변경
-- Post 엔티티에 hidden 필드 누락 추가
-- PostRepositoryCustom.searchPosts() 반환 타입 List<Post> → Page<PostListDto> + Pageable로 전환
-- PostRepositoryImpl.searchPosts() 전면 개편
-  - DTO Projection, leftJoin comments, groupBy, count() 적용
-  - 검색 조건 추가: contentContains, writerContains, hiddenEq, createdAtAfter, createdAtBefore
-  - count 쿼리 분리 (조건 동일하게 유지), 일반 사용자용 hidden = false 고정
-  - nicknameEq(완전 일치) → writerContains(부분 일치)로 변경
-- PostListDto Projection 필드 수정: post.writer → member.nickname
-- issue.md: 소프트 삭제 구현 전략 및 Cascade/orphanRemoval 충돌 이슈(#013) 추가
+Fix: searchPosts 설계 오류 수정 및 ISSUE.md 추가
+- PostController: getAllPosts 제거, searchPosts로 통합 (@RequestBody → @ModelAttribute)
+- PostSearchConditionDto: LocalDateTime 필드에 @DateTimeFormat(ISO.DATE_TIME) 추가
+- PostRepositoryCustom/Impl: findAllPosts → findAllPostsWithComments 메서드명 변경
+- PostRepositoryImpl: searchPosts count 쿼리에 member join 추가, fetchOne() NPE 방어 (Optional.orElse(0L))
+- PostService: searchPosts() 메서드 구현
+- ISSUE.md: #014 searchPosts 설계 오류 이슈 추가
