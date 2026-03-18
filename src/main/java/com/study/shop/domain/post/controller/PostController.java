@@ -1,9 +1,6 @@
 package com.study.shop.domain.post.controller;
 
-import com.study.shop.domain.post.dto.CreatePostRequestDto;
-import com.study.shop.domain.post.dto.PostListDto;
-import com.study.shop.domain.post.dto.PostDetailDto;
-import com.study.shop.domain.post.dto.UpdatePostRequestDto;
+import com.study.shop.domain.post.dto.*;
 import com.study.shop.domain.post.service.PostService;
 import com.study.shop.global.response.ApiResponse;
 import com.study.shop.security.auth.CustomUserDetails;
@@ -39,13 +36,14 @@ public class PostController {
         return ResponseEntity.ok(ApiResponse.success(postService.createPost(userDetails.getMemberId(), requestDto, files)));
     }
 
-    @Operation(summary = "전체 게시글 조회", description = "모든 게시글을 조회합니다.")
+    // 요청 예시 : GET /api/posts?page=0&size=20&sort=createdAt,desc&title=foo&writer=bar&from=2024-01-01T00:00:00&to=2024-12-31T23:59:59
+    @Operation(summary = "게시글 목록 조회", description = "검색 조건에 맞는 게시글을 조회합니다. 조건 없이 호출하면 전체 조회입니다.")
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<PostListDto>>> getAllPosts(
-            // 요청 예시 : GET /api/posts?page=0&size=20&sort=createdAt,desc
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    public ResponseEntity<ApiResponse<Page<PostListDto>>> searchPosts(
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @ModelAttribute PostSearchConditionDto cond
     ) {
-        return ResponseEntity.ok(ApiResponse.success(postService.getAllPosts(pageable)));
+        return ResponseEntity.ok(ApiResponse.success(postService.searchPosts(pageable, cond)));
     }
 
     @Operation(summary = "게시글 단건 조회", description = "id를 통해 특정 게시글을 조회합니다.")

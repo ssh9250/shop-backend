@@ -20,8 +20,10 @@ public interface PostRepository extends JpaRepository<Post, Long>,PostRepository
     // jpa에서는 기본적으로 1:n 중복 열에 대한 처리를 하긴 하지만, 그래도 distinct 작성해주자
     @Query("select distinct p " +
             "from Post p " +
+            "join fetch p.member m " +
             "left join fetch p.comments c " +
-            "left join fetch c.member " +
+//            "left join fetch c.member " +
+            // comment에 writer 필드가 있으므로 불필요
             "where p.id = :postId")
     Optional<Post> findPostByIdWithComment(Long postId);
 }

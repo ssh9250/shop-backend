@@ -1095,3 +1095,163 @@ SELECT * FROM member WHERE email = ?
 - `src/main/java/com/study/shop/admin/dto/AdminCommentResponseDto.java`
 
 **상태:** 부분 적용 (전략 통일 필요)
+
+---
+
+## Issue #014: searchPosts 설계 오류 — GET + @RequestBody, count 쿼리 member join 누락
+
+**발생일**: 2026-03-18
+**관련 도메인**: Post
+
+---
+
+### 문제 상황 1: GET 요청에 @RequestBody 사용
+
+```java
+// 문제가 된 코드
+@GetMapping
+public ResponseEntity<ApiResponse<Page<PostListDto>>> searchPosts(
+        @PageableDefault(...) Pageable pageable,
+        @RequestBody(required = false) PostSearchConditionDto cond  // ← 비표준
+) { ... }
+```
+
+**HTTP 스펙상 GET 요청에 body를 포함하는 것은 권장하지 않는다:**
+- 일부 HTTP 프록시/서버가 GET body를 무시하거나 거부
+- Swagger/OpenAPI가 GET + body를 렌더링하지 못함
+- 브라우저, curl 등 기본 HTTP 클라이언트 동작과 불일치
+
+검색 조건은 Query Parameter로 전달하는 것이 REST 설계 원칙에 부합한다.
+
+---
+
+### 문제 상황 2: searchPosts count 쿼리에 member join 누락
+
+```java
+// content 쿼리: member join 있음 → writerContains() 사용 가능
+List<PostListDto> content = queryFactory
+        .select(...)
+        .from(post)
+        .join(post.member, member)  // ← join 있음
+        .where(writerContains(cond.getWriter()), ...)
+        ...
+
+// count 쿼리: member join 누락
+Long total = queryFactory
+        .select(post.count())
+        .from(post)
+        // .join(post.member, member) ← 없음!
+        .where(writerContains(cond.getWriter()), ...)  // member.nickname 참조 → 오류
+        ...
+```
+
+`writerContains()`는 `member.nickname.containsIgnoreCase(writer)`를 참조하는데, count 쿼리에 `join(post.member, member)`가 없어 writer 조건 사용 시 쿼리 오류 발생.
+
+---
+
+### 문제 상황 3: fetchOne() 언박싱 NPE 위험
+
+```java
+Long total = queryFactory.select(post.count()).from(post)...fetchOne();
+return new PageImpl<>(content, pageable, total);  // Long → long 언박싱 시 NPE 가능
+```
+
+`fetchOne()`은 결과가 없으면 `null`을 반환하고, `PageImpl` 생성자는 `long`(primitive)을 받으므로 언박싱 과정에서 NPE가 발생할 수 있다.
+실제로 count 쿼리에서 null이 나오는 경우는 거의 없지만, 컴파일러 관점에서는 null 가능성이 있다.
+
+---
+
+### 해결 방법
+
+#### 1. getAllPosts + searchPosts 통합 (엔드포인트 통일)
+
+조건 없는 전체 조회는 조건이 모두 비어 있는 `searchPosts`와 동일하므로 하나로 합침.
+
+```java
+// GET /api/posts?page=0&size=20&title=foo&writer=bar&from=2024-01-01T00:00:00
+@GetMapping
+public ResponseEntity<ApiResponse<Page<PostListDto>>> searchPosts(
+        @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+        @ModelAttribute PostSearchConditionDto cond
+) {
+    return ResponseEntity.ok(ApiResponse.success(postService.searchPosts(pageable, cond)));
+}
+```
+
+- `@ModelAttribute`: Query Parameter를 DTO에 자동 바인딩 (HTTP 표준 준수)
+- 조건 없이 호출하면 전체 조회처럼 동작
+
+#### 2. LocalDateTime 파싱을 위한 @DateTimeFormat 추가
+
+`@ModelAttribute`로 `LocalDateTime`을 바인딩하려면 포맷을 명시해야 한다.
+
+```java
+@Getter
+@NoArgsConstructor
+public class PostSearchConditionDto {
+    private String title;
+    private String writer;
+    private String content;
+    private Boolean hidden;
+
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    private LocalDateTime from;
+
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    private LocalDateTime to;
+}
+```
+
+요청 예시: `?from=2024-01-01T00:00:00&to=2024-12-31T23:59:59`
+
+#### 3. count 쿼리에 member join 추가
+
+```java
+long total = Optional.ofNullable(queryFactory
+        .select(post.count())
+        .from(post)
+        .join(post.member, member)  // ← 추가
+        .where(
+                titleContains(cond.getTitle()),
+                contentContains(cond.getContent()),
+                writerContains(cond.getWriter()),  // member.nickname 참조 가능
+                hiddenEq(false),
+                createdAtAfter(cond.getFrom()),
+                createdAtBefore(cond.getTo())
+        )
+        .fetchOne()).orElse(0L);
+```
+
+#### 4. fetchOne() NPE 방어
+
+`Optional.ofNullable(...).orElse(0L)` 패턴으로 null 안전하게 처리.
+`findAllPostsWithComments()`의 count 쿼리에도 동일하게 적용.
+
+---
+
+### @RequestBody vs @ModelAttribute vs @RequestParam 선택 기준
+
+| 방식 | 적합한 경우 | 비고 |
+|---|---|---|
+| `@RequestBody` | POST/PUT/PATCH 요청, JSON body | GET에 사용 금지 |
+| `@ModelAttribute` | GET 요청, 다수의 파라미터를 DTO로 묶을 때 | Query Parameter를 DTO에 바인딩 |
+| `@RequestParam` | GET 요청, 파라미터가 1~2개로 단순할 때 | 각 필드를 개별 파라미터로 선언 |
+
+검색 조건처럼 파라미터가 많은 경우 `@ModelAttribute`로 DTO에 묶는 것이 가독성과 유지보수성이 좋다.
+
+---
+
+### 관련 파일
+
+- `src/main/java/com/study/shop/domain/post/controller/PostController.java`
+- `src/main/java/com/study/shop/domain/post/repository/PostRepositoryImpl.java`
+- `src/main/java/com/study/shop/domain/post/dto/PostSearchConditionDto.java`
+
+### 교훈
+
+- **GET 요청의 조건은 Query Parameter**: REST 원칙상 GET에 body를 포함하면 안 되며, 검색 조건은 `@ModelAttribute`로 DTO에 바인딩
+- **동적 조건 쿼리에서 content/count 일관성 유지**: 조건에 사용된 테이블(member 등)은 content 쿼리와 count 쿼리 모두에 join이 필요
+- **fetchOne() 반환값은 항상 null 가능**: count 집계라도 `Optional.ofNullable(...).orElse(0L)`로 방어
+- **Issue #012 연장**: count 쿼리 분리 전략 적용 시 content 쿼리의 join 조건과 동기화가 필수
+
+**상태:** 해결됨

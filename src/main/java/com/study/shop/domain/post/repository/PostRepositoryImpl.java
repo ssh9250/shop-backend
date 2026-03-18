@@ -5,7 +5,6 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.study.shop.domain.post.dto.PostListDto;
 import com.study.shop.domain.post.dto.PostSearchConditionDto;
-import com.study.shop.domain.post.entity.Post;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -13,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static com.study.shop.domain.comment.entity.QComment.comment;
 import static com.study.shop.domain.member.entity.QMember.member;
@@ -24,7 +24,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<PostListDto> findAllPosts(Pageable pageable) {
+    public Page<PostListDto> findAllPostsWithComments(Pageable pageable) {
         // DTO Projection
         List<PostListDto> content = queryFactory
                 .select(Projections.constructor(PostListDto.class,
@@ -39,11 +39,11 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        Long total = queryFactory
+        long total = Optional.ofNullable(queryFactory
                 .select(post.count())
                 .from(post)
-//                .join(post.member, member) 현재는 생략 가능 (member가 반드시 있다는 보장 하에, 애초에 보장이 없으면 위에도 left join 해야되서 복잡해짐)
-                .fetchOne();
+                .join(post.member, member) // 현재는 생략 가능 (member가 반드시 있다는 보장 하에, 애초에 보장이 없으면 위에도 left join 해야되서 복잡해짐)
+                .fetchOne()).orElse(0L);
 
         return new PageImpl<>(content, pageable, total);
     }
@@ -72,9 +72,10 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        Long total = queryFactory
+        long total = Optional.ofNullable(queryFactory
                 .select(post.count())
                 .from(post)
+                .join(post.member, member)
                 .where(
                         titleContains(cond.getTitle()),
                         contentContains(cond.getContent()),
@@ -84,7 +85,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
                         createdAtAfter(cond.getFrom()),
                         createdAtBefore(cond.getTo())
                 )
-                .fetchOne();
+                .fetchOne()).orElse(0L);
 
         return new PageImpl<>(content, pageable, total);
     }

@@ -2,6 +2,7 @@ package com.study.shop.domain.post.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 
@@ -12,7 +13,10 @@ public class PostSearchConditionDto {
     private String writer;
     private String content;
     private Boolean hidden;
+
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime from;
+
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime to;
-    // 검색어는 나중에
 }
