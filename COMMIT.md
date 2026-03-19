@@ -42,10 +42,12 @@ chore : 빌드 업무 수정, 패키지 매니저 수정
 
 ---
 
-Fix: searchPosts 설계 오류 수정 및 ISSUE.md 추가
-- PostController: getAllPosts 제거, searchPosts로 통합 (@RequestBody → @ModelAttribute)
-- PostSearchConditionDto: LocalDateTime 필드에 @DateTimeFormat(ISO.DATE_TIME) 추가
-- PostRepositoryCustom/Impl: findAllPosts → findAllPostsWithComments 메서드명 변경
-- PostRepositoryImpl: searchPosts count 쿼리에 member join 추가, fetchOne() NPE 방어 (Optional.orElse(0L))
-- PostService: searchPosts() 메서드 구현
-- ISSUE.md: #014 searchPosts 설계 오류 이슈 추가
+Feat: Item Cursor 페이징 기반 구조 추가 및 Post 단건 조회 첨부파일 지원
+- ItemRepositoryCustom/Impl: Slice 기반 findByCondition() 인터페이스 및 스텁 추가 (구현 예정)
+- ItemSearchConditionDto: Item 검색 조건 DTO 추가 (title, writer, from/to 등)
+- ItemResponseDto: stock 필드 추가
+- PostFileResponseDto: 첨부파일 응답 DTO 추가
+- PostDetailDto: comments, files 필드 추가 및 from() 매핑 반영
+- PostRepository.findPostByIdWithComment(): postFiles fetch join 추가
+- PostController/PostService: searchPosts 파라미터 순서 변경 (@ModelAttribute 우선)
+- ISSUE.md: #015 Page vs Slice 페이징 전략 추가 (Redis 캐싱/인덱싱 전략 포함)

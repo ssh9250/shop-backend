@@ -40,10 +40,10 @@ public class PostController {
     @Operation(summary = "게시글 목록 조회", description = "검색 조건에 맞는 게시글을 조회합니다. 조건 없이 호출하면 전체 조회입니다.")
     @GetMapping
     public ResponseEntity<ApiResponse<Page<PostListDto>>> searchPosts(
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
-            @ModelAttribute PostSearchConditionDto cond
+            @ModelAttribute PostSearchConditionDto cond,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        return ResponseEntity.ok(ApiResponse.success(postService.searchPosts(pageable, cond)));
+        return ResponseEntity.ok(ApiResponse.success(postService.searchPosts(cond, pageable)));
     }
 
     @Operation(summary = "게시글 단건 조회", description = "id를 통해 특정 게시글을 조회합니다.")

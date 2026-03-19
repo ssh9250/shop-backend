@@ -24,6 +24,7 @@ public interface PostRepository extends JpaRepository<Post, Long>,PostRepository
             "left join fetch p.comments c " +
 //            "left join fetch c.member " +
             // comment에 writer 필드가 있으므로 불필요
+            "left join fetch p.postFiles "+
             "where p.id = :postId")
     Optional<Post> findPostByIdWithComment(Long postId);
 }

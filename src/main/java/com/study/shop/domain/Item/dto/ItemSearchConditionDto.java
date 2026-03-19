@@ -1,0 +1,22 @@
+package com.study.shop.domain.Item.dto;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.time.LocalDateTime;
+
+@Getter
+@NoArgsConstructor
+public class ItemSearchConditionDto {
+    private String title;
+    private String writer;
+    private String content;
+    private Boolean hidden;
+
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    private LocalDateTime from;
+
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    private LocalDateTime to;
+}

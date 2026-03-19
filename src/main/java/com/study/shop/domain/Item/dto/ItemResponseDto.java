@@ -28,6 +28,8 @@ public class ItemResponseDto {
     @Schema(description = "현재 상태", example = "ON_SALE")
     private ItemStatus status;
 
+    private int stock;
+
     public static ItemResponseDto from(Item item) {
         return ItemResponseDto.builder()
                 .id(item.getId())
@@ -36,6 +38,7 @@ public class ItemResponseDto {
                 .price(item.getPrice())
                 .used(item.isUsed())
                 .status(item.getItemStatus())
+                .stock(item.getStock())
                 .build();
     }
 }
