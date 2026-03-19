@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -52,15 +53,12 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public Page<PostListDto> searchPosts(Pageable pageable, PostSearchConditionDto condition) {
+    public Page<PostListDto> searchPosts(PostSearchConditionDto condition, Pageable pageable) {
         return postRepository.searchPosts(condition, pageable);
     }
 
-
-    // todo*: 단건 조회에 첨부파일 구현
     @Transactional(readOnly = true)
     public PostDetailDto getPostById(Long id) {
-
         return postRepository.findById(id)
                 .map(PostDetailDto::from)
                 .orElseThrow(() -> new PostNotFoundException(id));

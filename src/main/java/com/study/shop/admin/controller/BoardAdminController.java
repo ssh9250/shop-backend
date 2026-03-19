@@ -19,7 +19,6 @@ import java.util.List;
 @PreAuthorize("hasRole('ADMIN')")
 @Tag(name = "Board Admin", description = "관리자 게시판 관리 API (게시글 + 댓글)")
 public class BoardAdminController {
-    //  todo: 관리자 로직 세부적으로 좀 더 추가
 
     private final BoardAdminService boardAdminService;
 

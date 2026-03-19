@@ -33,6 +33,8 @@ public class PostDetailDto {
 
     private List<CommentResponseDto> comments;
 
+    private List<PostFileResponseDto> files;
+
     public static PostDetailDto from(Post post) {
         return PostDetailDto.builder()
                 .id(post.getId())
@@ -41,6 +43,8 @@ public class PostDetailDto {
                 .writer(post.getMember().getEmail())
                 .createdAt(post.getCreatedAt() != null ? post.getCreatedAt() : null)
                 .updatedAt(post.getUpdatedAt() != null ? post.getUpdatedAt() : null)
+                .comments(post.getComments().stream().map(CommentResponseDto::from).toList())
+                .files(post.getPostFiles().stream().map(PostFileResponseDto::from).toList())
                 .build();
     }
 }
