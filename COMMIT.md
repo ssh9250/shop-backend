@@ -42,12 +42,11 @@ chore : 빌드 업무 수정, 패키지 매니저 수정
 
 ---
 
-Feat: Item Cursor 페이징 기반 구조 추가 및 Post 단건 조회 첨부파일 지원
-- ItemRepositoryCustom/Impl: Slice 기반 findByCondition() 인터페이스 및 스텁 추가 (구현 예정)
-- ItemSearchConditionDto: Item 검색 조건 DTO 추가 (title, writer, from/to 등)
-- ItemResponseDto: stock 필드 추가
-- PostFileResponseDto: 첨부파일 응답 DTO 추가
-- PostDetailDto: comments, files 필드 추가 및 from() 매핑 반영
-- PostRepository.findPostByIdWithComment(): postFiles fetch join 추가
-- PostController/PostService: searchPosts 파라미터 순서 변경 (@ModelAttribute 우선)
-- ISSUE.md: #015 Page vs Slice 페이징 전략 추가 (Redis 캐싱/인덱싱 전략 포함)
+Feat: Item Cursor 페이징 QueryDSL 구현 및 BaseTimeEntity softDelete 추가
+- ItemRepositoryImpl: findByCondition() Cursor 기반 Slice 구현 (복합 커서 createdAt + id, DTO Projection)
+- ItemRepositoryCustom: 시그니처 변경 (lastId → lastCreatedAt + lastId, 반환 타입 Slice<Item> → Slice<ItemListDto>)
+- ItemSearchConditionDto: 필드 재설계 (Post 검색 조건 → Item 특화 조건: content, stock, used, minPrice, maxPrice)
+- ItemListDto: 목록 조회용 DTO 추가 (id, name, stock, price, used, seller, createTime)
+- ItemDetailDto: 단건 조회용 DTO 추가 (빈 클래스, 구현 예정)
+- BaseTimeEntity: deletedAt 필드 및 softDelete()/isDeleted() 메서드 추가
+- Member: BaseEntity 상속으로 전환, deleted 필드 제거 (BaseTimeEntity의 deletedAt으로 통일)
