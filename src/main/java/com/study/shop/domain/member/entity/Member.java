@@ -5,6 +5,8 @@ import com.study.shop.domain.order.entity.Order;
 import com.study.shop.domain.post.entity.Post;
 import com.study.shop.domain.comment.entity.Comment;
 import com.study.shop.global.enums.RoleType;
+import com.study.shop.global.util.BaseEntity;
+import com.study.shop.global.util.BaseTimeEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -23,7 +25,7 @@ import java.util.List;
 @Builder
 @SQLDelete(sql = "update member set deleted = true where id = ?")
 @SQLRestriction("deleted = false")
-public class Member {
+public class Member extends BaseEntity {
     @Id
     @GeneratedValue
     private Long id;
@@ -46,9 +48,6 @@ public class Member {
 
     @Enumerated(EnumType.STRING)
     private RoleType role;
-
-    @Column(nullable = false)
-    private Boolean deleted = false;
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

@@ -9,14 +9,9 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor
 public class ItemSearchConditionDto {
-    private String title;
-    private String writer;
-    private String content;
-    private Boolean hidden;
-
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-    private LocalDateTime from;
-
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-    private LocalDateTime to;
+    private String content; // name or description
+    private int stock;
+    private boolean used;
+    private int minPrice;
+    private int maxPrice;
 }
