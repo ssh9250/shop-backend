@@ -34,9 +34,11 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom {
                 .join(item.seller, member)
                 .where(cursorCondition(lastCreatedAt, lastId))
                 .orderBy(item.createdAt.desc(), item.id.desc())
+                .limit(pageSize + 1)
                 .fetch();
 
         boolean hasNext = content.size() > pageSize;
+
         if (hasNext) {
             content.remove(content.size() - 1);
         }
@@ -49,6 +51,7 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom {
             return null;
         }
         return item.createdAt.lt(lastCreatedAt)
-                .or(item.createdAt.eq(lastCreatedAt)).and(item.id.lt(lastId));
+                .or(item.createdAt.eq(lastCreatedAt))
+                .and(item.id.lt(lastId));
     }
 }

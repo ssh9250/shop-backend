@@ -24,6 +24,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
+    // 밑의 search 메서드로 통일되었기에 이제는 안씀
     public Page<PostListDto> findAllPostsWithComments(Pageable pageable) {
         // DTO Projection
         List<PostListDto> content = queryFactory
