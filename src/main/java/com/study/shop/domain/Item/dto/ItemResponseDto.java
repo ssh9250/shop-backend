@@ -30,6 +30,8 @@ public class ItemResponseDto {
 
     private int stock;
 
+    private String seller;
+
     public static ItemResponseDto from(Item item) {
         return ItemResponseDto.builder()
                 .id(item.getId())
@@ -39,6 +41,7 @@ public class ItemResponseDto {
                 .used(item.isUsed())
                 .status(item.getItemStatus())
                 .stock(item.getStock())
+                .seller(item.getSeller().getEmail())
                 .build();
     }
 }

@@ -1,18 +1,21 @@
 package com.study.shop.domain.Item.controller;
 
-import com.study.shop.domain.Item.dto.CreateItemRequestDto;
-import com.study.shop.domain.Item.dto.ItemResponseDto;
-import com.study.shop.domain.Item.dto.UpdateItemRequestDto;
+import com.study.shop.domain.Item.dto.*;
 import com.study.shop.domain.Item.service.ItemService;
 import com.study.shop.global.response.ApiResponse;
 import com.study.shop.security.auth.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -32,9 +35,20 @@ public class ItemController {
     }
 
     @Operation(summary = "모든 상품 조회", description = "모든 상품을 조회합니다.")
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<ItemResponseDto>>> getAllItem() {
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<List<ItemResponseDto>>> getAllItems() {
         return ResponseEntity.ok(ApiResponse.success(itemService.getAllItems()));
+    }
+
+    @Operation(summary = "상품 목록 조회", description = "검색 조건에 맞는 상품들을 조회합니다. 조건 없이 호출하면 전체 조회입니다.")
+    @GetMapping
+    public ResponseEntity<ApiResponse<Slice<ItemListDto>>> searchItems(
+            @ModelAttribute ItemSearchConditionDto conditionDto,
+            @RequestParam(required = false) LocalDateTime lastCreatedAt,
+            @RequestParam(required = false) Long lastId,
+            @PageableDefault(size = 50) Pageable pageable
+            ) {
+        return ResponseEntity.ok(ApiResponse.success(itemService.searchItems(conditionDto, lastCreatedAt, lastId, pageable)));
     }
 
     @Operation(summary = "상품 단건 조회", description = "id로 특정 상품을 조회합니다.")

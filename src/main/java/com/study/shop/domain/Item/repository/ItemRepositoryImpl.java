@@ -32,7 +32,13 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom {
                         item.id, item.name, item.stock, item.price, item.used, member.nickname, item.createdAt))
                 .from(item)
                 .join(item.seller, member)
-                .where(cursorCondition(lastCreatedAt, lastId))
+                .where(
+                        cursorCondition(lastCreatedAt, lastId),
+                        contentContains(cond.getContent()),
+                        usedEqual(cond.getUsed()),
+                        minPriceGOE(cond.getMinPrice()),
+                        maxPriceLOE(cond.getMaxPrice())
+                )
                 .orderBy(item.createdAt.desc(), item.id.desc())
                 .limit(pageSize + 1)
                 .fetch();
@@ -51,7 +57,23 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom {
             return null;
         }
         return item.createdAt.lt(lastCreatedAt)
-                .or(item.createdAt.eq(lastCreatedAt))
-                .and(item.id.lt(lastId));
+                .or(item.createdAt.eq(lastCreatedAt).and(item.id.lt(lastId)));
+    }
+
+    private BooleanExpression contentContains(String content) {
+        return content != null ? item.name.contains(content)
+                .or(item.description.contains(content)) : null;
+    }
+
+    private BooleanExpression usedEqual(Boolean used) {
+        return used != null ? item.used.eq(used) : null;
+    }
+
+    private BooleanExpression minPriceGOE(Integer minPrice) {
+        return minPrice != null ? item.price.goe(minPrice) : null;
+    }
+
+    private BooleanExpression maxPriceLOE(Integer maxPrice) {
+        return maxPrice != null ? item.price.loe(maxPrice) : null;
     }
 }

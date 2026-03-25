@@ -7,6 +7,8 @@ import com.study.shop.domain.member.entity.Member;
 import com.study.shop.domain.member.exception.MemberNotFoundException;
 import com.study.shop.domain.member.repository.MemberRepository;
 import com.study.shop.domain.order.dto.CreateOrderRequestDto;
+import com.study.shop.domain.order.dto.OrderDetailDto;
+import com.study.shop.domain.order.dto.OrderListDto;
 import com.study.shop.domain.order.dto.OrderResponseDto;
 import com.study.shop.domain.order.entity.Order;
 import com.study.shop.domain.order.entity.OrderItem;
@@ -50,30 +52,30 @@ public class OrderService {
         return OrderResponseDto.from(order);
     }
 
-    public OrderResponseDto findOrderById(Long memberId, Long orderId) {
+    public OrderDetailDto findOrderById(Long memberId, Long orderId) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
 
         validateOrderAccess(order, memberId);
-        return OrderResponseDto.from(order);
+        return OrderDetailDto.from(order);
     }
 
-    public List<OrderResponseDto> getOrdersByStatus(Long memberId, OrderStatus status) {
+    public List<OrderListDto> getOrdersByStatus(Long memberId, OrderStatus status) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
 
         List<Order> orders = orderRepository.findByOrderStatusAndMemberId(status, memberId);
 
-        List<OrderResponseDto> responseDtos = new ArrayList<>();
+        List<OrderListDto> responseDtos = new ArrayList<>();
 
         for (Order order : orders) {
-            responseDtos.add(OrderResponseDto.from(order));
+            responseDtos.add(OrderListDto.from(order));
         }
 //        orders.forEach(order -> {responseDtos.add(OrderResponseDto.from(order));});
 
         return responseDtos;
     }
 
-    public OrderResponseDto acceptOrder(Long memberId, Long orderId) {
+    public OrderDetailDto acceptOrder(Long memberId, Long orderId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
 
@@ -83,27 +85,27 @@ public class OrderService {
 
         order.accept();
 
-        return OrderResponseDto.from(order);
+        return OrderDetailDto.from(order);
     }
 
-    public OrderResponseDto startDelivery(Long memberId, Long orderId) {
+    public OrderDetailDto startDelivery(Long memberId, Long orderId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
 
         validateOrderAccess(order, memberId);
         order.startDelivery();
-        return OrderResponseDto.from(order);
+        return OrderDetailDto.from(order);
     }
 
-    public OrderResponseDto completeOrder(Long memberId, Long orderId) {
+    public OrderDetailDto completeOrder(Long memberId, Long orderId) {
         // 불필요한 검증 로직 (JWT를 통해 회원이 존재한다는 것이 보장됨)
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
         validateOrderAccess(order, memberId);
         order.complete();
-        return OrderResponseDto.from(order);
+        return OrderDetailDto.from(order);
     }
 
     public Long cancelOrder(Long memberId, Long orderId) {

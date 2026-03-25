@@ -9,6 +9,8 @@ import com.study.shop.global.enums.ItemStatus;
 import com.study.shop.global.util.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -19,6 +21,8 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+@SQLDelete(sql = "update item set deleted_at = NOW() where id = ?")
+@SQLRestriction("deleted_at is NULL")
 public class Item extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,6 +41,7 @@ public class Item extends BaseTimeEntity {
     private List<CategoryItem> categoryItems =  new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
     private Member seller;
 
     public void addCategory(Category category) {

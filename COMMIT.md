@@ -50,3 +50,24 @@ Feat: Item Cursor 페이징 QueryDSL 구현 및 BaseTimeEntity softDelete 추가
 - ItemDetailDto: 단건 조회용 DTO 추가 (빈 클래스, 구현 예정)
 - BaseTimeEntity: deletedAt 필드 및 softDelete()/isDeleted() 메서드 추가
 - Member: BaseEntity 상속으로 전환, deleted 필드 제거 (BaseTimeEntity의 deletedAt으로 통일)
+
+---
+
+Feat: MySQL 환경 전환, Item 동적 검색 완성, Order DTO 분리 및 소프트 삭제 통일
+- docker-compose.yml: MySQL 8.0 + Redis 7.2 컨테이너 구성 추가
+- build.gradle: mysql-connector-j 의존성 추가
+- application-local.yml: H2 → MySQL datasource 전환, MySQL8Dialect 설정, ddl-auto update
+- ItemRepositoryImpl: findByCondition()에 동적 검색 조건 추가 (content, used, minPrice, maxPrice), cursorCondition 괄호 버그 수정
+- ItemSearchConditionDto: stock 제거, used/minPrice/maxPrice → nullable 타입(Boolean/Integer)으로 변경
+- ItemRepository: findItemByIdWithMember() fetch join 쿼리 추가
+- ItemService: searchItems() 추가, getItemById() fetch join 활용, deleteItem() → softDelete() 적용
+- ItemController: searchItems() 엔드포인트 추가, getAllItems() 경로 /all로 변경
+- ItemResponseDto: seller(email) 필드 추가
+- Item: @SQLDelete/@SQLRestriction 소프트 삭제 적용, seller FK @JoinColumn 추가
+- Member: @SQLDelete/@SQLRestriction deleted boolean → deleted_at 전환, items mappedBy member → seller 수정
+- Order: @SQLDelete/@SQLRestriction deleted boolean → deleted_at 전환, deleted 필드 제거
+- OrderDetailDto: 주문 단건 조회용 DTO 추가 (orderItems 포함)
+- OrderListDto: 주문 목록 조회용 DTO 추가 (요약 정보)
+- OrderRepository: fetch join 쿼리 추가 (findByOrderStatusAndMemberId, findById), OrderRepositoryCustom 확장
+- OrderRepositoryCustom/Impl: 스텁 추가
+- OrderController/Service: 응답 타입 OrderResponseDto → OrderDetailDto/OrderListDto 분리

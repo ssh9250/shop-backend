@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @Builder
-@RequiredArgsConstructor
 public class PostFileResponseDto {
     private Long id;
     private String originalFileName;
