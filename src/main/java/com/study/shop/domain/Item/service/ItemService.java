@@ -1,8 +1,6 @@
 package com.study.shop.domain.Item.service;
 
-import com.study.shop.domain.Item.dto.CreateItemRequestDto;
-import com.study.shop.domain.Item.dto.ItemResponseDto;
-import com.study.shop.domain.Item.dto.UpdateItemRequestDto;
+import com.study.shop.domain.Item.dto.*;
 import com.study.shop.domain.Item.entity.Item;
 import com.study.shop.domain.Item.exception.ItemNotFoundException;
 import com.study.shop.domain.Item.repository.ItemRepository;
@@ -14,10 +12,13 @@ import com.study.shop.global.enums.ItemStatus;
 import com.study.shop.global.enums.RoleType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,10 +47,15 @@ public class ItemService {
     }
 
     @Transactional(readOnly = true)
-    public ItemResponseDto getItemById(Long memberId) {
-        return itemRepository.findById(memberId)
+    public Slice<ItemListDto> searchItems(ItemSearchConditionDto cond, LocalDateTime lastCreatedAt, Long lastId, Pageable pageable) {
+        return itemRepository.findByCondition(cond, lastCreatedAt, lastId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public ItemResponseDto getItemById(Long itemId) {
+        return itemRepository.findItemByIdWithMember(itemId)
                 .map(ItemResponseDto::from)
-                .orElseThrow(() -> new ItemNotFoundException(memberId));
+                .orElseThrow(() -> new ItemNotFoundException(itemId));
     }
 
     @Transactional(readOnly = true)
@@ -82,7 +88,9 @@ public class ItemService {
             throw new AccessDeniedException("판매중인 상품만 삭제할 수 있습니다.");
         }
 
-        itemRepository.deleteById(itemId);
+        item.softDelete();
+        // 상품 조회 시 deleted 된 item은 어떻게?
+        // or 연관관계를 맺은 다른 엔티티는?
     }
 
     private void validateItemAccess(Item item, Long memberId) {

@@ -23,9 +23,9 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-@SQLDelete(sql = "update member set deleted = true where id = ?")
-@SQLRestriction("deleted = false")
-public class Member extends BaseEntity {
+@SQLDelete(sql = "update member set deleted_at = NOW() where id = ?")
+@SQLRestriction("deleted_at is NULL")
+public class Member extends BaseTimeEntity {
     @Id
     @GeneratedValue
     private Long id;
@@ -61,7 +61,7 @@ public class Member extends BaseEntity {
     @Builder.Default
     private List<Order> orders = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "seller", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Item> items = new ArrayList<>();
 

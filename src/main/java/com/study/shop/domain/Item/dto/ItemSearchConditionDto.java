@@ -10,8 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class ItemSearchConditionDto {
     private String content; // name or description
-    private int stock;
-    private boolean used;
-    private int minPrice;
-    private int maxPrice;
+    private Boolean used;
+    private Integer minPrice;
+    private Integer maxPrice;
 }
