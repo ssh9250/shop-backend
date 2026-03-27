@@ -40,6 +40,9 @@ public class Post extends BaseTimeEntity {
 
     private Boolean hidden = false;
 
+    @Column(nullable = false)
+    private int viewCount = 0;
+
     void assignMember(Member member) {
         this.member = member;
         member.getPosts().add(this);
@@ -82,5 +85,9 @@ public class Post extends BaseTimeEntity {
     public void removePostFile(PostFile postFile) {
         this.postFiles.remove(postFile);
         postFile.assignPost(null);
+    }
+
+    public void updateViewCount(int viewCount) {
+        this.viewCount = viewCount;
     }
 }
