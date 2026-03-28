@@ -31,6 +31,8 @@ public class PostDetailDto {
     @Schema(description = "수정 일시", format = "date-time", example = "2025-01-01T00:00:01")
     private LocalDateTime updatedAt;
 
+    private int viewCount;
+
     private List<CommentResponseDto> comments;
 
     private List<PostFileResponseDto> files;
@@ -43,6 +45,21 @@ public class PostDetailDto {
                 .writer(post.getMember().getEmail())
                 .createdAt(post.getCreatedAt() != null ? post.getCreatedAt() : null)
                 .updatedAt(post.getUpdatedAt() != null ? post.getUpdatedAt() : null)
+                .viewCount(post.getViewCount())
+                .comments(post.getComments().stream().map(CommentResponseDto::from).toList())
+                .files(post.getPostFiles().stream().map(PostFileResponseDto::from).toList())
+                .build();
+    }
+
+    public static PostDetailDto from(Post post, int viewCount) {
+        return PostDetailDto.builder()
+                .id(post.getId())
+                .title(post.getTitle())
+                .content(post.getContent())
+                .writer(post.getMember().getEmail())
+                .createdAt(post.getCreatedAt() != null ? post.getCreatedAt() : null)
+                .updatedAt(post.getUpdatedAt() != null ? post.getUpdatedAt() : null)
+                .viewCount(viewCount)
                 .comments(post.getComments().stream().map(CommentResponseDto::from).toList())
                 .files(post.getPostFiles().stream().map(PostFileResponseDto::from).toList())
                 .build();

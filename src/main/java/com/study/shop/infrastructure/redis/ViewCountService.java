@@ -8,7 +8,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.security.Key;
 import java.util.Set;
 
 @Service
@@ -30,12 +29,12 @@ public class ViewCountService {
     @Transactional
     public void flushViewCountsToDb() {
         Set<String> keys = stringRedisTemplate.keys(VIEW_KEY_PATTERN);
-        if (keys == null || keys.isEmpty()) {
+        if (keys.isEmpty()) {
             return;
         }
         for (String key : keys) {
             String value = stringRedisTemplate.opsForValue().get(key);
-            if (value != null) {
+            if (value == null) {
                 continue;
             }
 

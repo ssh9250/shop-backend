@@ -41,3 +41,14 @@ test : 테스트 코드, 리펙토링 테스트 코드 추가
 chore : 빌드 업무 수정, 패키지 매니저 수정
 
 ---
+
+Feat: Post 조회수 Redis Write-behind 적용 및 게시글 목록 캐싱
+- CacheConfig: RedisCacheManager 설정 추가 (TTL 5분, JSON 직렬화), @EnableCaching 활성화
+- SchedulerConfig: @EnableScheduling 활성화
+- PostService: searchPosts()에 @Cacheable(postList) 추가, createPost/updatePost/deletePost에 @CacheEvict 추가
+- PostService.getPostById(): Redis 조회수 + DB 조회수 합산하여 응답
+- PostController: getPost() 호출 시 viewCountService.increment() 연동
+- PostDetailDto: viewCount 필드 추가, from(post, viewCount) 오버로드 추가
+- PostListDto: @Getter/@Builder/Serializable 추가, viewCount 필드 추가
+- PostRepositoryImpl: Projections에 post.viewCount 추가
+- ViewCountService: flushViewCountsToDb() null 체크 버그 수정 (keys, value 조건 수정)

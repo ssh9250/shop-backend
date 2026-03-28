@@ -7,9 +7,13 @@ import com.study.shop.domain.post.dto.*;
 import com.study.shop.domain.post.entity.Post;
 import com.study.shop.domain.post.exception.PostNotFoundException;
 import com.study.shop.domain.post.repository.PostRepository;
+import com.study.shop.global.config.CacheConfig;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +30,9 @@ public class PostService {
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
     private final FileStorageService fileStorageService;
+    private final StringRedisTemplate stringRedisTemplate;
 
+    @CacheEvict(value = CacheConfig.POST_LIST_CACHE, allEntries = true)
     public Long createPost(Long memberId, CreatePostRequestDto request, List<MultipartFile> files) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
@@ -52,6 +58,7 @@ public class PostService {
         return postRepository.findAllPostsWithComments(pageable);
     }
 
+    @Cacheable(value = CacheConfig.POST_LIST_CACHE, key = "#condition.toString()")
     @Transactional(readOnly = true)
     public Page<PostListDto> searchPosts(PostSearchConditionDto condition, Pageable pageable) {
         return postRepository.searchPosts(condition, pageable);
@@ -59,11 +66,17 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public PostDetailDto getPostById(Long id) {
+        String redisValue = stringRedisTemplate.opsForValue()
+                .get("view:post:" + id);
+        int redisCount = redisValue == null ? 0 : Integer.parseInt(redisValue);
+
+
         return postRepository.findById(id)
-                .map(PostDetailDto::from)
+                .map(post -> PostDetailDto.from(post, redisCount + post.getViewCount()))
                 .orElseThrow(() -> new PostNotFoundException(id));
     }
 
+    @CacheEvict(value = CacheConfig.POST_LIST_CACHE, allEntries = true)
     public void updatePost(Long memberId, Long postId, UpdatePostRequestDto requestDto, List<MultipartFile> files) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
@@ -94,6 +107,7 @@ public class PostService {
 //        필요없음 @Transactional, 즉 트랜잭션이 끝날 때 JPA가 더티체킹으로 자동 업데이트
     }
 
+    @CacheEvict(value = CacheConfig.POST_LIST_CACHE, allEntries = true)
     public void deletePost(Long memberId, Long postId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
