@@ -3,6 +3,7 @@ package com.study.shop.domain.post.controller;
 import com.study.shop.domain.post.dto.*;
 import com.study.shop.domain.post.service.PostService;
 import com.study.shop.global.response.ApiResponse;
+import com.study.shop.infrastructure.redis.ViewCountService;
 import com.study.shop.security.auth.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,6 +26,7 @@ import java.util.List;
 @Tag(name = "Post", description = "게시글 관련 API")
 public class PostController {
     private final PostService postService;
+    private final ViewCountService viewCountService;
 
     @Operation(summary = "게시글 작성", description = "게시글을 생성합니다.")
     @PostMapping
@@ -49,6 +51,7 @@ public class PostController {
     @Operation(summary = "게시글 단건 조회", description = "id를 통해 특정 게시글을 조회합니다.")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<PostDetailDto>> getPost(@PathVariable Long id) {
+        viewCountService.increment(id);
         return ResponseEntity.ok(ApiResponse.success(postService.getPostById(id)));
     }
 

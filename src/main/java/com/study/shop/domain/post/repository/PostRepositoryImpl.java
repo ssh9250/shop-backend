@@ -29,7 +29,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
         // DTO Projection
         List<PostListDto> content = queryFactory
                 .select(Projections.constructor(PostListDto.class,
-                        post.id, post.title, member.nickname, post.createdAt, comment.count()
+                        post.id, post.title, member.nickname, post.createdAt, comment.count(), post.viewCount
                 ))
                 .from(post)
                 .join(post.member, member)
@@ -53,7 +53,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
     public Page<PostListDto> searchPosts(PostSearchConditionDto cond, Pageable pageable) {
         List<PostListDto> content = queryFactory
                 .select(Projections.constructor(PostListDto.class,
-                        post.id, post.title, member.nickname, post.createdAt, comment.count()
+                        post.id, post.title, member.nickname, post.createdAt, comment.count(), post.viewCount
                 ))
                 .from(post)
                 .join(post.member, member)
