@@ -2,6 +2,7 @@ package com.study.shop.domain.post.controller;
 
 import com.study.shop.domain.post.dto.*;
 import com.study.shop.domain.post.service.PostService;
+import com.study.shop.global.dto.CachePage;
 import com.study.shop.global.response.ApiResponse;
 import com.study.shop.infrastructure.redis.ViewCountService;
 import com.study.shop.security.auth.CustomUserDetails;
@@ -9,10 +10,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -24,16 +28,17 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/posts")
 @Tag(name = "Post", description = "게시글 관련 API")
+@Slf4j
 public class PostController {
     private final PostService postService;
     private final ViewCountService viewCountService;
 
     @Operation(summary = "게시글 작성", description = "게시글을 생성합니다.")
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Long>> createPost(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestPart("request") @Valid CreatePostRequestDto requestDto,
-            @RequestPart(value = "files", required = false) List<MultipartFile> files
+            @ParameterObject @RequestPart(value = "files", required = false) List<MultipartFile> files
     ) {
         return ResponseEntity.ok(ApiResponse.success(postService.createPost(userDetails.getMemberId(), requestDto, files)));
     }
@@ -42,17 +47,19 @@ public class PostController {
     @Operation(summary = "게시글 목록 조회", description = "검색 조건에 맞는 게시글을 조회합니다. 조건 없이 호출하면 전체 조회입니다.")
     @GetMapping
     public ResponseEntity<ApiResponse<Page<PostListDto>>> searchPosts(
-            @ModelAttribute PostSearchConditionDto cond,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            @ParameterObject @ModelAttribute PostSearchConditionDto cond,
+            @ParameterObject @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
+        log.info("get all posts for search condition: {}", cond);
         return ResponseEntity.ok(ApiResponse.success(postService.searchPosts(cond, pageable)));
     }
 
     @Operation(summary = "게시글 단건 조회", description = "id를 통해 특정 게시글을 조회합니다.")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<PostDetailDto>> getPost(@PathVariable Long id) {
+        PostDetailDto result = postService.getPostById(id);
         viewCountService.increment(id);
-        return ResponseEntity.ok(ApiResponse.success(postService.getPostById(id)));
+        return ResponseEntity.ok(ApiResponse.success(result));
     }
 
     @Operation(summary = "게시글 수정", description = "id를 통해 특정 게시글을 수정합니다.")

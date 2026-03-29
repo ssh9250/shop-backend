@@ -35,10 +35,11 @@ springdoc:
 logging:
   level:
     com.study.shop: debug
-    org.springframework.web: debug
-    org.springframework.security: debug
-    org.hibernate.SQL: info
-    org.hibernate.type.descriptor.sql.BasicBinder: debug
+#    org.springframework.web: debug
+#    org.springframework.security: debug
+    org.springframework.cache: trace
+    org.hibernate.SQL: debug
+    org.hibernate.type.descriptor.sql.BasicBinder: trace
 
 jwt:
   secret: SldUU2lnbmluZ0tleUZvclNlY3VyZUF1dGhlbnRpY2F0aW9uSW5TcHJpbmdCb290QXBwbGljYXRpb25XaXRoSFMyNTZBbGdvcml0aG0=

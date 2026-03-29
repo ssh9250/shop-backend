@@ -1,7 +1,10 @@
 package com.study.shop.domain.Item.dto;
 
+import lombok.AllArgsConstructor;
+
 import java.time.LocalDateTime;
 
+@AllArgsConstructor
 public class ItemListDto {
     private Long id;
     private String name;
