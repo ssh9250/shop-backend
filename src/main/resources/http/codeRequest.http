@@ -19,3 +19,19 @@ Content-Type: application/json
 POST http://localhost:8080/api/auth/logout
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZTFzdEB0ZXN0LmNvbSIsImlhdCI6MTc2Njc1MTA4MywiZXhwIjoxNzY2NzUyODgzfQ.IKmvoKLRkNeNW_EvkurlgoMnIWrKVJXzxaGL5m6IQZ8
 Content-Type: application/json
+
+### n. create post
+POST http://localhost:8080/api/posts
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc3NDc3NTAzMSwiZXhwIjoxNzc0Nzc2ODMxfQ.5gWBrBR7eg1gCq7G4MajeocKvzhMoG9fsmSCyZ0OKVU
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="request"
+Content-Type: application/json
+
+{"title": "ee 번째 글", "content": "내용입니다"}
+--boundary--
+
+### m. 게시글 목록 조회
+GET http://localhost:8080/api/posts
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc3NDc3NjQ3MiwiZXhwIjoxNzc0Nzc4MjcyfQ.CgM6dDBKwJ-o-gDPG4lZrvGKi1pe21WXLUepsX7EYOA'

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
@@ -28,9 +29,13 @@ public class GlobalExceptionHandler {
     // 임시로 Validation Error 잡기용
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Void>> handleValidationExceptions(MethodArgumentNotValidException e) {
-        List<FieldError> fieldErrors = e.getBindingResult().getFieldErrors();
+        String errorMessage = e.getBindingResult().getFieldErrors()
+                .stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(Collectors.joining(", "));
 
-        return ResponseEntity.badRequest().body(ApiResponse.fail("Validation Error"));
+        log.warn("Validation failed: {}", errorMessage);
+        return ResponseEntity.badRequest().body(ApiResponse.fail(errorMessage));
     }
 
     @ExceptionHandler({

@@ -32,7 +32,7 @@ public class PostService {
     private final FileStorageService fileStorageService;
     private final StringRedisTemplate stringRedisTemplate;
 
-    @CacheEvict(value = CacheConfig.POST_LIST_CACHE, allEntries = true)
+//    @CacheEvict(value = CacheConfig.POST_LIST_CACHE, allEntries = true)
     public Long createPost(Long memberId, CreatePostRequestDto request, List<MultipartFile> files) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
@@ -58,7 +58,7 @@ public class PostService {
         return postRepository.findAllPostsWithComments(pageable);
     }
 
-    @Cacheable(value = CacheConfig.POST_LIST_CACHE, key = "#condition.toString()")
+//    @Cacheable(value = CacheConfig.POST_LIST_CACHE, key = "#condition.toString()")
     @Transactional(readOnly = true)
     public Page<PostListDto> searchPosts(PostSearchConditionDto condition, Pageable pageable) {
         return postRepository.searchPosts(condition, pageable);
@@ -76,7 +76,7 @@ public class PostService {
                 .orElseThrow(() -> new PostNotFoundException(id));
     }
 
-    @CacheEvict(value = CacheConfig.POST_LIST_CACHE, allEntries = true)
+//    @CacheEvict(value = CacheConfig.POST_LIST_CACHE, allEntries = true)
     public void updatePost(Long memberId, Long postId, UpdatePostRequestDto requestDto, List<MultipartFile> files) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
@@ -107,7 +107,7 @@ public class PostService {
 //        필요없음 @Transactional, 즉 트랜잭션이 끝날 때 JPA가 더티체킹으로 자동 업데이트
     }
 
-    @CacheEvict(value = CacheConfig.POST_LIST_CACHE, allEntries = true)
+//    @CacheEvict(value = CacheConfig.POST_LIST_CACHE, allEntries = true)
     public void deletePost(Long memberId, Long postId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));

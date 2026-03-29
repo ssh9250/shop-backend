@@ -5,6 +5,8 @@ import com.study.shop.domain.member.entity.Member;
 import com.study.shop.global.util.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +16,8 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+@SQLDelete(sql = "update post set deleted_at = NOW() where id = ?")
+@SQLRestriction("deleted_at is NULL")
 public class Post extends BaseTimeEntity {
     @Id
     @GeneratedValue
@@ -38,9 +42,11 @@ public class Post extends BaseTimeEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
+    @Builder.Default
     private Boolean hidden = false;
 
     @Column(nullable = false)
+    @Builder.Default
     private int viewCount = 0;
 
     void assignMember(Member member) {

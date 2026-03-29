@@ -5,18 +5,20 @@ import com.study.shop.domain.member.entity.Member;
 import com.study.shop.global.util.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+@SQLDelete(sql = "update comment set deleted_at = NOW() where id = ?")
+@SQLRestriction("deleted_at is NULL")
 public class Comment extends BaseTimeEntity {
     @Id
     @GeneratedValue
     private Long id;
-
-    private boolean deleted = false;
 
     @Column(nullable = false)
     private String writer;
@@ -56,9 +58,5 @@ public class Comment extends BaseTimeEntity {
     }
     public void update(String content) {
         this.content = content;
-    }
-
-    public void delete(){
-        this.deleted = true;
     }
 }

@@ -30,8 +30,6 @@ public class Member extends BaseTimeEntity {
     @GeneratedValue
     private Long id;
 
-    @Email
-    @NotBlank
     @Column(nullable = false, unique = true, length = 50)
     private String email;
 

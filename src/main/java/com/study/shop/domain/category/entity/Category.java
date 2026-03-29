@@ -1,8 +1,11 @@
 package com.study.shop.domain.category.entity;
 
 import com.study.shop.domain.Item.entity.Item;
+import com.study.shop.global.util.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +15,9 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class Category {
+@SQLDelete(sql = "update category set deleted_at = NOW() where id = ?")
+@SQLRestriction("deleted_at is NULL")
+public class Category extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

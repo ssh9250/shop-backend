@@ -7,9 +7,9 @@ import lombok.*;
 import java.util.List;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class CreatePostRequestDto {
     @NotBlank
     @Schema(description = "게시글 제목", example = "첫 번째 글")

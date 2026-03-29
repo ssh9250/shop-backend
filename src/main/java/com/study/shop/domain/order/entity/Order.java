@@ -1,14 +1,13 @@
 package com.study.shop.domain.order.entity;
 
 import com.study.shop.domain.member.entity.Member;
-import com.study.shop.global.enums.ItemStatus;
 import com.study.shop.global.enums.OrderStatus;
+import com.study.shop.global.util.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +19,7 @@ import java.util.List;
 @Builder
 @SQLDelete(sql = "UPDATE orders SET deleted_at = NOW() WHERE id = ?")
 @SQLRestriction("deleted_at is NULL")
-public class Order {
+public class Order extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
