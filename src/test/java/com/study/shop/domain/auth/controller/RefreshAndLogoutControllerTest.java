@@ -170,7 +170,7 @@ class RefreshAndLogoutControllerTest extends IntegrationTestBase {
             // when & then
             mockMvc.perform(post("/api/auth/logout"))
                     .andDo(print())
-                    .andExpect(status().isForbidden());
+                    .andExpect(status().isUnauthorized());
         }
 
         @Test
@@ -184,7 +184,7 @@ class RefreshAndLogoutControllerTest extends IntegrationTestBase {
             mockMvc.perform(post("/api/auth/logout")
                             .header("Authorization", "Bearer " + invalidToken))
                     .andDo(print())
-                    .andExpect(status().isForbidden());
+                    .andExpect(status().isUnauthorized());
         }
 
         @Test
@@ -202,7 +202,7 @@ class RefreshAndLogoutControllerTest extends IntegrationTestBase {
             mockMvc.perform(post("/api/auth/logout")
                             .header("Authorization", "Bearer " + tokenInfo.accessToken()))
                     .andDo(print())
-                    .andExpect(status().isForbidden());
+                    .andExpect(status().isUnauthorized());
         }
 
         @Test

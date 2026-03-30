@@ -2,7 +2,7 @@
 
 ## 1. 프로젝트 개요
 
-**기술 스택:** Java 17, Spring Boot 3.3.5, Spring Security, JWT, Spring Data JPA, QueryDSL 5.0.0, Redis, H2 Database
+**기술 스택:** Java 17, Spring Boot 3.3.5, Spring Security, JWT, Spring Data JPA, QueryDSL 5.0.0, Redis, MySQL 8.0
 **도메인:** 악기 중심 C2C 중고거래 플랫폼 (게시글/댓글, 회원 관리, AI 악보 변환 포함)
 **아키텍처:** DDD(Domain-Driven Design) 기반 계층형 아키텍처
 **답변 방식:** 간결하고 실용적으로, 개념 설명 + 코드 예시 포함
@@ -15,7 +15,7 @@
 src/main/java/com/study/shop/
 ├── ShopApplication.java
 ├── admin/
-│   ├── controller/  OrderAdminController, PostAdminController
+│   ├── controller/  OrderAdminController, PostAdminController, InitController
 │   └── service/     OrderAdminService, PostAdminService
 ├── domain/
 │   ├── auth/        controller, dto, service
@@ -26,15 +26,16 @@ src/main/java/com/study/shop/
 │   ├── order/       controller, dto, entity, exception, repository, service
 │   └── category/    entity
 ├── global/
-│   ├── config/      FilterConfig, JpaAuditingConfig, QueryDslConfig, RedisConfig, SwaggerConfig, WebConfig
-│   ├── dto/         PageResponse
+│   ├── config/      CacheConfig, FilterConfig, JpaAuditingConfig, QueryDslConfig, RedisConfig, SchedulerConfig, SwaggerConfig, WebConfig
+│   ├── dto/         CachePage
 │   ├── enums/       RoleType, ItemStatus, OrderStatus, InstrumentCategory
 │   ├── exception/   CustomException, ErrorCode, GlobalExceptionHandler
 │   ├── response/    ApiResponse
-│   └── util/        BaseEntity, BaseTimeEntity, JpaBaseEntity, JwtUtils
+│   └── util/        BaseEntity, BaseTimeEntity, JwtUtils
 ├── infrastructure/
 │   ├── ai/          MusicScoreClient, MusicScoreConverter
-│   └── external/    StorageService
+│   ├── external/    StorageService
+│   └── redis/       ViewCountService
 └── security/
     ├── auth/        CustomUserDetails, CustomUserDetailsService
     ├── config/      SecurityConfig
@@ -52,36 +53,38 @@ src/main/java/com/study/shop/
 ### Member
 ```java
 // 필드: id(PK), email(unique, len=50), password(len=200), nickname(len=50), phone(len=50), address, role(RoleType)
-// 상속: BaseTimeEntity (createdAt, updatedAt)
+// 상속: BaseTimeEntity (createdAt, updatedAt, deletedAt)
+// 소프트 삭제: @SQLDelete + @SQLRestriction("deleted_at is NULL")
 
 // 연관관계
-@OneToMany(mappedBy="member", cascade=ALL, orphanRemoval=true) List<Post> posts;
-@OneToMany(mappedBy="member", cascade=ALL, orphanRemoval=true) List<Comment> comments;
-@OneToMany(mappedBy="member", cascade=ALL, orphanRemoval=true) List<Order> orders;
-@OneToMany(mappedBy="seller",  cascade=ALL, orphanRemoval=true) List<Item> items;
+@OneToMany(mappedBy="member", cascade=ALL, orphanRemoval=true) @Builder.Default List<Post> posts;
+@OneToMany(mappedBy="member", cascade=ALL, orphanRemoval=true) @Builder.Default List<Comment> comments;
+@OneToMany(mappedBy="member", cascade=ALL, orphanRemoval=true) @Builder.Default List<Order> orders;
+@OneToMany(mappedBy="seller",  cascade=ALL, orphanRemoval=true) @Builder.Default List<Item> items;
 
 // 도메인 메서드
 updateProfile(nickname, phone, address)
 updatePassword(newPassword)
-addPost(post) / removePost(post)       // 양방향 동기화
+addPost(post) / removePost(post)
 addComment(comment) / removeComment(comment)
 ```
 
 ### Post
 ```java
-// 필드: id(PK), title, content(TEXT)
+// 필드: id(PK), title, content(TEXT), hidden(Boolean, @Builder.Default=false), viewCount(int, @Builder.Default=0)
 // 상속: BaseTimeEntity
+// 소프트 삭제: @SQLDelete + @SQLRestriction("deleted_at is NULL")
 
 // 연관관계
 @ManyToOne(fetch=LAZY) Member member;
-@OneToMany(mappedBy="post", cascade=ALL, orphanRemoval=true) List<Comment> comments;
-@OneToMany(mappedBy="post", cascade=ALL, orphanRemoval=true) List<PostFile> postFiles;
+@OneToMany(mappedBy="post", cascade=ALL, orphanRemoval=true) @Builder.Default List<Comment> comments;
+@OneToMany(mappedBy="post", cascade=ALL, orphanRemoval=true) @Builder.Default List<PostFile> postFiles;
 
 // 도메인 메서드
-static Post create(title, content, member)   // 정적 팩토리
+static Post create(title, content, member)
 update(title, content)
 addPostFile(postFile) / removePostFile(postFile)
-addComment(comment) / removeComment(comment)
+updateViewCount(viewCount)
 ```
 
 ### PostFile
@@ -94,54 +97,57 @@ void assignPost(Post post)  // package-private
 
 ### Comment
 ```java
-// 필드: id(PK), writer, content(TEXT), deleted(boolean, default=false)
-// 상속: BaseTimeEntity
+// 필드: id(PK), writer, content(TEXT)
+// 상속: BaseTimeEntity (deletedAt으로 소프트 삭제 — deleted boolean 필드 없음)
+// 소프트 삭제: @SQLDelete + @SQLRestriction("deleted_at is NULL")
 
 // 연관관계
 @ManyToOne(fetch=LAZY) Post post;
 @ManyToOne(fetch=LAZY) Member member;
 
 // 도메인 메서드
-static Comment create(member, post, content)  // 정적 팩토리 - assignPost/assignMember 내부 호출
+static Comment create(member, post, content)
 void assignPost(Post post)     // package-private, 양방향 동기화
 void assignMember(Member member) // package-private
 update(content)
-delete()   // soft delete: deleted = true
 ```
 
 ### Item
 ```java
 // 필드: id(PK), name, description, stock(int), price(int), used(boolean), itemStatus(ItemStatus)
 // 상속: BaseTimeEntity
+// 소프트 삭제: @SQLDelete + @SQLRestriction("deleted_at is NULL")
 
 // 연관관계
 @ManyToOne(fetch=LAZY) Member seller;
-@OneToMany(mappedBy="item") List<CategoryItem> categoryItems;
+@OneToMany(mappedBy="item") List<CategoryItem> categoryItems;  // @Builder.Default 미적용 주의
 
 // 도메인 메서드
 static Item create(seller, name, description, stock, price, used)  // itemStatus = ON_SALE
 update(UpdateItemRequestDto)
-validateOrderable()   // itemStatus != ON_SALE 이면 예외
+validateOrderable()
 addStock(quantity) / removeStock(quantity)
 addCategory(category) / removeCategory(category)
 ```
 
 ### Order
 ```java
-// 필드: id(PK), orderDate(LocalDateTime), totalPrice(int), orderStatus(default=PENDING), address
+// 필드: id(PK), orderDate(LocalDateTime), totalPrice(int), orderStatus(@Builder.Default=PENDING), address
+// 상속: BaseTimeEntity (createdAt, updatedAt, deletedAt)
+// 소프트 삭제: @SQLDelete + @SQLRestriction("deleted_at is NULL")
+
 // 연관관계
 @ManyToOne(fetch=LAZY) Member member;
-@OneToMany(mappedBy="order", cascade=ALL, orphanRemoval=true) List<OrderItem> orderItems;
+@OneToMany(mappedBy="order", cascade=ALL, orphanRemoval=true) @Builder.Default List<OrderItem> orderItems;
 
 // 도메인 메서드 - 상태 전이
 static Order create(member, address)
-addOrderItem(orderItem)           // totalPrice 자동 재계산
+addOrderItem(orderItem)
 accept()       // PENDING → ORDERED
 startDelivery() // ORDERED → IN_DELIVERY
 complete()     // IN_DELIVERY → COMPLETED
 cancel()       // PENDING → CANCELLED, OrderItem.cancel() 연쇄 호출
 forceCancel()  // 관리자용 강제 취소
-validateStatusTransition(expected, next)
 ```
 
 ### OrderItem
@@ -157,14 +163,20 @@ cancel()           // item stock 복구
 getTotalPrice()    // price * quantity
 ```
 
-### Category / CategoryItem
+### Category
 ```java
-// Category 필드: id(PK), name
-// 연관관계
-@ManyToOne self-reference parent; @OneToMany children;
-@OneToMany List<CategoryItem> categoryItems;
-addChild/removeChild, addItem/removeItem
+// 필드: id(PK), name
+// 상속: BaseTimeEntity
+// 소프트 삭제: @SQLDelete + @SQLRestriction("deleted_at is NULL")
 
+// 연관관계
+@ManyToOne self-reference parent; @OneToMany children;  // @Builder.Default 미적용 주의
+@OneToMany List<CategoryItem> categoryItems;             // @Builder.Default 미적용 주의
+addChild/removeChild, addItem/removeItem
+```
+
+### CategoryItem
+```java
 // CategoryItem: category(ManyToOne) + item(ManyToOne) 연결 테이블 엔티티
 ```
 
@@ -192,10 +204,12 @@ addChild/removeChild, addItem/removeItem
 | HTTP | Path | 설명 | 인증 |
 |------|------|------|------|
 | POST | `/` | 게시글 작성 (`multipart/form-data`, @RequestPart) | 필요 |
-| GET | `/` | 전체 게시글 조회 | 불필요 |
-| GET | `/{id}` | 게시글 단건 조회 | 불필요 |
+| GET | `/` | 게시글 목록 검색 (`@ModelAttribute` 조건 + Pageable) | 불필요 |
+| GET | `/{id}` | 게시글 단건 조회 + 조회수 increment | 불필요 |
 | PATCH | `/{id}` | 게시글 수정 (multipart) | 필요 |
 | DELETE | `/{id}` | 게시글 삭제 | 필요 |
+
+> 목록 조회 요청 예시: `GET /api/posts?page=0&size=20&sort=createdAt,desc&title=foo&writer=bar`
 
 ### CommentController - `/api/comments`
 | HTTP | Path | 설명 | 인증 |
@@ -209,11 +223,12 @@ addChild/removeChild, addItem/removeItem
 | HTTP | Path | 설명 | 인증 |
 |------|------|------|------|
 | POST | `/` | 상품 생성 | 필요 |
-| GET | `/` | 전체 상품 조회 (ON_SALE만) | 불필요 |
+| GET | `/all` | 전체 상품 조회 | 불필요 |
+| GET | `/` | 상품 검색 (Cursor 페이징) | 불필요 |
 | GET | `/{id}` | 상품 단건 조회 | 불필요 |
 | GET | `/me` | 내 상품 목록 | 필요 |
-| PUT | `/{itemId}` | 상품 수정 (ON_SALE만) | 필요 |
-| DELETE | `/{itemId}` | 상품 삭제 (ON_SALE만) | 필요 |
+| PUT | `/{itemId}` | 상품 수정 | 필요 |
+| DELETE | `/{itemId}` | 상품 삭제 | 필요 |
 
 ### OrderController - `/api/order`
 | HTTP | Path | 설명 |
@@ -256,10 +271,16 @@ addChild/removeChild, addItem/removeItem
 
 ### PostService
 - `createPost(memberId, dto, files)` - FileStorageService로 파일 저장
-- `getAllPosts()` / `getPostById(id)`
+- `getAllPosts(pageable)` - 전체 조회 (Page)
+- `searchPosts(condition, pageable)` - 동적 조건 검색 (title, writer, content, hidden, from, to)
+- `getPostById(id)` - Redis 조회수(`view:post:{id}`) + DB viewCount 합산하여 반환
 - `updatePost(memberId, postId, dto, files)` - 권한 검증, 기존 파일 삭제 후 교체
 - `deletePost(memberId, postId)` - 권한 검증, 파일 삭제
 - `validatePostAccess(memberId, post)` - 작성자 권한 검증
+
+### ViewCountService (`infrastructure/redis`)
+- `increment(postId)` - Redis `view:post:{id}` 값 INCR
+- `flushViewCountsToDb()` - `@Scheduled(fixedDelay=60_000)`, Redis → DB Write-behind 동기화
 
 ### FileStorageService
 - `storeFile(MultipartFile)` - UUID 기반 파일명으로 로컬 저장 (`/uploads/posts`)
@@ -267,16 +288,18 @@ addChild/removeChild, addItem/removeItem
 
 ### CommentService
 - `createComment(memberId, dto)` - `Comment.create()` 호출
-- `getCommentsByPostId(postId)` - QueryDSL (deleted=false 필터링)
+- `getCommentsByPostId(postId)` - QueryDSL (deleted_at IS NULL 필터링)
 - `updateComment(memberId, commentId, dto)` - 권한 검증
-- `deleteComment(memberId, commentId)` - soft delete
+- `deleteComment(memberId, commentId)` - soft delete (`softDelete()`)
 
 ### ItemService
 - `createItem(memberId, dto)` - `Item.create()` 호출
 - `getAllItems()` - ON_SALE 상태만 반환
-- `getItemById(itemId)` / `getItemsByMemberId(memberId)`
+- `searchItems(condition, pageable)` - Cursor 기반 동적 검색
+- `getItemById(itemId)` - fetch join 활용
+- `getItemsByMemberId(memberId)`
 - `updateItem(memberId, itemId, dto)` - ON_SALE 상태 검증 + 판매자 권한 검증
-- `deleteItem(memberId, itemId)` - ON_SALE 상태 검증 + 판매자 권한 검증
+- `deleteItem(memberId, itemId)` - softDelete() 적용
 
 ### OrderService
 - `createOrder(memberId, dto)` - OrderItem.create() 호출 (stock 검증 포함)
@@ -284,7 +307,6 @@ addChild/removeChild, addItem/removeItem
 - `getOrdersByStatus(memberId, status)` - 상태별 조회
 - `acceptOrder / startDelivery / completeOrder(memberId, orderId)` - 상태 전이
 - `cancelOrder(memberId, orderId)` - 취소, stock 복구
-- `validateOrderAccess(order, memberId)` - 구매자 권한 검증
 
 ---
 
@@ -297,19 +319,30 @@ boolean existsByEmail(String email);
 boolean existsByNickname(String nickname);
 ```
 
+### PostRepository (QueryDSL 적용)
+```java
+// findAllPostsWithComments: 전체 목록 (Page<PostListDto>)
+// searchPosts: 동적 조건 검색 (title, writer, content, hidden, from~to) + count 쿼리 분리
+```
+
 ### CommentRepository (QueryDSL 적용)
 ```java
 // JPQL
-@Query("select c from Comment c where c.member.id = :memberId and c.deleted = false")
+@Query("select c from Comment c where c.member.id = :memberId")
 List<Comment> findActiveCommentByMemberId(Long memberId);
 
 // QueryDSL (CommentRepositoryImpl)
-// findByPostId: post.id = ? AND deleted = false ORDER BY createdAt DESC
+// findByPostId: post.id = ? AND deleted_at IS NULL ORDER BY createdAt DESC
 ```
 
-### ItemRepository
+### ItemRepository (QueryDSL 적용)
 ```java
 List<Item> findBySellerId(Long sellerId);
+Optional<Item> findItemByIdWithMember(Long id);  // fetch join
+
+// ItemRepositoryImpl: Cursor 기반 Slice<ItemListDto>
+// 검색 조건: content, used, minPrice, maxPrice
+// 복합 커서: createdAt + id
 ```
 
 ### OrderRepository
@@ -317,6 +350,7 @@ List<Item> findBySellerId(Long sellerId);
 List<Order> findByOrderStatus(OrderStatus orderStatus);
 List<Order> findByMemberId(Long memberId);
 List<Order> findByStatusAndMemberId(OrderStatus orderStatus, Long memberId);
+// fetch join: findByOrderStatusAndMemberId, findById
 ```
 
 ---
@@ -333,8 +367,10 @@ List<Order> findByStatusAndMemberId(OrderStatus orderStatus, Long memberId);
 
 **Authorization 규칙:**
 ```
-PUBLIC:  /api/auth/login, /api/auth/refresh, /swagger-ui/**, /v3/api-docs/**
-ADMIN:   /admin/**  → ROLE_ADMIN
+PUBLIC:  /api/auth/signup, /api/auth/login, /api/auth/refresh
+         /swagger-ui/**, /v3/api-docs/**, /swagger-resources/**, /webjars/**
+         /api/test/**, /init/**
+ADMIN:   /api/admin/** → ROLE_ADMIN
 기타:    authenticated()
 ```
 
@@ -347,6 +383,10 @@ jwt:
 ```
 - **알고리즘:** HS256
 - **Claim:** email (subject)
+
+### SwaggerConfig
+- `SecurityScheme` (Bearer JWT) `Components`에 등록 완료
+- `addSecurityItem`으로 전역 적용 — Swagger UI 상단 Authorize 버튼으로 토큰 입력 가능
 
 ### JwtTokenProvider 메서드
 - `createAccessToken(email)` / `createRefreshToken(email)`
@@ -384,7 +424,7 @@ getUsername()     → email
 
 ## 8. 전역 예외 처리
 
-### ErrorCode (26개)
+### ErrorCode
 | 카테고리 | 코드 |
 |---------|------|
 | Member | MEMBER_NOT_FOUND, DUPLICATE_EMAIL, DUPLICATE_NICKNAME |
@@ -432,10 +472,11 @@ spring:
 
 logging:
   level:
-    root: info
-    org.hibernate.SQL: warn
+    root: warn
+    com.study.shop: debug
     org.springframework: warn
-    com.study.cruisin: debug
+    org.hibernate.SQL: info
+    org.hibernate.type.descriptor.sql.BasicBinder: trace
 
 springdoc:
   api-docs.path: /v3/api-docs
@@ -448,7 +489,32 @@ jwt:
 file.upload-dir: /uploads/posts
 ```
 
+### application-local.yml
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/shop?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa.hibernate:
+    ddl-auto: update
+    dialect: org.hibernate.dialect.MySQL8Dialect
+  data.redis:
+    host: localhost
+    port: 6379
+
+logging:
+  level:
+    com.study.shop: debug
+    org.springframework.cache: trace
+    org.hibernate.SQL: debug
+    org.hibernate.type.descriptor.sql.BasicBinder: trace
+```
+
 **프로파일:** application-local.yml, application-dev.yml, application-prod.yml
+
+### docker-compose.yml
+- MySQL 8.0 (port 3306, charset utf8mb4)
+- Redis 7.2 (port 6379)
 
 ### build.gradle 주요 의존성
 ```gradle
@@ -469,9 +535,11 @@ implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
 runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
 runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
-// Lombok, H2, Test
+// DB
+runtimeOnly 'com.mysql:mysql-connector-j'
+
+// Lombok, Test
 compileOnly/annotationProcessor lombok
-runtimeOnly h2
 testImplementation 'com.github.codemonstur:embedded-redis:1.4.3'
 ```
 
@@ -500,7 +568,9 @@ testImplementation 'com.github.codemonstur:embedded-redis:1.4.3'
 |-----|------|
 | CreatePostRequestDto | title, content |
 | UpdatePostRequestDto | title, content |
-| PostResponseDto | id, title, content, writer, createdAt, updatedAt |
+| PostListDto | id, title, writer, createTime, commentCount, viewCount |
+| PostDetailDto | id, title, content, writer, createdAt, updatedAt, viewCount |
+| PostSearchConditionDto | title, writer, content, hidden, from, to |
 
 ### 댓글
 | DTO | 필드 |
@@ -514,15 +584,17 @@ testImplementation 'com.github.codemonstur:embedded-redis:1.4.3'
 |-----|------|
 | CreateItemRequestDto | name, description, stock, price, used |
 | UpdateItemRequestDto | name, description, price, used, status |
-| ItemResponseDto | id, name, description, price, used, status |
+| ItemListDto | id, name, stock, price, used, seller, createTime |
+| ItemResponseDto | id, name, description, price, used, status, seller |
+| ItemSearchConditionDto | content, used, minPrice, maxPrice |
 
 ### 주문
 | DTO | 필드 |
 |-----|------|
 | CreateOrderRequestDto | orderItems: List\<CreateOrderItemRequestDto\>, address |
 | CreateOrderItemRequestDto | itemId, quantity |
-| OrderResponseDto | orderId, memberEmail, memberNickname, orderItemDtoList, orderStatus, totalPrice, orderDate, address |
-| OrderItemResponseDto | orderId, orderItemId, quantity, price |
+| OrderDetailDto | orderId, memberEmail, orderItems, orderStatus, totalPrice, orderDate, address |
+| OrderListDto | orderId, orderStatus, totalPrice, orderDate |
 
 ---
 
@@ -552,10 +624,20 @@ testImplementation 'com.github.codemonstur:embedded-redis:1.4.3'
 - **도메인 메서드:** 해당 엔티티 스스로 알 수 있는 규칙 (`validateOrderable`, 상태 전이 검증)
 - **Service:** 외부 엔티티 조회가 필요한 검증 (권한 체크, 중복 확인)
 
-### Cascade 및 소프트 삭제
+### Soft Delete 적용 현황
+- **적용 완료:** Member, Item, Post, Comment, Order, Category
+- **방식:** `@SQLDelete` + `@SQLRestriction("deleted_at is NULL")` + `BaseTimeEntity.softDelete()`
+- **미적용:** OrderItem, CategoryItem (부모 엔티티 생명주기 종속)
+- Comment는 기존 `deleted boolean` 필드를 제거하고 `deletedAt`으로 통일
+
+### @Builder.Default 적용 주의
+- Lombok `@Builder` 사용 시 필드 기본값은 무시되고 `null`이 할당됨
+- `@Builder.Default`를 누락하면 `hidden`, `viewCount`, `List` 초기화 등이 모두 null
+- **미적용 필드 (요주의):** `Item.categoryItems`, `Category.categoryItems`, `Category.child`
+
+### Cascade 및 고아 처리
 - 1:N에서 부모 삭제 시 자식도 삭제 → `CascadeType.ALL + orphanRemoval=true`
 - 파일(PostFile)은 cascade 대상이 아님 → 수동 삭제 필요
-- Comment는 소프트 삭제 (`deleted` 필드)
 
 ### Aggregate 경계
 | Aggregate Root | 포함 엔티티 |
@@ -594,10 +676,13 @@ HTTP Request
   ↓
 [Entity]  (정적 팩토리, 도메인 메서드, 상태 전이)
   ↓
-[H2 Database]
+[MySQL 8.0]
 
 외부 저장소
-├── Redis: Refresh Token ("refresh:{email}"), Blacklist ("blacklist:{token}")
+├── Redis
+│   ├── Refresh Token : "refresh:{email}"
+│   ├── Blacklist     : "blacklist:{token}"
+│   └── 조회수 버퍼  : "view:post:{id}"  (Write-behind, 60초마다 DB 동기화)
 └── 파일 시스템: /uploads/posts
 
 [GlobalExceptionHandler] → ApiResponse<T> (JSON 응답 통일)
@@ -610,7 +695,5 @@ HTTP Request
 - **PostAdminController/Service** - 스켈레톤 상태 (미구현)
 - **AI 통합** - MusicScoreConverter, MusicScoreClient 인터페이스만 정의
 - **파일 저장소** - 로컬 파일시스템 (프로덕션 시 S3 전환 필요)
-- **InstrumentCategory** - 열거형 정의만 있고 사용 안 됨 (안할 가능성 큼)
-- **QueryDSL** - Comment만 적용, 향후 N+1 발생 도메인에 확대 필요
-- docker
-- 페이징 기능
+- **목록 캐싱** - Page<T> 직렬화 문제로 롤백됨 (Issue #017 참고), 향후 재도입 시 SimpleKeyGenerator 또는 별도 캐시 DTO 설계 필요
+- **인증 강화** - signup 중복 체크/유효성 API, 로그아웃 시 Refresh Token 삭제 미구현

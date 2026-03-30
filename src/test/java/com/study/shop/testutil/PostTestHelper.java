@@ -7,7 +7,7 @@ public class PostTestHelper {
         return Post.builder()
                 .title(title)
                 .content(content)
-                .writer(writer)
+//                .writer(writer)
                 .build();
     }
 }
