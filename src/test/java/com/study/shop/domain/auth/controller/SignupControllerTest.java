@@ -2,6 +2,7 @@ package com.study.shop.domain.auth.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.study.shop.ShopApplication;
+import com.study.shop.common.IntegrationTestBase;
 import com.study.shop.domain.auth.dto.SignupRequestDto;
 import com.study.shop.domain.member.entity.Member;
 import com.study.shop.domain.member.repository.MemberRepository;
@@ -23,10 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest(classes = ShopApplication.class)
-@AutoConfigureMockMvc
-@Transactional
-class SignupControllerTest {
+class SignupControllerTest extends IntegrationTestBase {
     @Autowired
     private MockMvc mockMvc;
     @Autowired

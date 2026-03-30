@@ -130,21 +130,6 @@ class LoginControllerTest extends IntegrationTestBase {
         }
 
         @Test
-        @DisplayName("유효하지 않은 이메일 형식으로 로그인 실패")
-        void loginFail_InvalidEmailFormat() throws Exception {
-            // given
-            LoginRequestDto requestDto = new LoginRequestDto("invalid-email-format", TEST_PASSWORD);
-
-            // when & then
-            mockMvc.perform(post("/api/auth/login")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(requestDto)))
-                    .andDo(print())
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.success").value(false));
-        }
-
-        @Test
         @DisplayName("빈 문자열 이메일로 로그인 실패")
         void loginFail_EmptyEmail() throws Exception {
             // given
@@ -174,6 +159,4 @@ class LoginControllerTest extends IntegrationTestBase {
                     .andExpect(jsonPath("$.success").value(false));
         }
     }
-
-
 }

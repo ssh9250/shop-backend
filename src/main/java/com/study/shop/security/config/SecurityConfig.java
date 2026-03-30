@@ -1,8 +1,10 @@
 package com.study.shop.security.config;
 
+import com.study.shop.global.exception.ErrorCode;
 import com.study.shop.security.auth.CustomUserDetailsService;
 import com.study.shop.security.jwt.JwtAuthenticationFilter;
 import com.study.shop.security.jwt.JwtExceptionFilter;
+import com.study.shop.security.util.SecurityResponseUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,7 +41,14 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
+                .exceptionHandling(e -> e
+                        .authenticationEntryPoint((request, response, authException) ->
+                                SecurityResponseUtil.sendErrorResponse(response, ErrorCode.UNAUTHORIZED)
+                        )
+                        .accessDeniedHandler((request, response, accessDeniedException) ->
+                                SecurityResponseUtil.sendErrorResponse(response, ErrorCode.ACCESS_DENIED)
+                        )
+                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/signup",

@@ -1,6 +1,5 @@
 package com.study.shop.domain.post.service;
 
-import com.study.shop.domain.post.entity.Post;
 import com.study.shop.domain.post.entity.PostFile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

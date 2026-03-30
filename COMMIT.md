@@ -1,10 +1,6 @@
-ok) custom user detail 엔티티 대신 필수 정보만 + service 토스 객체도 수정
-ok) tokenDto, jwtProperties 빈 파일 해결
-x) authentication filter에 tokenProvider, redisTemplate 관련해서 filter config에서 빈 자동화
 token provider validate token 검증 로직 재확인
-auth service signup 로직 강화하기 (중복체크, 유효체크 api 추가 등/또는 member service에서 해야 할 작업인지 확인)
-swaggerConfig에서 jwt 관련 설정 마무리
 로그아웃 시 refresh token 삭제
+github actions에 커버리지 리포트 생성
 
 ok) Refresh Token Rotation 로직 상세 이해
 
@@ -53,4 +49,11 @@ Feat: Soft Delete 전체 도메인 확장, Swagger JWT 설정 완성, 목록 캐
 - docker-compose.yml: MySQL utf8mb4 charset 설정 추가
 - build.gradle: springdoc-openapi 의존성 중복 제거
 - logging: 환경별 로그 레벨 정리 (application.yml, application-local.yml)
+
+Feat: JaCoCo 설정 추가, MemberControllerTest 작성, SecurityConfig 예외 처리 보완
+- build.gradle: jacoco 플러그인 추가, jacocoTestReport/jacocoTestCoverageVerification 설정 (classDirectories 필터 동기화, 70% 기준)
+- build.gradle: querydslDir 단일 따옴표 → 이중 따옴표 버그 수정 ($buildDir 미보간 문제)
+- MemberControllerTest: GET /me, PATCH /profile, PATCH /password, DELETE 총 13개 케이스 작성
+- SecurityConfig: authenticationEntryPoint/accessDeniedHandler → SecurityResponseUtil 연동
+- application-test.yml: H2 MODE=MySQL, MySQL8Dialect, file.upload-dir 추가
 
