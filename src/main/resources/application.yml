@@ -8,7 +8,7 @@ spring:
         format_sql: true
   profiles:
     active:
-      local
+      dev
 
 logging:
   level:

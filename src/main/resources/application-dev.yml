@@ -3,7 +3,7 @@ spring:
     activate:
       on-profile: dev
   datasource:
-    url: jdbc:h2:tcp://localhost/~/shop;MODE=MySQL; #DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:h2:mem:shop;MODE=MySQL #DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
     username: sa
     password:
@@ -36,3 +36,9 @@ logging:
     org.springframework.security: debug
     org.hibernate.SQL: info
     org.hibernate.type.descriptor.sql.BasicBinder: debug
+
+jwt:
+  secret: SldUU2lnbmluZ0tleUZvclNlY3VyZUF1dGhlbnRpY2F0aW9uSW5TcHJpbmdCb290QXBwbGljYXRpb25XaXRoSFMyNTZBbGdvcml0aG0=
+
+file:
+  upload-dir: /uploads/posts

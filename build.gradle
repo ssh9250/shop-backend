@@ -88,7 +88,6 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.security:spring-security-test'
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
 
     //redis
@@ -107,17 +106,6 @@ dependencies {
     testImplementation 'com.github.codemonstur:embedded-redis:1.4.3'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
-
-def querydslDir = "$buildDir/generated/querydsl"
-
-sourceSets {
-    main.java.srcDirs += [querydslDir]
-}
-
-tasks.withType(JavaCompile).configureEach {
-    options.annotationProcessorGeneratedSourcesDirectory = file(querydslDir)
-}
-
 tasks.named('test') {
     useJUnitPlatform()
 }
