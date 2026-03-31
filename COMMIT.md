@@ -57,3 +57,10 @@ Feat: JaCoCo 설정 추가, MemberControllerTest 작성, SecurityConfig 예외 �
 - SecurityConfig: authenticationEntryPoint/accessDeniedHandler → SecurityResponseUtil 연동
 - application-test.yml: H2 MODE=MySQL, MySQL8Dialect, file.upload-dir 추가
 
+Test: RefreshTokenServiceTest 작성, Gradle 업그레이드, 환경 설정 정리
+- RefreshTokenServiceTest: JaCoCo 커버리지 미달 구간 7개 케이스 추가 (validateRefreshToken null/불일치, rotateRefreshToken not found/mismatch, hasRefreshToken)
+- build.gradle: spring-security-test 의존성 제거, querydslDir sourceSets 블록 제거
+- gradle-wrapper: 8.10.2 → 9.4.0 업그레이드
+- application-dev.yml: H2 tcp → mem 전환, jwt.secret/file.upload-dir 추가
+- application.yml: active profile local → dev 변경
+
