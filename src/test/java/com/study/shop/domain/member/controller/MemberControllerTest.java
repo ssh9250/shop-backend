@@ -23,7 +23,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 // todo: 이거 보기
-@Disabled("수정 중")
 class MemberControllerTest extends IntegrationTestBase {
 
     @Autowired private MockMvc mockMvc;

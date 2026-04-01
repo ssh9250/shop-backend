@@ -98,7 +98,6 @@ class RefreshTokenServiceTest {
     @DisplayName("hasRefreshToken: 토큰이 없으면 false 반환")
     void hasRefreshToken_notExists_returnsFalse() {
         when(refreshTokenRepository.exists(EMAIL)).thenReturn(false);
-
         assertThat(refreshTokenService.hasRefreshToken(EMAIL)).isFalse();
     }
 }
