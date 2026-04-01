@@ -73,7 +73,7 @@ public class MemberService {
 
     public void updatePassword(Long id, ChangePasswordRequestDto requestDto) {
         Member member = memberRepository.findById(id).orElseThrow(() -> new MemberNotFoundException(id));
-        member.updatePassword(requestDto.getPassword());
+        member.updatePassword(passwordEncoder.encode(requestDto.getPassword()));
     }
 
     public void deleteMember(Long id) {
