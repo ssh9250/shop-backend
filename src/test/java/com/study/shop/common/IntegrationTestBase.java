@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(classes = ShopApplication.class)
@@ -23,6 +24,7 @@ public class IntegrationTestBase {
 
     @BeforeEach
     void clearRedis() {
+        SecurityContextHolder.clearContext();
         stringRedisTemplate.getConnectionFactory()
                 .getConnection().flushDb();
     }

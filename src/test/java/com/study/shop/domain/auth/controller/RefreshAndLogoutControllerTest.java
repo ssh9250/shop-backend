@@ -50,13 +50,6 @@ class RefreshAndLogoutControllerTest extends IntegrationTestBase {
         memberRepository.save(testMember);
     }
 
-    @AfterEach
-    void tearDown() {
-        SecurityContextHolder.clearContext();
-
-        stringRedisTemplate.getConnectionFactory().getConnection().flushDb();
-    }
-
     private TokenInfo loginAndGetTokens() throws Exception {
         LoginRequestDto loginRequest = new LoginRequestDto(TEST_EMAIL, TEST_PASSWORD);
 
