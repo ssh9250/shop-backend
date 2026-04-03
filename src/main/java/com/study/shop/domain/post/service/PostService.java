@@ -53,11 +53,6 @@ public class PostService {
         return post.getId();
     }
 
-    @Transactional(readOnly = true)
-    public Page<PostListDto> getAllPosts(Pageable pageable) {
-        return postRepository.findAllPostsWithComments(pageable);
-    }
-
 //    @Cacheable(value = CacheConfig.POST_LIST_CACHE, key = "#condition.toString()")
     @Transactional(readOnly = true)
     public Page<PostListDto> searchPosts(PostSearchConditionDto condition, Pageable pageable) {
@@ -78,8 +73,8 @@ public class PostService {
 
 //    @CacheEvict(value = CacheConfig.POST_LIST_CACHE, allEntries = true)
     public void updatePost(Long memberId, Long postId, UpdatePostRequestDto requestDto, List<MultipartFile> files) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new MemberNotFoundException(memberId));
+//        Member member = memberRepository.findById(memberId)
+//                .orElseThrow(() -> new MemberNotFoundException(memberId));
         // 역시 불필요코드, validate 에서 이미 불러오고, 그 전에 토큰에서 한번 걸러지므로.
 
         Post post = postRepository.findById(postId)
@@ -109,8 +104,6 @@ public class PostService {
 
 //    @CacheEvict(value = CacheConfig.POST_LIST_CACHE, allEntries = true)
     public void deletePost(Long memberId, Long postId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new MemberNotFoundException(memberId));
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new PostNotFoundException(postId));
 
@@ -124,8 +117,8 @@ public class PostService {
     }
 
     public void validatePostAccess(Long memberId, Post post) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new MemberNotFoundException(memberId));
+//        Member member = memberRepository.findById(memberId)
+//                .orElseThrow(() -> new MemberNotFoundException(memberId));
 
         if (!post.getMember().getId().equals(memberId)) {
             throw new AccessDeniedException("해당 작업을 수행할 권한이 없습니다.");

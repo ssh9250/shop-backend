@@ -1,14 +1,15 @@
 package com.study.shop.domain.post.dto;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 
 @Getter
+@Setter
 @NoArgsConstructor
+// todo: 기본 생성자 없으면 @ModelAttribute는 내부적으로 객체 생성 불가
+@AllArgsConstructor
 @ToString
 public class PostSearchConditionDto {
     private String title;

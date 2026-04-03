@@ -7,6 +7,7 @@ import com.study.shop.security.jwt.JwtExceptionFilter;
 import com.study.shop.security.util.SecurityResponseUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpMethod;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -50,16 +51,21 @@ public class SecurityConfig {
                         )
                 )
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.GET, "/api/posts").permitAll()
                         .requestMatchers(
                                 "/api/auth/signup",
                                 "/api/auth/login",
                                 "/api/auth/refresh",
+
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/v3/api-docs/**",
                                 "/swagger-resources/**",
+                                "/v3/api-docs/**",
+
                                 "/webjars/**",
+
                                 "/api/test/**",
+
                                 "/init/**"
                         ).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
