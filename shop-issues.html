@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>shop — Issue Log</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #16161f;
+    --border: #1e1e2e;
+    --accent: #7c6af7;
+    --accent2: #3ecf8e;
+    --accent3: #f7836a;
+    --accent4: #f7c26a;
+    --text: #e2e2f0;
+    --muted: #5a5a7a;
+
+    --tag-design: #7c6af7;
+    --tag-perf: #3ecf8e;
+    --tag-refactor: #f7c26a;
+    --tag-bug: #f7836a;
+    --tag-jpa: #60a5fa;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    min-height: 100vh;
+    padding: 40px 24px;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 48px;
+    animation: fadeUp 0.5s ease both;
+  }
+  .logo {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, var(--accent) 0%, #a78bfa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .logo span {
+    font-size: 11px;
+    font-weight: 300;
+    display: block;
+    letter-spacing: 4px;
+    color: var(--muted);
+    -webkit-text-fill-color: var(--muted);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+  .header-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+    line-height: 1.8;
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 4px;
+  }
+  .header-meta b { color: var(--accent2); }
+
+  /* Filter bar */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+    animation: fadeUp 0.5s ease 0.1s both;
+  }
+  .filter-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .filter-btn.active { background: rgba(124,106,247,0.12); border-color: var(--accent); color: var(--accent); }
+  .filter-btn[data-tag="design"].active    { background: rgba(124,106,247,0.12); border-color: var(--tag-design);   color: var(--tag-design); }
+  .filter-btn[data-tag="perf"].active      { background: rgba(62,207,142,0.12);  border-color: var(--tag-perf);     color: var(--tag-perf); }
+  .filter-btn[data-tag="refactor"].active  { background: rgba(247,194,106,0.12); border-color: var(--tag-refactor); color: var(--tag-refactor); }
+  .filter-btn[data-tag="bug"].active       { background: rgba(247,131,106,0.12); border-color: var(--tag-bug);      color: var(--tag-bug); }
+  .filter-btn[data-tag="jpa"].active       { background: rgba(96,165,250,0.12);  border-color: var(--tag-jpa);      color: var(--tag-jpa); }
+
+  /* Issue list */
+  .issue-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .issue-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    animation: fadeUp 0.5s ease both;
+    transition: border-color 0.2s;
+  }
+  .issue-card:hover { border-color: #2e2e45; }
+
+  .issue-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px 24px 16px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .issue-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    min-width: 32px;
+    padding-top: 2px;
+    flex-shrink: 0;
+  }
+  .issue-main { flex: 1; }
+  .issue-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+  .issue-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 3px;
+  }
+  .tag-design   { background: rgba(124,106,247,0.15); color: var(--tag-design); }
+  .tag-perf     { background: rgba(62,207,142,0.15);  color: var(--tag-perf); }
+  .tag-refactor { background: rgba(247,194,106,0.15); color: var(--tag-refactor); }
+  .tag-bug      { background: rgba(247,131,106,0.15); color: var(--tag-bug); }
+  .tag-jpa      { background: rgba(96,165,250,0.15);  color: var(--tag-jpa); }
+
+  .chevron {
+    font-size: 12px;
+    color: var(--muted);
+    transition: transform 0.2s;
+    padding-top: 3px;
+    flex-shrink: 0;
+  }
+  .issue-card.open .chevron { transform: rotate(180deg); }
+
+  .issue-body {
+    display: none;
+    padding: 0 24px 24px 72px;
+    border-top: 1px solid var(--border);
+    margin-top: 4px;
+  }
+  .issue-card.open .issue-body { display: block; }
+
+  .section {
+    margin-top: 18px;
+  }
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .section-label.problem { color: var(--accent3); }
+  .section-label.solution { color: var(--accent2); }
+  .section-label.learn { color: var(--accent); }
+
+  .section p {
+    font-size: 13px;
+    line-height: 1.8;
+    color: #b0b0cc;
+  }
+
+  pre {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    overflow-x: auto;
+    margin-top: 10px;
+  }
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    color: #c0c0e0;
+  }
+  .cm { color: var(--muted); }        /* comment */
+  .ck { color: #a78bfa; }             /* keyword */
+  .cs { color: var(--accent2); }      /* string/value */
+  .ca { color: var(--accent4); }      /* annotation */
+  .cn { color: var(--accent3); }      /* class name */
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 14px 0;
+  }
+
+  /* Empty state */
+  .empty {
+    text-align: center;
+    padding: 60px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    display: none;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo">
+      <span>project</span>
+      shop · issues
+    </div>
+    <div class="header-meta">
+      Spring Boot 3.3.5 · Java 17<br>
+      총 <b id="total-count">2</b>개 이슈 기록됨
+    </div>
+  </header>
+
+  <!-- Filter -->
+  <div class="filter-bar">
+    <button class="filter-btn active" data-tag="all">ALL</button>
+    <button class="filter-btn" data-tag="design">설계</button>
+    <button class="filter-btn" data-tag="jpa">JPA</button>
+    <button class="filter-btn" data-tag="perf">성능</button>
+    <button class="filter-btn" data-tag="refactor">리팩터링</button>
+    <button class="filter-btn" data-tag="bug">버그</button>
+  </div>
+
+  <!-- Issues -->
+  <div class="issue-list" id="issue-list">
+
+    <!-- ISSUE 001 -->
+    <div class="issue-card" data-tags="design refactor jpa">
+      <div class="issue-header" onclick="toggle(this)">
+        <span class="issue-num">#001</span>
+        <div class="issue-main">
+          <div class="issue-title">연관 엔티티 고유값을 파생 필드로 저장하는 방식의 문제 (post.writer, comment.writer)</div>
+          <div class="issue-tags">
+            <span class="tag tag-design">설계</span>
+            <span class="tag tag-refactor">리팩터링</span>
+            <span class="tag tag-jpa">JPA</span>
+          </div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="issue-body">
+
+        <div class="section">
+          <div class="section-label problem">// 문제</div>
+          <p>
+            <code>Post.writer</code>, <code>Comment.writer</code> 필드에 <code>Member.email</code>을 직접 복사해 저장하는 방식을 사용했다.
+            이는 동일한 정보가 두 테이블에 중복 저장되는 데이터 정규화 위반이다.
+            회원이 이메일을 변경하면 Post, Comment 등 관련된 모든 테이블의 writer 필드를 일괄 업데이트해야 하는 동기화 문제가 생긴다.
+          </p>
+          <pre><code><span class="cm">// 문제가 있는 구조</span>
+<span class="cm">// Member 테이블:  id=1, email=hong@test.com</span>
+<span class="cm">// Post 테이블:    id=1, writer="hong@test.com", member_id=1</span>
+<span class="cm">// → 같은 정보가 두 군데 저장됨</span>
+
+<span class="ck">@Entity</span>
+<span class="ck">public class</span> <span class="cn">Post</span> {
+    <span class="ck">private</span> String writer;   <span class="cm">// member.email 복사 저장 ← 문제</span>
+
+    <span class="ca">@ManyToOne</span>(fetch = LAZY)
+    <span class="ck">private</span> <span class="cn">Member</span> member;   <span class="cm">// 같은 정보를 연관관계로도 보유</span>
+}</code></pre>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section">
+          <div class="section-label solution">// 해결 방향</div>
+          <p>
+            파생 필드를 제거하고 연관관계에서 직접 꺼내는 방식으로 변경한다.
+            v1에서는 Object Reference, v2(shop-v2)에서는 ID Reference로 전환하며 완전히 정리한다.
+          </p>
+          <pre><code><span class="cm">// v1 — Object Reference에서 직접 접근</span>
+post.getMember().getNickname()
+post.getMember().getEmail()
+
+<span class="cm">// v2 — ID Reference (shop-v2 리팩터링 목표)</span>
+<span class="ck">public class</span> <span class="cn">Post</span> {
+    <span class="ck">private</span> Long memberId;   <span class="cm">// FK만 저장, 객체 참조 없음</span>
+    <span class="cm">// 필요 시 MemberService.findById(memberId)로 명시적 조회</span>
+}</code></pre>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section">
+          <div class="section-label learn">// 배운 점</div>
+          <p>
+            편의를 위해 파생 필드를 추가하는 것은 단기적으로는 join을 줄여주지만,
+            데이터 정합성 문제와 동기화 비용이라는 기술 부채를 낳는다.
+            <br><br>
+            실무에서도 이러한 이유로 Object Reference(v1) → ID Reference(v2, MSA 대응) 방향으로 설계를 발전시킨다.
+            ID Reference는 Aggregate 경계를 명확히 하고 영속성 컨텍스트 의존도를 낮추는 DDD 원칙과도 일치한다.
+          </p>
+        </div>
+
+      </div>
+    </div>
+    <!-- /ISSUE 001 -->
+
+    <!-- ISSUE 002 -->
+    <div class="issue-card" data-tags="perf design">
+      <div class="issue-header" onclick="toggle(this)">
+        <span class="issue-num">#002</span>
+        <div class="issue-main">
+          <div class="issue-title">Page&lt;T&gt; Redis 캐싱 시 직렬화 문제 — PageImpl + LocalDateTime 역직렬화 실패</div>
+          <div class="issue-tags">
+            <span class="tag tag-perf">성능</span>
+            <span class="tag tag-design">설계</span>
+          </div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="issue-body">
+
+        <div class="section">
+          <div class="section-label problem">// 문제</div>
+          <p>
+            게시글 목록 조회 결과(<code>Page&lt;PostListDto&gt;</code>)를 <code>@Cacheable</code>로 Redis에 캐싱하려 했으나
+            두 가지 직렬화 오류가 연속으로 발생했다.
+          </p>
+          <pre><code><span class="cm">// 오류 1 — PageImpl 역직렬화 실패</span>
+<span class="cm">// PageImpl에 기본 생성자가 없어 Jackson이 JSON → 객체 변환 불가</span>
+Cannot construct instance of `org.springframework.data.domain.PageImpl`
+(no Creators, like default constructor, exist)
+
+<span class="cm">// 오류 2 — LocalDateTime 직렬화 실패</span>
+<span class="cm">// PostListDto.createTime 필드가 LocalDateTime 타입</span>
+Java 8 date/time type `java.time.LocalDateTime` not supported by default:
+add Module "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"</code></pre>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section">
+          <div class="section-label solution">// 시도한 해결 방향</div>
+          <p>
+            오류 1 해결을 위해 <code>CachePage&lt;T&gt;</code> 커스텀 DTO를 도입했고,
+            오류 2 해결을 위해 <code>CacheConfig</code>에 <code>JavaTimeModule</code>을 등록한 커스텀 <code>ObjectMapper</code>를 적용하려 했다.
+            그러나 우회책이 쌓일수록 코드 복잡도가 급격히 증가했다.
+          </p>
+          <pre><code><span class="cm">// 시도 1 — CachePage 커스텀 DTO</span>
+<span class="ck">public class</span> <span class="cn">CachePage</span>&lt;T&gt; <span class="ck">implements</span> Serializable {
+    <span class="ck">private</span> List&lt;T&gt; content;
+    <span class="ck">private int</span> pageNumber, pageSize, totalPages;
+    <span class="ck">private long</span> totalElements;
+}
+
+<span class="cm">// 시도 2 — CacheConfig에 JavaTimeModule 등록</span>
+ObjectMapper objectMapper = <span class="ck">new</span> ObjectMapper();
+objectMapper.registerModule(<span class="ck">new</span> JavaTimeModule());
+objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+objectMapper.activateDefaultTyping(..., DefaultTyping.NON_FINAL);</code></pre>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section">
+          <div class="section-label solution">// 최종 결정 — 목록 캐싱 제거</div>
+          <p>
+            우회책을 계속 쌓는 것보다 목록 캐싱 자체를 포기하는 것이 합리적이라 판단했다.
+            Write-behind 패턴(조회수 캐싱)은 유지하고, 게시글 목록 캐싱은 제거했다.
+          </p>
+          <pre><code><span class="cm">// 제거 — @Cacheable, @CacheEvict, CachePage, CacheConfig 복잡도</span>
+<span class="cm">// 유지 — Write-behind 조회수 캐싱 (StringRedisTemplate + @Scheduled)</span>
+
+<span class="ca">@Transactional</span>(readOnly = <span class="ck">true</span>)
+<span class="ck">public</span> Page&lt;PostListDto&gt; searchPosts(PostSearchConditionDto cond, Pageable pageable) {
+    <span class="ck">return</span> postRepository.searchPosts(cond, pageable); <span class="cm">// 단순 DB 조회</span>
+}</code></pre>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section">
+          <div class="section-label learn">// 배운 점</div>
+          <p>
+            <code>Page&lt;T&gt;</code>처럼 Spring 내부 클래스를 Redis에 캐싱하는 것은 생각보다 많은 설정이 필요하다.
+            <code>PageImpl</code>은 기본 생성자가 없고, <code>LocalDateTime</code>은 별도 모듈 등록이 필요하며,
+            제네릭 타입 정보 보존을 위해 <code>DefaultTyping</code> 설정까지 필요하다.
+            <br><br>
+            캐싱 도입 전에 "직렬화 가능한 타입인가"를 먼저 검토해야 한다.
+            단순 String/Long 값(조회수 카운터)은 캐싱이 쉽지만,
+            복잡한 객체 그래프는 캐싱 비용이 기대보다 훨씬 클 수 있다.
+            <br><br>
+            과설계를 인식하고 단순한 방향으로 롤백하는 결정 자체도 중요한 엔지니어링 판단이다.
+          </p>
+        </div>
+
+      </div>
+    </div>
+    <!-- /ISSUE 002 -->
+
+  </div>
+  <div class="empty" id="empty">해당 태그의 이슈가 없습니다.</div>
+
+</div>
+
+<script>
+  function toggle(header) {
+    header.closest('.issue-card').classList.toggle('open');
+  }
+
+  // Filter
+  const btns = document.querySelectorAll('.filter-btn');
+  const cards = document.querySelectorAll('.issue-card');
+  const empty = document.getElementById('empty');
+
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      btns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const tag = btn.dataset.tag;
+      let visible = 0;
+      cards.forEach(card => {
+        const tags = card.dataset.tags.split(' ');
+        const show = tag === 'all' || tags.includes(tag);
+        card.style.display = show ? 'block' : 'none';
+        if (show) visible++;
+      });
+      empty.style.display = visible === 0 ? 'block' : 'none';
+    });
+  });
+
+  // Total count
+  document.getElementById('total-count').textContent = cards.length;
+</script>
+</body>
+</html>

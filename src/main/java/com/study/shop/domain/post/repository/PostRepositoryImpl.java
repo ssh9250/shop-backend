@@ -24,32 +24,6 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    // 밑의 search 메서드로 통일되었기에 이제는 안씀
-    public Page<PostListDto> findAllPostsWithComments(Pageable pageable) {
-        // DTO Projection
-        List<PostListDto> content = queryFactory
-                .select(Projections.constructor(PostListDto.class,
-                        post.id, post.title, member.nickname, post.createdAt, comment.count(), post.viewCount
-                ))
-                .from(post)
-                .join(post.member, member)
-                .leftJoin(post.comments, comment)
-                .groupBy(post.id)
-                .orderBy(post.createdAt.desc())
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        long total = Optional.ofNullable(queryFactory
-                .select(post.count())
-                .from(post)
-                .join(post.member, member) // 현재는 생략 가능 (member가 반드시 있다는 보장 하에, 애초에 보장이 없으면 위에도 left join 해야되서 복잡해짐)
-                .fetchOne()).orElse(0L);
-
-        return new PageImpl<>(content, pageable, total);
-    }
-
-    @Override
     public Page<PostListDto> searchPosts(PostSearchConditionDto cond, Pageable pageable) {
         List<PostListDto> content = queryFactory
                 .select(Projections.constructor(PostListDto.class,
