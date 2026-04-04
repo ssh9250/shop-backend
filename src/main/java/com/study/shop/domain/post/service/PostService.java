@@ -9,6 +9,7 @@ import com.study.shop.domain.post.exception.PostNotFoundException;
 import com.study.shop.domain.post.repository.PostRepository;
 import com.study.shop.global.config.CacheConfig;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -23,6 +24,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -44,6 +46,7 @@ public class PostService {
                 try {
                     post.addPostFile(fileStorageService.storeFile(file));
                 } catch (IOException e) {
+                    log.error(e.getMessage());
                     throw new RuntimeException("파일 저장 중 오류가 발생했습니다: " + file.getOriginalFilename());
                 }
             });

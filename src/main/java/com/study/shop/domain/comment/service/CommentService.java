@@ -28,11 +28,11 @@ public class CommentService {
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
 
-    public Long createComment(Long memberId, CreateCommentRequestDto requestDto) {
+    public Long createComment(Long memberId, Long postId, CreateCommentRequestDto requestDto) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
-        Post post = postRepository.findById(requestDto.getPostId())
-                .orElseThrow(() -> new PostNotFoundException(requestDto.getPostId()));
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new PostNotFoundException(postId));
 
         Comment comment = Comment.create(member, post, requestDto.getContent());
 
@@ -47,8 +47,6 @@ public class CommentService {
     }
 
     public void updateComment(Long memberId, Long commentId, UpdateCommentRequestDto requestDto) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new MemberNotFoundException(memberId));
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CommentNotFoundException(commentId));
 
@@ -58,8 +56,6 @@ public class CommentService {
     }
 
     public void deleteComment(Long memberId, Long commentId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new MemberNotFoundException(memberId));
         Comment comment = commentRepository.findById(commentId)
                         .orElseThrow(() -> new CommentNotFoundException(commentId));
 
@@ -69,8 +65,6 @@ public class CommentService {
     }
 
     public void validateCommentAccess(Long memberId, Comment comment) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new MemberNotFoundException(memberId));
         if (!memberId.equals(comment.getMember().getId())) {
             throw new AccessDeniedException("해당 작업을 수행할 권한이 없습니다.");
         }
