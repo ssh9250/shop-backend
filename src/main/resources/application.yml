@@ -30,4 +30,4 @@ jwt:
   refresh-expiration-ms: 1209600000
 
 file:
-  upload-dir: /uploads/posts
+  upload-dir: uploads/posts

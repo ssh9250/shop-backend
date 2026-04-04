@@ -9,6 +9,7 @@ import com.study.shop.domain.member.repository.MemberRepository;
 import com.study.shop.domain.post.dto.CreatePostRequestDto;
 import com.study.shop.domain.post.dto.UpdatePostRequestDto;
 import com.study.shop.domain.post.entity.Post;
+import com.study.shop.domain.post.entity.PostFile;
 import com.study.shop.domain.post.repository.PostRepository;
 import com.study.shop.global.enums.RoleType;
 import org.junit.jupiter.api.*;
@@ -183,6 +184,26 @@ class PostControllerTest extends IntegrationTestBase {
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.content").isArray())
                     .andExpect(jsonPath("$.data.totalElements").value(2));
+        }
+
+        @Test
+        @DisplayName("검색 조건 적용 - 모든 분기 커버")
+        void searchPostsSuccess_NoCondition() throws Exception {
+            createTestPost("Spring Boot 글", "내용");
+            createTestPost("Django 글", "내용");
+            createTestPost("JavaScript 글", "내용");
+
+            mockMvc.perform(get("/api/posts")
+                            .param("title", "J")
+                            .param("content", "내용")
+                            .param("writer", "test")
+                            .param("hidden", "false")
+                            .param("from", "2024-01-01T00:00:00")
+                            .param("to", "2099-12-31T23:59:59"))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.content.length()").value(2));
         }
 
         @Test
@@ -441,6 +462,152 @@ class PostControllerTest extends IntegrationTestBase {
                             .header("Authorization", "Bearer " + token))
                     .andDo(print())
                     .andExpect(status().isNotFound());
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    // 파일 첨부 시나리오
+    // ─────────────────────────────────────────────
+    @Nested
+    @DisplayName("파일 첨부 시나리오")
+    class PostFileTest {
+
+        private MockMultipartFile mockFile(String filename) {
+            return new MockMultipartFile(
+                    "files", filename, MediaType.IMAGE_PNG_VALUE,
+                    ("dummy-content-" + filename).getBytes()
+            );
+        }
+
+        private Long createPostWithFile(String token, MockMultipartFile file) throws Exception {
+            CreatePostRequestDto request = new CreatePostRequestDto("파일 첨부 글", "내용");
+            MvcResult result = mockMvc.perform(multipart("/api/posts")
+                            .file(toRequestPart(request))
+                            .file(file)
+                            .header("Authorization", "Bearer " + token))
+                    .andExpect(status().isOk())
+                    .andReturn();
+            return ((Number) JsonPath.read(result.getResponse().getContentAsString(), "$.data")).longValue();
+        }
+
+        @Test
+        @DisplayName("파일 1개 첨부 생성 성공 - DB에 PostFile 저장 검증")
+        void createPost_SingleFile_Saved() throws Exception {
+            String token = loginAndGetAccessToken();
+            MockMultipartFile file = mockFile("photo.png");
+            CreatePostRequestDto request = new CreatePostRequestDto("파일 첨부 글", "내용");
+
+            MvcResult result = mockMvc.perform(multipart("/api/posts")
+                            .file(toRequestPart(request))
+                            .file(file)
+                            .header("Authorization", "Bearer " + token))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andReturn();
+
+            Long postId = ((Number) JsonPath.read(result.getResponse().getContentAsString(), "$.data")).longValue();
+            Post saved = postRepository.findById(postId).orElseThrow();
+            assertThat(saved.getPostFiles()).hasSize(1);
+            assertThat(saved.getPostFiles().get(0).getOriginalFileName()).isEqualTo("photo.png");
+            assertThat(saved.getPostFiles().get(0).getFileSize()).isEqualTo(file.getSize());
+            assertThat(saved.getPostFiles().get(0).getFilePath()).isEqualTo("uploads/posts");
+        }
+
+        @Test
+        @DisplayName("파일 여러 개 첨부 생성 성공 - PostFile 개수 및 파일명 검증")
+        void createPost_MultipleFiles_AllSaved() throws Exception {
+            String token = loginAndGetAccessToken();
+            CreatePostRequestDto request = new CreatePostRequestDto("멀티 파일 글", "내용");
+
+            MvcResult result = mockMvc.perform(multipart("/api/posts")
+                            .file(toRequestPart(request))
+                            .file(mockFile("file1.png"))
+                            .file(mockFile("file2.png"))
+                            .file(mockFile("file3.png"))
+                            .header("Authorization", "Bearer " + token))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            Long postId = ((Number) JsonPath.read(result.getResponse().getContentAsString(), "$.data")).longValue();
+            Post saved = postRepository.findById(postId).orElseThrow();
+            assertThat(saved.getPostFiles()).hasSize(3);
+            assertThat(saved.getPostFiles())
+                    .extracting(PostFile::getOriginalFileName)
+                    .containsExactlyInAnyOrder("file1.png", "file2.png", "file3.png");
+        }
+
+        @Test
+        @DisplayName("파일 첨부 게시글 단건 조회 - files 응답 필드 검증")
+        void getPost_WithFile_ReturnsFileInfo() throws Exception {
+            String token = loginAndGetAccessToken();
+            MockMultipartFile file = mockFile("sample.png");
+            Long postId = createPostWithFile(token, file);
+
+            mockMvc.perform(get("/api/posts/{id}", postId)
+                            .header("Authorization", "Bearer " + token))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.files.length()").value(1))
+                    .andExpect(jsonPath("$.data.files[0].originalFileName").value("sample.png"))
+                    .andExpect(jsonPath("$.data.files[0].filePath").value("uploads/posts"))
+                    .andExpect(jsonPath("$.data.files[0].fileSize").value(file.getSize()));
+        }
+
+        @Test
+        @DisplayName("수정 시 새 파일로 교체 - 기존 파일 삭제 후 새 파일 저장 검증")
+        void updatePost_WithNewFile_ReplacesExistingFile() throws Exception {
+            String token = loginAndGetAccessToken();
+            Long postId = createPostWithFile(token, mockFile("old.png"));
+
+            UpdatePostRequestDto updateRequest = new UpdatePostRequestDto("수정 제목", "수정 내용");
+            mockMvc.perform(multipart(HttpMethod.PATCH, "/api/posts/{id}", postId)
+                            .file(toRequestPart(updateRequest))
+                            .file(mockFile("new.png"))
+                            .header("Authorization", "Bearer " + token))
+                    .andDo(print())
+                    .andExpect(status().isOk());
+
+            Post updated = postRepository.findById(postId).orElseThrow();
+            assertThat(updated.getPostFiles()).hasSize(1);
+            assertThat(updated.getPostFiles().get(0).getOriginalFileName()).isEqualTo("new.png");
+        }
+
+        @Test
+        @DisplayName("수정 시 파일 미전송 - 기존 파일 전부 삭제됨")
+        void updatePost_WithoutFiles_ClearsExistingFiles() throws Exception {
+            // PostService.updatePost()는 항상 기존 파일을 clear한 뒤 새 파일만 추가
+            // → files 파라미터 없이 수정하면 기존 파일이 모두 삭제됨
+            String token = loginAndGetAccessToken();
+            Long postId = createPostWithFile(token, mockFile("existing.png"));
+
+            UpdatePostRequestDto updateRequest = new UpdatePostRequestDto("수정 제목", "수정 내용");
+            mockMvc.perform(multipart(HttpMethod.PATCH, "/api/posts/{id}", postId)
+                            .file(toRequestPart(updateRequest))
+                            .header("Authorization", "Bearer " + token))
+                    .andDo(print())
+                    .andExpect(status().isOk());
+
+            Post updated = postRepository.findById(postId).orElseThrow();
+            assertThat(updated.getPostFiles()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("파일 첨부 게시글 삭제 - soft delete 및 파일 정리 성공")
+        void deletePost_WithFiles_SuccessfullyDeleted() throws Exception {
+            String token = loginAndGetAccessToken();
+            Long postId = createPostWithFile(token, mockFile("attached.png"));
+
+            mockMvc.perform(delete("/api/posts/{id}", postId)
+                            .header("Authorization", "Bearer " + token))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.message").value("게시글이 삭제되었습니다."));
+
+            // @SQLRestriction("deleted_at is NULL") 적용 → 삭제 후 조회 불가
+            assertThat(postRepository.findById(postId)).isEmpty();
         }
     }
 }
