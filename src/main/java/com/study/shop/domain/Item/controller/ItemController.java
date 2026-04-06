@@ -3,13 +3,13 @@ package com.study.shop.domain.Item.controller;
 import com.study.shop.domain.Item.dto.*;
 import com.study.shop.domain.Item.service.ItemService;
 import com.study.shop.global.response.ApiResponse;
+import com.study.shop.global.dto.SliceResponse;
 import com.study.shop.security.auth.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -30,25 +30,19 @@ public class ItemController {
     @PostMapping
     public ResponseEntity<ApiResponse<Long>> createItems(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody CreateItemRequestDto request) {
+            @RequestBody @Valid CreateItemRequestDto request) {
         return ResponseEntity.ok(ApiResponse.success(itemService.createItem(userDetails.getMemberId(), request)));
-    }
-
-    @Operation(summary = "모든 상품 조회", description = "모든 상품을 조회합니다.")
-    @GetMapping("/all")
-    public ResponseEntity<ApiResponse<List<ItemResponseDto>>> getAllItems() {
-        return ResponseEntity.ok(ApiResponse.success(itemService.getAllItems()));
     }
 
     @Operation(summary = "상품 목록 조회", description = "검색 조건에 맞는 상품들을 조회합니다. 조건 없이 호출하면 전체 조회입니다.")
     @GetMapping
-    public ResponseEntity<ApiResponse<Slice<ItemListDto>>> searchItems(
+    public ResponseEntity<ApiResponse<SliceResponse<ItemListDto>>> searchItems(
             @ModelAttribute ItemSearchConditionDto conditionDto,
             @RequestParam(required = false) LocalDateTime lastCreatedAt,
             @RequestParam(required = false) Long lastId,
             @PageableDefault(size = 50) Pageable pageable
             ) {
-        return ResponseEntity.ok(ApiResponse.success(itemService.searchItems(conditionDto, lastCreatedAt, lastId, pageable)));
+        return ResponseEntity.ok(ApiResponse.success(new SliceResponse<>(itemService.searchItems(conditionDto, lastCreatedAt, lastId, pageable))));
     }
 
     @Operation(summary = "상품 단건 조회", description = "id로 특정 상품을 조회합니다.")

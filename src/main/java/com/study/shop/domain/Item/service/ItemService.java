@@ -88,16 +88,11 @@ public class ItemService {
             throw new AccessDeniedException("판매중인 상품만 삭제할 수 있습니다.");
         }
 
-        item.softDelete();
-        // 상품 조회 시 deleted 된 item은 어떻게?
-        // or 연관관계를 맺은 다른 엔티티는?
+        itemRepository.deleteById(itemId);
     }
 
     private void validateItemAccess(Item item, Long memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new MemberNotFoundException(memberId));
-
-        if (!item.getSeller().getId().equals(member.getId())) {
+        if (!item.getSeller().getId().equals(memberId)) {
             throw new AccessDeniedException("해당 작업을 수행할 권한이 없습니다.");
         }
     }

@@ -1602,3 +1602,82 @@ public class PostSearchConditionDto {
 - **`@ModelAttribute`는 setter 기반 바인딩이다**: 기본 생성자와 setter가 모두 있어야 하며, 요청 파라미터명이 필드명과 일치해야 한다. 셋 중 하나라도 빠지면 조용히 `null`로 남는다.
 - **Lombok 사용 시 `@Getter`만 쓰는 습관이 실수로 이어진다**: 응답 DTO는 불변으로 `@Getter`만 써도 충분하지만, `@ModelAttribute`로 바인딩되는 요청 DTO는 반드시 `@Setter`가 필요하다.
 - **테스트 코드에서도 실제 바인딩이 그대로 동작한다**: MockMvc의 `.param()`도 실제 HTTP 요청과 동일하게 `@ModelAttribute` 바인딩을 거치므로, DTO 구조 검증에 유용하다.
+
+
+## Issue #019: `Slice<T>` 직렬화 시 `hasNext` 필드가 JSON에 포함되지 않는 문제
+
+**발생일**: 2026-04-06
+
+### 문제 상황
+
+`GET /api/items` 통합 테스트에서 `$.data.hasNext` 값을 검증하려 했으나, 실제 응답 JSON에 해당 필드가 존재하지 않아 테스트가 실패했다.
+
+```java
+mockMvc.perform(get("/api/items"))
+        .andExpect(jsonPath("$.data.hasNext").value(false));  // ← 필드 없음 → 실패
+```
+
+컨트롤러 반환 타입:
+
+```java
+public ResponseEntity<ApiResponse<Slice<ItemListDto>>> searchItems(...) {
+    return ResponseEntity.ok(ApiResponse.success(itemService.searchItems(...)));
+}
+```
+
+### 원인
+
+Spring Data의 `SliceImpl`은 `hasNext()` 메서드를 가지고 있지만, Jackson은 기본적으로 `get*()` 또는 `is*()` 접두사를 가진 메서드만 JavaBean getter로 인식하여 JSON 필드로 직렬화한다. `has*()` 접두사는 인식하지 않기 때문에 `hasNext()`는 직렬화 대상에서 제외된다.
+
+실제 `SliceImpl` 직렬화 결과에 포함되는 필드:
+
+```
+content, pageable, size, number, numberOfElements, first, last, empty, sort
+```
+
+`last` 필드(`isLast()` → `is*` 규칙)는 직렬화되지만, `hasNext` 필드는 포함되지 않는다.
+
+참고로 `Page`를 반환하면 Spring MVC가 `PageImpl`을 `PageModule`을 통해 별도 처리하여 더 풍부한 페이징 정보가 직렬화되므로, `Slice`임에도 `Page`처럼 보이는 현상이 발생할 수 있다.
+
+### 임시 해결 방법
+
+`hasNext` 대신 `last` 필드(값이 반대)로 검증하도록 테스트를 수정했다.
+
+```java
+// hasNext=false ↔ last=true
+.andExpect(jsonPath("$.data.last").value(true));
+```
+
+### 근본 해결 방법 (예정)
+
+`Slice<T>`를 커스텀 DTO로 래핑하여 `hasNext`를 명시적 필드로 노출한다.
+
+```java
+public class SliceResponse<T> {
+    private final List<T> content;
+    private final boolean hasNext;  // 명시적 필드 → isHasNext()로 직렬화
+    // ...
+    public SliceResponse(Slice<T> slice) {
+        this.content = slice.getContent();
+        this.hasNext = slice.hasNext();
+    }
+}
+```
+
+컨트롤러 반환 타입을 `Slice<ItemListDto>` → `SliceResponse<ItemListDto>`로 변경하면 응답 구조가 명시적이고 예측 가능해진다.
+
+### 관련 파일
+
+- `src/main/java/com/study/shop/domain/Item/controller/ItemController.java`
+- `src/main/java/com/study/shop/domain/Item/repository/ItemRepositoryImpl.java` 
+- `src/test/java/com/study/shop/domain/Item/controller/ItemControllerTest.java`
+
+### 교훈
+
+- **`has*()` 메서드는 Jackson이 자동 직렬화하지 않는다**: JavaBean 규약상 getter는 `get*`(일반) 또는 `is*`(boolean)만 해당된다. `has*`로 시작하는 메서드는 규약 밖이다.
+- **Spring Data `Slice`는 API 응답 타입으로 그대로 반환하면 안 된다**: 직렬화 동작이 불투명하고 `hasNext` 같은 핵심 정보가 누락된다. 전용 응답 DTO로 변환하여 계약을 명확히 해야 한다.
+- **`Page`와 `Slice`의 직렬화 동작이 다르다**: `Page`는 Spring MVC의 `PageModule`로 별도 처리되어 더 많은 정보가 직렬화되지만, `Slice`는 별도 모듈이 없어 기본 Jackson 직렬화에 의존한다.
+
+**상태:** 임시 조치 완료 (`last` 필드로 우회), 커스텀 DTO 도입 예정
+
+---

@@ -157,38 +157,6 @@ class ItemControllerTest extends IntegrationTestBase {
     }
 
     // ─────────────────────────────────────────────
-    // GET /api/items/all
-    // ─────────────────────────────────────────────
-    @Nested
-    @DisplayName("GET /api/items/all - 전체 상품 조회")
-    class GetAllItems {
-
-        @Test
-        @DisplayName("상품 없을 때 빈 배열 반환")
-        void getAllItemsSuccess_Empty() throws Exception {
-            mockMvc.perform(get("/api/items/all"))
-                    .andDo(print())
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data").isArray())
-                    .andExpect(jsonPath("$.data").isEmpty());
-        }
-
-        @Test
-        @DisplayName("전체 조회 성공 - 상품 수 검증")
-        void getAllItemsSuccess() throws Exception {
-            createTestItem("드럼", 500000, false);
-            createTestItem("베이스 기타", 300000, true);
-
-            mockMvc.perform(get("/api/items/all"))
-                    .andDo(print())
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.length()").value(2));
-        }
-    }
-
-    // ─────────────────────────────────────────────
     // GET /api/items
     // ─────────────────────────────────────────────
     @Nested
@@ -252,6 +220,19 @@ class ItemControllerTest extends IntegrationTestBase {
                     .andDo(print())
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.content.length()").value(2));
+        }
+
+        @Test
+        @DisplayName("상품 없을 때 빈 배열 반환")
+        void getAllItemsSuccess_Empty() throws Exception {
+            mockMvc.perform(get("/api/items"))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content").isEmpty())
+                    .andExpect(jsonPath("$.data.hasNext").value(false))
+                    .andExpect(jsonPath("$.data.numberOfElements").value(0));
         }
     }
 
