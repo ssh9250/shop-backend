@@ -1681,3 +1681,78 @@ public class SliceResponse<T> {
 **상태:** 임시 조치 완료 (`last` 필드로 우회), 커스텀 DTO 도입 예정
 
 ---
+
+## Issue #020: C2C 구조 전환 — Order:OrderItem 1:N → 1:1 리팩토링 시 발생한 버그들
+
+**발생일**: 2026-04-07
+
+### 배경
+
+기존에는 하나의 `Order`에 여러 판매자의 `OrderItem`을 담는 1:N 구조로 설계되어 있었다. 그러나 C2C 중고거래 플랫폼에서 서로 다른 판매자의 상품이 한 주문에 묶이면 거래 상태 머신(수락/배송/완료), 판매자 권한 검증, 재고 복원 등 비즈니스 로직이 지나치게 복잡해진다. 이를 해결하기 위해 **Order:OrderItem = 1:1** 구조로 변경했다.
+
+### 발생한 버그 목록
+
+#### 버그 1. `Order.create()` 내 `calculateTotalPrice()` 호출 시 NPE
+
+```java
+// 변경 전 (버그)
+public static Order create(Member member, String address) {
+    Order order = Order.builder()...build();
+    order.assignMember(member);
+    order.calculateTotalPrice();  // orderItem이 null인 상태에서 호출 → NPE
+    return order;
+}
+```
+
+`Order.create()`는 `OrderItem` 없이 호출되고, `addOrderItem()`은 서비스 레이어에서 별도로 호출된다. 따라서 `create()` 시점에는 `orderItem`이 항상 `null`이다.
+
+**해결**: `calculateTotalPrice()` 호출을 `addOrderItem()` 내부로 이동시켜, `orderItem`이 할당된 직후에 계산하도록 변경했다.
+
+```java
+public void addOrderItem(OrderItem orderItem) {
+    this.orderItem = orderItem;
+    orderItem.assignOrder(this);
+    calculateTotalPrice();  // orderItem 할당 직후 계산
+}
+```
+
+#### 버그 2. `OrderDetailDto` / `OrderResponseDto`에서 1:N 잔재 코드 → 컴파일 에러
+
+```java
+// 변경 전 (버그) — 1:N 시절 코드가 그대로 남아 있음
+List<OrderItemResponseDto> orderItemDtos = order.getOrderItems()  // 존재하지 않는 메서드
+        .stream().map(OrderItemResponseDto::from).collect(Collectors.toList());
+```
+
+`Order` 엔티티는 이미 `getOrderItem()`(단수)만 가지고 있어 컴파일 에러가 발생한다.
+
+**해결**: `List.of()`로 단일 `OrderItem`을 감싸도록 변경했다.
+
+```java
+.orderItemDtoList(List.of(OrderItemResponseDto.from(order.getOrderItem())))
+```
+
+응답 DTO의 `orderItemDtoList` 필드는 항상 크기 1인 리스트를 반환하지만, API 계약의 일관성과 향후 구조 변경 가능성을 고려해 List 타입을 유지했다.
+
+```
+DELETE /api/order/{id}         → 구매자 취소 (cancelOrder)
+DELETE /api/order/{id}/reject  → 판매자 거절 (rejectOrder)
+```
+
+### 관련 파일
+
+- `src/main/java/com/study/shop/domain/order/entity/Order.java`
+- `src/main/java/com/study/shop/domain/order/dto/OrderDetailDto.java`
+- `src/main/java/com/study/shop/domain/order/dto/OrderResponseDto.java`
+- `src/main/java/com/study/shop/domain/order/controller/OrderController.java`
+- `src/test/java/com/study/shop/domain/order/controller/OrderControllerTest.java`
+
+### 교훈
+
+- **도메인 구조 변경 시 연관 DTO와 컨트롤러를 함께 점검해야 한다**: 엔티티를 1:N → 1:1로 바꿨을 때 DTO의 `getOrderItems()` 잔재가 컴파일 에러를 일으켰다. 구조 변경은 해당 도메인 레이어 전체를 함께 검토해야 한다.
+- **생성 메서드에서 아직 할당되지 않은 연관 객체를 참조하면 NPE가 발생한다**: `create()` 내에서 `null`인 `orderItem`을 참조했다. 연관 객체가 필요한 계산은 해당 객체가 실제로 할당되는 시점(`addOrderItem`)으로 이동하는 것이 안전하다.
+- **테스트에서 한 회원이 여러 역할을 겸하면 권한 검증이 무력화된다**: C2C처럼 역할이 명확히 분리된 도메인에서는 테스트 픽스처도 역할별로 분리해야 실제 비즈니스 로직을 검증할 수 있다.
+
+**상태:** 수정 완료
+
+---

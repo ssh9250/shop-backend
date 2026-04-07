@@ -37,15 +37,12 @@ public class OrderService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
 
-        List<OrderItem> orderItems = requestDto.getOrderItems().stream()
-                .map(dto -> {
-                    Item item = itemRepository.findById(dto.getItemId())
-                            .orElseThrow(() -> new ItemNotFoundException(dto.getItemId()));
-                    return OrderItem.create(item, dto.getQuantity());
-                }).toList();
+        Item item = itemRepository.findById(requestDto.getOrderItem().getItemId())
+                .orElseThrow(() -> new ItemNotFoundException(requestDto.getOrderItem().getItemId()));
+        OrderItem orderItem = OrderItem.create(item, requestDto.getOrderItem().getQuantity());
 
         Order order = Order.create(member, requestDto.getAddress());
-        orderItems.forEach(order::addOrderItem);
+        order.addOrderItem(orderItem);
 
         orderRepository.save(order);
 
@@ -55,14 +52,11 @@ public class OrderService {
     public OrderDetailDto findOrderById(Long memberId, Long orderId) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
 
-        validateOrderAccess(order, memberId);
+        validateSellerOrBuyer(order, memberId);
         return OrderDetailDto.from(order);
     }
 
     public List<OrderListDto> getOrdersByStatus(Long memberId, OrderStatus status) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new MemberNotFoundException(memberId));
-
         List<Order> orders = orderRepository.findByOrderStatusAndMemberId(status, memberId);
 
         List<OrderListDto> responseDtos = new ArrayList<>();
@@ -81,7 +75,7 @@ public class OrderService {
 
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
 
-        validateOrderAccess(order, memberId);
+        validateOrderStateAccess(order, memberId);
 
         order.accept();
 
@@ -93,7 +87,7 @@ public class OrderService {
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
 
-        validateOrderAccess(order, memberId);
+        validateOrderStateAccess(order, memberId);
         order.startDelivery();
         return OrderDetailDto.from(order);
     }
@@ -103,7 +97,7 @@ public class OrderService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
-        validateOrderAccess(order, memberId);
+        validateOrderStateAccess(order, memberId);
         order.complete();
         return OrderDetailDto.from(order);
     }
@@ -115,8 +109,27 @@ public class OrderService {
         return order.getId();
     }
 
+    public Long rejectOrder(Long memberId, Long orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
+        validateOrderStateAccess(order, memberId);
+        order.cancel();
+        return order.getId();
+    }
+
     public void validateOrderAccess(Order order, Long memberId) {
         if (!order.getMember().getId().equals(memberId)) {
+            throw new AccessDeniedException("주문에 접근할 권한이 없습니다.");
+        }
+    }
+
+    public void validateOrderStateAccess(Order order, Long memberId) {
+        if (!order.getOrderItem().getItem().getSeller().getId().equals(memberId)) {
+            throw new AccessDeniedException("주문 상태를 변경할 권한이 없습니다.");
+        }
+    }
+
+    public void validateSellerOrBuyer(Order order, Long memberId) {
+        if (!order.getMember().getId().equals(memberId) && !order.getOrderItem().getItem().getSeller().getId().equals(memberId)) {
             throw new AccessDeniedException("주문에 접근할 권한이 없습니다.");
         }
     }

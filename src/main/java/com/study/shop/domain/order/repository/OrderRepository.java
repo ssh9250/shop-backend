@@ -16,7 +16,7 @@ public interface OrderRepository extends JpaRepository<Order, Long>, OrderReposi
 
     @Query("select o " +
             "from Order o " +
-            "join fetch o.orderItems oi " +
+            "join fetch o.orderItem oi " +
             "join fetch o.member om " +
             "where o.orderStatus = :orderStatus " +
             "and om.id = :memberId")
@@ -24,7 +24,7 @@ public interface OrderRepository extends JpaRepository<Order, Long>, OrderReposi
 
     @Query("select o " +
             "from Order o " +
-            "join fetch o.orderItems oi " +
+            "join fetch o.orderItem oi " +
             "join fetch o.member om " +
             "where o.id = :orderId")
     Optional<Order> findById(@NonNull Long orderId);

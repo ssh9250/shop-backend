@@ -10,6 +10,6 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class CreateOrderRequestDto {
-    private List<CreateOrderItemRequestDto> orderItems;
+    private CreateOrderItemRequestDto orderItem;
     private String address;
 }

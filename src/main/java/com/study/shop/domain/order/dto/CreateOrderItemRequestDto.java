@@ -10,5 +10,4 @@ import lombok.*;
 public class CreateOrderItemRequestDto {
     private Long itemId;
     private Integer quantity;
-    private int price;
 }

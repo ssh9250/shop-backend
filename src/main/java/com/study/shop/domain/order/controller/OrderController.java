@@ -61,7 +61,14 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.success(orderService.completeOrder(userDetails.getMemberId(), id), "주문이 완료되었습니다."));
     }
 
-    @Operation(summary = "주문 취소", description = "특정 주문을 취소합니다.")
+    @Operation(summary = "주문 거절", description = "판매자가 특정 주문을 거절합니다. (PENDING → CANCELLED)")
+    @DeleteMapping("/{id}/reject")
+    public ResponseEntity<ApiResponse<Long>> rejectOrder(@PathVariable Long id, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long orderId = orderService.rejectOrder(userDetails.getMemberId(), id);
+        return ResponseEntity.ok(ApiResponse.success(orderId, "주문이 거절되었습니다."));
+    }
+
+    @Operation(summary = "주문 취소", description = "구매자가 특정 주문을 취소합니다. (PENDING → CANCELLED)")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Long>> cancelOrder(@PathVariable Long id, @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long orderId = orderService.cancelOrder(userDetails.getMemberId(), id);

@@ -16,8 +16,11 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -164,7 +167,7 @@ class ItemControllerTest extends IntegrationTestBase {
     class SearchItems {
 
         @Test
-        @DisplayName("조건 없이 전체 조회 - Slice 응답 검증")
+        @DisplayName("조건 없이 전체 조회")
         void searchItemsSuccess_All() throws Exception {
             createTestItem("기타A", 100000, false);
             createTestItem("기타B", 200000, true);
@@ -175,6 +178,39 @@ class ItemControllerTest extends IntegrationTestBase {
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.content").isArray())
                     .andExpect(jsonPath("$.data.content.length()").value(2))
+                    .andExpect(jsonPath("$.data.hasNext").value(false));
+        }
+
+        @Test
+        @DisplayName("조건 없이 전체 조회 - Slice 응답 검증")
+        void searchItemsSuccess_All_Slice() throws Exception {
+            for (int i = 0; i < 10; i++) {
+                createTestItem("기타"+i, 100000, false);
+                Thread.sleep(1);
+            }
+
+            Item item = createTestItem("새기타", 100000, false);
+            ReflectionTestUtils.setField(item, "createdAt", LocalDateTime.now());
+
+            MvcResult firstResult = mockMvc.perform(get("/api/items")
+                            .param("size", "5"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.hasNext").value(true))
+                    .andReturn();
+
+            // 마지막 아이템의 커서 추출
+            String body = firstResult.getResponse().getContentAsString();
+            String lastCreatedAt = JsonPath.read(body, "$.data.content[4].createTime");
+            Long lastId = ((Number) JsonPath.read(body, "$.data.content[4].id")).longValue();
+
+            // 두 번째 요청 — 커서 전달
+            mockMvc.perform(get("/api/items")
+                            .param("size", "5")
+                            .param("lastCreatedAt", lastCreatedAt)
+                            .param("lastId", String.valueOf(lastId)))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.content.length()").value(5))
                     .andExpect(jsonPath("$.data.hasNext").value(false));
         }
 

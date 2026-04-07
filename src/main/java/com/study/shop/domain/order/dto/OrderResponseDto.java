@@ -6,7 +6,6 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -25,16 +24,11 @@ public class OrderResponseDto {
     private String address;
 
     public static OrderResponseDto from(Order order) {
-        List<OrderItemResponseDto> orderItemDtos = order.getOrderItems()
-                .stream()
-                .map(OrderItemResponseDto::from)
-                .collect(Collectors.toList());
-
         return OrderResponseDto.builder()
                 .orderId(order.getId())
                 .memberEmail(order.getMember().getEmail())
                 .memberNickname(order.getMember().getNickname())
-                .orderItemDtoList(orderItemDtos)
+                .orderItemDtoList(List.of(OrderItemResponseDto.from(order.getOrderItem())))
                 .orderStatus(order.getOrderStatus())
                 .totalPrice(order.getTotalPrice())
                 .orderDate(order.getOrderDate())

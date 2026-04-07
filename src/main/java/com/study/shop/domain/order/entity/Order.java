@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Table(name = "orders")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -28,9 +29,8 @@ public class Order extends BaseTimeEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<OrderItem> orderItems = new ArrayList<>();
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private OrderItem orderItem;
 
     private LocalDateTime orderDate;
     private int totalPrice;
@@ -45,38 +45,36 @@ public class Order extends BaseTimeEntity {
     }
 
     public void addOrderItem(OrderItem orderItem) {
-        this.orderItems.add(orderItem);
+        this.orderItem = orderItem;
         // 패키지 프라이빗
         orderItem.assignOrder(this);
+        calculateTotalPrice();
     }
 
     private void calculateTotalPrice() {
-        this.totalPrice = this.orderItems.stream().mapToInt(OrderItem::getTotalPrice).sum();
+        this.totalPrice = this.orderItem.getTotalPrice();
     }
 
     // 생성 메서드
     public static Order create(Member member, String address) {
         Order order = Order.builder()
                 .orderDate(LocalDateTime.now())
-                .orderStatus(OrderStatus.PENDING) // 그래도
+                .orderStatus(OrderStatus.PENDING)
                 .address(address)
                 .build();
 
         order.assignMember(member);
-        order.calculateTotalPrice();
 
         return order;
     }
 
     // 비즈니스 로직
     public void cancel() {
-        if (this.orderStatus != OrderStatus.PENDING){
+        if (this.orderStatus != OrderStatus.PENDING) {
             throw new IllegalStateException("주문 수락 전에만 취소할 수 있습니다.");
         }
         this.orderStatus = OrderStatus.CANCELLED;
-        for (OrderItem orderItem : orderItems) {
-            orderItem.cancel();
-        }
+        orderItem.cancel();
     }
 
     public void accept() {
@@ -102,9 +100,7 @@ public class Order extends BaseTimeEntity {
             throw new IllegalStateException("완료된 주문은 취소할 수 없습니다.");
         }
         this.orderStatus = OrderStatus.CANCELLED;
-        for (OrderItem orderItem : orderItems) {
-            orderItem.cancel();
-        }
+        orderItem.cancel();
     }
 
     private void validateStatusTransition(OrderStatus expected, OrderStatus next) {

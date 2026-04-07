@@ -22,9 +22,6 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom{
     }
 
     private static BooleanExpression getEq(Long id) {
-        if (id == null) {
-            return null;
-        }
         return comment.post.id.eq(id);
     }
 }
