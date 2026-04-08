@@ -15,7 +15,6 @@ import java.util.List;
 public class OrderDetailDto {
     private Long orderId;
     private String memberEmail;
-    private String memberNickname;
 
     private List<OrderItemResponseDto> orderItemDtoList;
     private OrderStatus orderStatus;
@@ -26,8 +25,7 @@ public class OrderDetailDto {
     public static OrderDetailDto from(Order order) {
         return OrderDetailDto.builder()
                 .orderId(order.getId())
-                .memberEmail(order.getMember().getEmail())
-                .memberNickname(order.getMember().getNickname())
+                .memberEmail(order.getBuyerEmail())
                 .orderItemDtoList(List.of(OrderItemResponseDto.from(order.getOrderItem())))
                 .orderStatus(order.getOrderStatus())
                 .totalPrice(order.getTotalPrice())

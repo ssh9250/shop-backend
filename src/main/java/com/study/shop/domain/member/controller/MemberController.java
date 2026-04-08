@@ -47,7 +47,7 @@ public class MemberController {
     @DeleteMapping
     public ResponseEntity<ApiResponse<Void>> deleteMember(@AuthenticationPrincipal CustomUserDetails userDetails) {
         Long id = userDetails.getMemberId();
-        memberService.deleteMember(id);
+        memberService.withdraw(id);
         return ResponseEntity.ok(ApiResponse.success(null, "회원 탈퇴 완료"));
     }
 

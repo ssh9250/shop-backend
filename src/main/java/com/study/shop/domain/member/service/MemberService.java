@@ -1,5 +1,6 @@
 package com.study.shop.domain.member.service;
 
+import com.study.shop.domain.Item.repository.ItemRepository;
 import com.study.shop.domain.auth.dto.SignupRequestDto;
 import com.study.shop.domain.member.exception.DuplicateEmailException;
 import com.study.shop.domain.member.exception.DuplicateNicknameException;
@@ -11,6 +12,7 @@ import com.study.shop.domain.member.dto.UpdateProfileRequestDto;
 import com.study.shop.domain.member.entity.Member;
 import com.study.shop.domain.member.exception.MemberNotFoundException;
 import com.study.shop.domain.member.repository.MemberRepository;
+import com.study.shop.domain.post.service.PostService;
 import com.study.shop.global.enums.RoleType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,6 +27,8 @@ public class MemberService {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PostService postService;
+    private final ItemRepository itemRepository;
 
     public void signup(SignupRequestDto requestDto) {
         validateDuplicateEmail(requestDto.getEmail());
@@ -79,6 +83,16 @@ public class MemberService {
     public void deleteMember(Long id) {
         Member member = memberRepository.findById(id).orElseThrow(() -> new MemberNotFoundException(id));
         memberRepository.delete(member);
+    }
+
+    public void withdraw(Long id) {
+        postRepository.findByMemberId(id)
+                .forEach(post -> {postService.deletePost(id,  post.getId());});
+
+        commentRepository.softDeleteAllByMember(id);
+        itemRepository.softDeleteByMemberId(id);
+
+        memberRepository.deleteById(id);
     }
 
     private void validateDuplicateEmail(String email) {

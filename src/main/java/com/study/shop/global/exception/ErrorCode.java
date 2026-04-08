@@ -19,9 +19,12 @@ public enum ErrorCode {
     // ITEM
     ITEM_NOT_FOUND("상품을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     STOCK_NOT_ENOUGH("재고가 부족합니다.", HttpStatus.CONFLICT),
+    INVALID_ITEM_ACCESS("주문할 수 없는 상품입니다. 아이템 상태 : %s", HttpStatus.BAD_REQUEST),
 
     // ORDER
     ORDER_NOT_FOUND("주문을 찾을 수 없습니다.",  HttpStatus.NOT_FOUND),
+    INVALID_ORDER_STATE("주문 상태를 %s(으)로 변경할 수 없습니다. 현재 상태: %s", HttpStatus.BAD_REQUEST),
+    INVALID_ORDER_CANCEL("주문 수락 전에만 취소할 수 있습니다.", HttpStatus.BAD_REQUEST),
 
     // etc
     INVALID_REQUEST("잘못된 요청입니다.", HttpStatus.BAD_REQUEST),

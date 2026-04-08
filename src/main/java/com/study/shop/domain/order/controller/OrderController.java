@@ -20,7 +20,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/order")
+@RequestMapping("/api/orders")
 @Tag(name = "Order", description = "주문 관련 API")
 public class OrderController {
     private final OrderService orderService;
@@ -31,10 +31,28 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.success(orderService.createOrder(userDetails.getMemberId(), requestDto)));
     }
 
-    @Operation(summary = "주문 단건 조회", description = "id를 통해 특정 주문을 조회합니다.")
+    @Operation(summary = "구매한 주문 목록 조회", description = "구매한 주문 목록을 조회합니다.")
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<OrderListDto>>> getOrderById(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.ok(ApiResponse.success(orderService.getOrderList(userDetails.getMemberId())));
+    }
+
+    @Operation(summary = "구매한 주문 단건 조회", description = "id를 통해 구매한 특정 주문을 조회합니다.")
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<OrderDetailDto>> getOrderById(@PathVariable Long id, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<ApiResponse<OrderDetailDto>> getOrders(@PathVariable Long id, @AuthenticationPrincipal CustomUserDetails userDetails) {
         return ResponseEntity.ok(ApiResponse.success(orderService.findOrderById(userDetails.getMemberId(), id)));
+    }
+
+    @Operation(summary = "판매한 주문 목록 조회", description = "판매한 주문 목록을 조회합니다.")
+    @GetMapping("/sold")
+    public ResponseEntity<ApiResponse<List<OrderListDto>>> getSoldOrderById(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.ok(ApiResponse.success(orderService.getSoldOrderList(userDetails.getMemberId())));
+    }
+
+    @Operation(summary = "판매한 주문 단건 조회", description = "id를 통해 판매한 특정 주문을 조회합니다.")
+    @GetMapping("/sold/{id}")
+    public ResponseEntity<ApiResponse<OrderDetailDto>> getSoldOrders(@PathVariable Long id, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.ok(ApiResponse.success(orderService.findSoldOrderById(userDetails.getMemberId(), id)));
     }
 
     @Operation(summary = "주문 상태별 조회", description = "주문 상태(PENDING, ORDERED, IN_DELIVERY, COMPLETED, CANCELLED)로 필터링하여 조회합니다.")

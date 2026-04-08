@@ -1,5 +1,6 @@
 package com.study.shop.domain.post.service;
 
+import com.study.shop.domain.comment.repository.CommentRepository;
 import com.study.shop.domain.member.entity.Member;
 import com.study.shop.domain.member.exception.MemberNotFoundException;
 import com.study.shop.domain.member.repository.MemberRepository;
@@ -33,8 +34,9 @@ public class PostService {
     private final MemberRepository memberRepository;
     private final FileStorageService fileStorageService;
     private final StringRedisTemplate stringRedisTemplate;
+    private final CommentRepository commentRepository;
 
-//    @CacheEvict(value = CacheConfig.POST_LIST_CACHE, allEntries = true)
+    //    @CacheEvict(value = CacheConfig.POST_LIST_CACHE, allEntries = true)
     public Long createPost(Long memberId, CreatePostRequestDto request, List<MultipartFile> files) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
@@ -115,6 +117,8 @@ public class PostService {
         post.getPostFiles().forEach(file -> {
             fileStorageService.deleteFile(file.getStoredFileName());
         });
+
+        commentRepository.deleteAllByPostId(postId);
 
         postRepository.delete(post);
     }

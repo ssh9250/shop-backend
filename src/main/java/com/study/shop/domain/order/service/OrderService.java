@@ -14,6 +14,7 @@ import com.study.shop.domain.order.entity.Order;
 import com.study.shop.domain.order.entity.OrderItem;
 import com.study.shop.domain.order.exception.OrderNotFoundException;
 import com.study.shop.domain.order.repository.OrderRepository;
+import com.study.shop.global.enums.ItemStatus;
 import com.study.shop.global.enums.OrderStatus;
 import com.study.shop.global.enums.RoleType;
 import jakarta.transaction.Transactional;
@@ -49,10 +50,29 @@ public class OrderService {
         return OrderResponseDto.from(order);
     }
 
+    public List<OrderListDto> getOrderList(Long memberId) {
+        return orderRepository.findByMemberId(memberId).stream()
+                .map(OrderListDto::from)
+                .collect(Collectors.toList());
+    }
+
     public OrderDetailDto findOrderById(Long memberId, Long orderId) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
 
-        validateSellerOrBuyer(order, memberId);
+        validateBuyer(order, memberId);
+        return OrderDetailDto.from(order);
+    }
+
+    public List<OrderListDto> getSoldOrderList(Long memberId) {
+        return orderRepository.findBySellerId(memberId).stream()
+                .map(OrderListDto::from)
+                .collect(Collectors.toList());
+    }
+
+    public OrderDetailDto findSoldOrderById(Long memberId, Long orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
+
+        validateSeller(order, memberId);
         return OrderDetailDto.from(order);
     }
 
@@ -78,6 +98,7 @@ public class OrderService {
         validateOrderStateAccess(order, memberId);
 
         order.accept();
+        order.getOrderItem().getItem().changeItemStatus();
 
         return OrderDetailDto.from(order);
     }
@@ -123,13 +144,19 @@ public class OrderService {
     }
 
     public void validateOrderStateAccess(Order order, Long memberId) {
-        if (!order.getOrderItem().getItem().getSeller().getId().equals(memberId)) {
+        if (!order.getSellerId().equals(memberId)) {
             throw new AccessDeniedException("주문 상태를 변경할 권한이 없습니다.");
         }
     }
 
-    public void validateSellerOrBuyer(Order order, Long memberId) {
-        if (!order.getMember().getId().equals(memberId) && !order.getOrderItem().getItem().getSeller().getId().equals(memberId)) {
+    public void validateBuyer(Order order, Long memberId) {
+        if (!order.getMember().getId().equals(memberId)) {
+            throw new AccessDeniedException("주문에 접근할 권한이 없습니다.");
+        }
+    }
+
+    public void validateSeller(Order order, Long memberId) {
+        if (!order.getSellerId().equals(memberId)) {
             throw new AccessDeniedException("주문에 접근할 권한이 없습니다.");
         }
     }

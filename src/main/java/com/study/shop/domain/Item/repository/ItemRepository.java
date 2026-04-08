@@ -2,6 +2,7 @@ package com.study.shop.domain.Item.repository;
 
 import com.study.shop.domain.Item.entity.Item;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
@@ -15,4 +16,8 @@ public interface ItemRepository extends JpaRepository<Item,Long>, ItemRepository
             "join fetch i.seller m " +
             "where i.id = :itemId")
     Optional<Item> findItemByIdWithMember(Long itemId);
+
+    @Modifying(clearAutomatically = true)
+    @Query("update Item i set i.deletedAt = NOW() where i.seller.id = :memberId")
+    void softDeleteByMemberId(Long memberId);
 }

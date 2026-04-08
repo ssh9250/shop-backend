@@ -1,7 +1,11 @@
 package com.study.shop.domain.order.entity;
 
 import com.study.shop.domain.member.entity.Member;
+import com.study.shop.domain.order.exception.InvalidOrderStatusException;
+import com.study.shop.domain.order.exception.OrderNotFoundException;
 import com.study.shop.global.enums.OrderStatus;
+import com.study.shop.global.exception.CustomException;
+import com.study.shop.global.exception.ErrorCode;
 import com.study.shop.global.util.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -29,7 +33,11 @@ public class Order extends BaseTimeEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    // 주문 시점 스냅샷
+    private Long sellerId;
+    private String buyerEmail;
+
+    @OneToOne(mappedBy = "order")
     private OrderItem orderItem;
 
     private LocalDateTime orderDate;
@@ -71,7 +79,7 @@ public class Order extends BaseTimeEntity {
     // 비즈니스 로직
     public void cancel() {
         if (this.orderStatus != OrderStatus.PENDING) {
-            throw new IllegalStateException("주문 수락 전에만 취소할 수 있습니다.");
+            throw new InvalidOrderStatusException();
         }
         this.orderStatus = OrderStatus.CANCELLED;
         orderItem.cancel();
@@ -92,6 +100,7 @@ public class Order extends BaseTimeEntity {
         this.orderStatus = OrderStatus.COMPLETED;
     }
 
+    // 관리자 전용 로직
     public void forceCancel() {
         if (this.orderStatus == OrderStatus.CANCELLED) {
             throw new IllegalStateException("이미 취소된 주문입니다.");
@@ -105,9 +114,7 @@ public class Order extends BaseTimeEntity {
 
     private void validateStatusTransition(OrderStatus expected, OrderStatus next) {
         if (this.orderStatus != expected) {
-            throw new IllegalStateException(
-                    String.format("주문 상태를 %s(으)로 변경할 수 없습니다. 현재 상태: %s", next, this.orderStatus)
-            );
+            throw new InvalidOrderStatusException(next, this.orderStatus);
         }
     }
 }

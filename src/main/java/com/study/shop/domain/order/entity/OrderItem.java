@@ -1,7 +1,9 @@
 package com.study.shop.domain.order.entity;
 
 import com.study.shop.domain.Item.entity.Item;
+import com.study.shop.domain.Item.exception.InvalidAccessException;
 import com.study.shop.domain.order.exception.StockNotEnoughException;
+import com.study.shop.global.enums.ItemStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,6 +29,8 @@ public class OrderItem {
 
     private Integer quantity;
 
+    // 주문 당시의 상품명 todo: 이걸로 바꾸기
+    private String itemName;
     // 주문 당시의 가격
     private int price;
 
@@ -41,6 +45,9 @@ public class OrderItem {
 
         if (item.getStock() < quantity) {
             throw new StockNotEnoughException(item.getId());
+        }
+        if (!item.getItemStatus().equals(ItemStatus.ON_SALE)) {
+            throw new InvalidAccessException(ItemStatus.ON_SALE);
         }
         item.removeStock(quantity);
         return OrderItem.builder()

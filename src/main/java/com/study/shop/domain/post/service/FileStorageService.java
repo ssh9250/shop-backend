@@ -2,6 +2,7 @@ package com.study.shop.domain.post.service;
 
 import com.study.shop.domain.post.entity.PostFile;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,6 +16,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class FileStorageService {
     @Value("${file.upload-dir}")
     private String uploadDir;
@@ -46,7 +48,7 @@ public class FileStorageService {
             Files.deleteIfExists(filePath);
         }
         catch (Exception e) {
-            throw new RuntimeException("파일 삭제 중 오류가 발생했습니다: " + storedFileName);
+            log.error("파일 삭제 중 오류가 발생했습니다 : {}", storedFileName, e);
         }
     }
 }

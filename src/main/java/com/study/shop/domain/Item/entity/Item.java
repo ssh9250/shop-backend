@@ -29,7 +29,7 @@ public class Item extends BaseTimeEntity {
     private Long id;
 
     private String name;
-//    private String brand;
+    //    private String brand;
     private String description;
 
     private int stock;
@@ -38,7 +38,7 @@ public class Item extends BaseTimeEntity {
     private ItemStatus itemStatus;
 
     @OneToMany(mappedBy = "item")
-    private List<CategoryItem> categoryItems =  new ArrayList<>();
+    private List<CategoryItem> categoryItems = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
@@ -49,7 +49,7 @@ public class Item extends BaseTimeEntity {
                 .category(category)
                 .item(this)
                 .build();
-        if  (!this.categoryItems.contains(categoryItem)){
+        if (!this.categoryItems.contains(categoryItem)) {
             this.categoryItems.add(categoryItem);
             category.getCategoryItems().add(categoryItem);
         }
@@ -96,7 +96,12 @@ public class Item extends BaseTimeEntity {
     public void addStock(int quantity) {
         this.stock += quantity;
     }
+
     public void removeStock(int quantity) {
         this.stock -= quantity;
+    }
+
+    public void changeItemStatus() {
+        this.itemStatus = stock > 0 ? ItemStatus.RESERVED : ItemStatus.SOLD_OUT;
     }
 }

@@ -29,6 +29,8 @@ public interface OrderRepository extends JpaRepository<Order, Long>, OrderReposi
             "where o.id = :orderId")
     Optional<Order> findById(@NonNull Long orderId);
 
+    List<Order> findBySellerId(Long sellerId);
+
     // findByOrderStatus -> orderitem, item, member 추가쿼리 발생 -> fetch join으로 해결
 //queryFactory
 //        .selectFrom(order)

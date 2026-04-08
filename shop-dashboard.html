@@ -667,43 +667,43 @@
         <span class="task-text" style="text-decoration:line-through;color:var(--muted)">Redis 캐시 레이어 — 조회수 Write-behind 패턴 (목록 캐싱은 직렬화 복잡도로 제외 · Issue #002)</span>
         <span class="task-tag" style="background:rgba(62,207,142,0.1);color:var(--done)">DONE</span>
       </div>
-      <div class="task-item">
-        <span class="task-num">09</span>
-        <span class="task-text">Controller 테스트 + JaCoCo — 전체 Controller MockMvc 슬라이스 테스트 · 커버리지 리포트</span>
-        <span class="task-tag">MED</span>
+      <div class="task-item" style="opacity:0.45;border-color:#1e1e2e;">
+        <span class="task-num" style="color:var(--done)">✓ 09</span>
+        <span class="task-text" style="text-decoration:line-through;color:var(--muted)">Controller 테스트 + JaCoCo — 전체 Controller MockMvc 슬라이스 테스트 · 커버리지 리포트</span>
+        <span class="task-tag" style="background:rgba(62,207,142,0.1);color:var(--done)">DONE</span>
       </div>
       <div class="task-item">
         <span class="task-num">10</span>
-        <span class="task-text">회원 탈퇴 연관 상태 점검 — 주문 재고 복구 · 게시글 파일 삭제 · 댓글 삭제 정책 검증</span>
+        <span class="task-text">Soft Delete 정책 개선 — Post 삭제 시 Comment cascade 삭제 제거 · 댓글 유지 후 "삭제된 게시글" 명시 · 리다이렉트 방지 (CommentResponseDto.postDeleted 필드 추가 · findAllCommentsByMemberId 쿼리 변경)</span>
+        <span class="task-tag">HIGH</span>
+      </div>
+      <div class="task-item">
+        <span class="task-num">11</span>
+        <span class="task-text">회원 탈퇴 연관 상태 점검 — 주문 재고 복구 · 게시글 파일 삭제 · 댓글 삭제 정책 검증 (10번 Soft Delete 정책 확정 후 진행)</span>
         <span class="task-tag">MED</span>
       </div>
 
       <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;padding:16px 0 4px;">— PHASE 3 · 고급 기능 —</div>
 
       <div class="task-item">
-        <span class="task-num">11</span>
+        <span class="task-num">12</span>
         <span class="task-text">Elasticsearch — 게시글 검색 한정 도입 (nori 형태소 분석 · 한국어 검색 품질)</span>
         <span class="task-tag">MED</span>
       </div>
       <div class="task-item">
-        <span class="task-num">12</span>
+        <span class="task-num">13</span>
         <span class="task-text">Spring Events — 신고 누적 자동 숨김 · 주문 완료 재고 상태 변경 (도메인 결합도 감소) · 게시글 조회 이벤트(PostViewedEvent) 발행으로 ViewCountService 의존성 분리 (현재 컨트롤러에서 직접 호출 중)</span>
         <span class="task-tag">MED</span>
       </div>
       <div class="task-item">
-        <span class="task-num">13</span>
+        <span class="task-num">14</span>
         <span class="task-text">파일 저장소 — LocalStorage → AWS S3 전환</span>
         <span class="task-tag">LOW</span>
       </div>
       <div class="task-item">
-        <span class="task-num">14</span>
-        <span class="task-text">AI 악보 변환 — MusicScoreConverter 구현 (외부 API 연동)</span>
-        <span class="task-tag">LOW</span>
-      </div>
-      <div class="task-item">
         <span class="task-num">15</span>
-        <span class="task-text">Soft Delete 정책 개선 — Post 삭제 시 Comment cascade 삭제 제거 · 댓글 유지 후 "삭제된 게시글" 명시 · 해당 게시글 리다이렉트 방지 (CommentResponseDto.postDeleted 필드 추가 · findAllCommentsByMemberId 쿼리 변경)</span>
-        <span class="task-tag">MED</span>
+        <span class="task-text">AI 악보 변환 — MusicScoreConverter 구현 (외부 API 연동) · v1 마지막 기능</span>
+        <span class="task-tag">LOW</span>
       </div>
 
       <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;padding:16px 0 4px;">— PHASE 4 · shop-v2 클론 (ID Reference 리팩터링) —</div>

@@ -41,13 +41,12 @@ class OrderControllerTest extends IntegrationTestBase {
     private static final String SELLER_EMAIL    = "seller@example.com";
     private static final String SELLER_PASSWORD = "password123";
 
-    private Member buyerMember;
     private Member sellerMember;
     private Item savedItem;
 
     @BeforeEach
     void setUp() {
-        buyerMember = memberRepository.save(Member.builder()
+        Member buyerMember = memberRepository.save(Member.builder()
                 .email(BUYER_EMAIL)
                 .password(passwordEncoder.encode(BUYER_PASSWORD))
                 .nickname("buyerUser")
@@ -343,10 +342,8 @@ class OrderControllerTest extends IntegrationTestBase {
         }
 
         @Test
-        @DisplayName("잘못된 상태에서 수락 시 500 반환 (IllegalStateException - GlobalExceptionHandler 미등록)")
+        @DisplayName("잘못된 상태에서 수락 시 400 반환")
         void acceptOrder_Fail_InvalidState() throws Exception {
-            // ORDERED 상태에서 재수락 시도 → Order.accept()가 IllegalStateException 발생
-            // GlobalExceptionHandler에 IllegalStateException 핸들러가 없으므로 500 반환
             String buyerToken = loginAndGetBuyerToken();
             String sellerToken = loginAndGetSellerToken();
             Long orderId = createTestOrder(buyerToken, savedItem.getId(), 1);
@@ -358,7 +355,7 @@ class OrderControllerTest extends IntegrationTestBase {
             mockMvc.perform(patch("/api/order/{id}/accept", orderId)
                             .header("Authorization", "Bearer " + sellerToken))
                     .andDo(print())
-                    .andExpect(status().isInternalServerError());
+                    .andExpect(status().isBadRequest());
         }
 
         @Test
@@ -417,10 +414,8 @@ class OrderControllerTest extends IntegrationTestBase {
         }
 
         @Test
-        @DisplayName("PENDING 아닌 상태에서 취소 시 500 반환 (IllegalStateException - GlobalExceptionHandler 미등록)")
+        @DisplayName("PENDING 아닌 상태에서 취소 시 400 반환")
         void cancelOrderFail_NotPending() throws Exception {
-            // ORDERED 상태에서 취소 시도 → Order.cancel()이 IllegalStateException 발생
-            // GlobalExceptionHandler에 IllegalStateException 핸들러가 없으므로 500 반환
             String buyerToken = loginAndGetBuyerToken();
             String sellerToken = loginAndGetSellerToken();
             Long orderId = createTestOrder(buyerToken, savedItem.getId(), 1);
@@ -432,7 +427,7 @@ class OrderControllerTest extends IntegrationTestBase {
             mockMvc.perform(delete("/api/order/{id}", orderId)
                             .header("Authorization", "Bearer " + buyerToken))
                     .andDo(print())
-                    .andExpect(status().isInternalServerError());
+                    .andExpect(status().isBadRequest());
         }
 
         @Test
@@ -442,7 +437,7 @@ class OrderControllerTest extends IntegrationTestBase {
             String sellerToken = loginAndGetSellerToken();
             Long orderId = createTestOrder(buyerToken, savedItem.getId(), 1);
 
-            // 판매자 토큰으로 취소 시도 → 403
+            // 판매자 토큰으로 취소 시도 → 403 (판매자는 거절 api만 사용 가능)
             mockMvc.perform(delete("/api/order/{id}", orderId)
                             .header("Authorization", "Bearer " + sellerToken))
                     .andDo(print())

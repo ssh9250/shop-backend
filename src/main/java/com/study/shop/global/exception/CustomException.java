@@ -10,4 +10,9 @@ public abstract class CustomException extends RuntimeException{
         super(errorCode.getMessage());
         this.errorCode = errorCode;
     }
+
+    protected CustomException(ErrorCode errorCode, Object... args) {
+        super(String.format(errorCode.getMessage(), args));
+        this.errorCode = errorCode;
+    }
 }

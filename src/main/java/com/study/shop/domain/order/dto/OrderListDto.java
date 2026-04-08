@@ -25,7 +25,7 @@ public class OrderListDto {
     public static OrderListDto from(Order order) {
         return OrderListDto.builder()
                 .orderId(order.getId())
-                .memberEmail(order.getMember().getEmail())
+                .memberEmail(order.getBuyerEmail())
                 .orderStatus(order.getOrderStatus())
                 .totalPrice(order.getTotalPrice())
                 .orderDate(order.getOrderDate())
