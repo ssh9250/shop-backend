@@ -78,26 +78,23 @@ public class Order extends BaseTimeEntity {
 
     // 비즈니스 로직
     public void cancel() {
-        if (this.orderStatus != OrderStatus.PENDING) {
-            throw new InvalidOrderStatusException();
+        if (!this.orderStatus.canCancel()) {
+            throw InvalidOrderStatusException.cannotCancel();
         }
         this.orderStatus = OrderStatus.CANCELLED;
         orderItem.cancel();
     }
 
     public void accept() {
-        validateStatusTransition(OrderStatus.PENDING, OrderStatus.ORDERED);
-        this.orderStatus = OrderStatus.ORDERED;
+        this.orderStatus = this.orderStatus.next();
     }
 
     public void startDelivery() {
-        validateStatusTransition(OrderStatus.ORDERED, OrderStatus.IN_DELIVERY);
-        this.orderStatus = OrderStatus.IN_DELIVERY;
+        this.orderStatus = this.orderStatus.next();
     }
 
     public void complete() {
-        validateStatusTransition(OrderStatus.IN_DELIVERY, OrderStatus.COMPLETED);
-        this.orderStatus = OrderStatus.COMPLETED;
+        this.orderStatus = this.orderStatus.next();
     }
 
     // 관리자 전용 로직
@@ -110,11 +107,5 @@ public class Order extends BaseTimeEntity {
         }
         this.orderStatus = OrderStatus.CANCELLED;
         orderItem.cancel();
-    }
-
-    private void validateStatusTransition(OrderStatus expected, OrderStatus next) {
-        if (this.orderStatus != expected) {
-            throw new InvalidOrderStatusException(next, this.orderStatus);
-        }
     }
 }

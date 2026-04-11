@@ -98,7 +98,7 @@ public class OrderService {
         validateOrderStateAccess(order, memberId);
 
         order.accept();
-        order.getOrderItem().getItem().changeItemStatus();
+        order.getOrderItem().getItem().reserveOrSellOut();
 
         return OrderDetailDto.from(order);
     }

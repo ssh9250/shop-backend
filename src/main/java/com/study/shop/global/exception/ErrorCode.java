@@ -23,7 +23,8 @@ public enum ErrorCode {
 
     // ORDER
     ORDER_NOT_FOUND("주문을 찾을 수 없습니다.",  HttpStatus.NOT_FOUND),
-    INVALID_ORDER_STATE("주문 상태를 %s(으)로 변경할 수 없습니다. 현재 상태: %s", HttpStatus.BAD_REQUEST),
+    INVALID_ORDER_TRANSITION("주문 상태를 %s(으)로 변경할 수 없습니다. 현재 상태: %s", HttpStatus.BAD_REQUEST),
+    INVALID_ORDER_STATE("현재 상태 %s 에서는 주문 상태를 변경할 수 없습니다.", HttpStatus.BAD_REQUEST),
     INVALID_ORDER_CANCEL("주문 수락 전에만 취소할 수 있습니다.", HttpStatus.BAD_REQUEST),
 
     // etc

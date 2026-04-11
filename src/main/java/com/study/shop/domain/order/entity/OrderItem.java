@@ -47,7 +47,7 @@ public class OrderItem {
             throw new StockNotEnoughException(item.getId());
         }
         if (!item.getItemStatus().equals(ItemStatus.ON_SALE)) {
-            throw new InvalidAccessException(ItemStatus.ON_SALE);
+            throw InvalidAccessException.notOrderable(ItemStatus.ON_SALE);
         }
         item.removeStock(quantity);
         return OrderItem.builder()

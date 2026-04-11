@@ -1,6 +1,7 @@
 package com.study.shop.domain.Item.entity;
 
 import com.study.shop.domain.Item.dto.UpdateItemRequestDto;
+import com.study.shop.domain.Item.exception.InvalidAccessException;
 import com.study.shop.domain.category.entity.Category;
 import com.study.shop.domain.category.entity.CategoryItem;
 import com.study.shop.domain.member.entity.Member;
@@ -67,7 +68,7 @@ public class Item extends BaseTimeEntity {
 
     public void validateOrderable() {
         if (!this.itemStatus.equals(ItemStatus.ON_SALE)) {
-            throw new IllegalStateException("주문할 수 없는 상품입니다.");
+            throw InvalidAccessException.notOrderable(this.itemStatus);
         }
     }
 
@@ -101,7 +102,7 @@ public class Item extends BaseTimeEntity {
         this.stock -= quantity;
     }
 
-    public void changeItemStatus() {
+    public void reserveOrSellOut() {
         this.itemStatus = stock > 0 ? ItemStatus.RESERVED : ItemStatus.SOLD_OUT;
     }
 }
