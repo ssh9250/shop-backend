@@ -1,6 +1,7 @@
 package com.study.shop.domain.post.service;
 
 import com.study.shop.domain.comment.repository.CommentRepository;
+import com.study.shop.domain.event.PostViewedEvent;
 import com.study.shop.domain.member.entity.Member;
 import com.study.shop.domain.member.exception.MemberNotFoundException;
 import com.study.shop.domain.member.repository.MemberRepository;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -35,6 +37,7 @@ public class PostService {
     private final FileStorageService fileStorageService;
     private final StringRedisTemplate stringRedisTemplate;
     private final CommentRepository commentRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     //    @CacheEvict(value = CacheConfig.POST_LIST_CACHE, allEntries = true)
     public Long createPost(Long memberId, CreatePostRequestDto request, List<MultipartFile> files) {
@@ -66,10 +69,10 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public PostDetailDto getPostById(Long id) {
+        eventPublisher.publishEvent(new PostViewedEvent(id));
         String redisValue = stringRedisTemplate.opsForValue()
                 .get("view:post:" + id);
         int redisCount = redisValue == null ? 0 : Integer.parseInt(redisValue);
-
 
         return postRepository.findById(id)
                 .map(post -> PostDetailDto.from(post, redisCount + post.getViewCount()))

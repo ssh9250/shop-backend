@@ -441,12 +441,13 @@
       <span class="module-badge badge-done">✓ 완료</span>
       <div class="module-path">domain/member/</div>
       <div class="module-name">회원 관리</div>
-      <div class="module-desc">프로필 수정 · 비밀번호 변경 · 회원 탈퇴</div>
+      <div class="module-desc">프로필 수정 · 비밀번호 변경 · 회원 탈퇴 (명시적 연관 삭제)</div>
       <ul class="feature-list">
         <li class="done">내 정보 조회 (/me)</li>
         <li class="done">프로필 수정 (nickname, phone, address)</li>
         <li class="done">비밀번호 변경 (BCrypt)</li>
-        <li class="done">회원 탈퇴 (cascade 삭제)</li>
+        <li class="done">회원 탈퇴 — cascade 제거 · 명시적 soft delete</li>
+        <li class="done">탈퇴 시 게시글/댓글/상품 soft delete · 주문 보존</li>
         <li class="done">이메일/닉네임 중복 검증</li>
       </ul>
       <div class="module-progress">
@@ -523,7 +524,7 @@
       <span class="module-badge badge-done">✓ 완료</span>
       <div class="module-path">domain/order/</div>
       <div class="module-name">주문</div>
-      <div class="module-desc">주문 상태 머신 · 재고 연동 · 가격 스냅샷 · fetchJoin N+1 해결</div>
+      <div class="module-desc">주문 상태 머신 · 재고 연동 · 구매자/가격 스냅샷 · fetchJoin N+1 해결</div>
       <ul class="feature-list">
         <li class="done">주문 생성 (재고 검증 + 차감)</li>
         <li class="done">상태 전이 (PENDING→ORDERED→IN_DELIVERY→COMPLETED)</li>
@@ -531,6 +532,9 @@
         <li class="done">상태별 조회</li>
         <li class="done">totalPrice 자동 재계산</li>
         <li class="done">fetchJoin — OrderItem · Member N+1 해결</li>
+        <li class="done">sellerId · buyerEmail 스냅샷 — 탈퇴 후 거래 기록 보존</li>
+        <li class="done">판매 내역 조회 (getSoldOrderList · findSoldOrderById)</li>
+        <li class="done">주문 수락 시 Item 상태 변경 (ON_SALE → RESERVED/SOLD_OUT)</li>
       </ul>
       <div class="module-progress">
         <div class="mp-label"><span>진행률</span><span>100%</span></div>
@@ -618,6 +622,10 @@
       <span class="stack-chip planned">AWS S3 (예정)</span>
       <span class="stack-chip planned">Elasticsearch (예정 · 검색)</span>
       <span class="stack-chip planned">AI 악보 변환 API (예정)</span>
+      <span class="stack-chip planned">동시성 제어 · 낙관적 락 (예정)</span>
+      <span class="stack-chip planned">Prometheus · Grafana (예정)</span>
+      <span class="stack-chip planned">SSE 실시간 알림 (예정)</span>
+      <span class="stack-chip planned">Kafka (예정 · Spring Events 이후)</span>
     </div>
   </div>
 
@@ -672,36 +680,66 @@
         <span class="task-text" style="text-decoration:line-through;color:var(--muted)">Controller 테스트 + JaCoCo — 전체 Controller MockMvc 슬라이스 테스트 · 커버리지 리포트</span>
         <span class="task-tag" style="background:rgba(62,207,142,0.1);color:var(--done)">DONE</span>
       </div>
-      <div class="task-item">
-        <span class="task-num">10</span>
-        <span class="task-text">Soft Delete 정책 개선 — Post 삭제 시 Comment cascade 삭제 제거 · 댓글 유지 후 "삭제된 게시글" 명시 · 리다이렉트 방지 (CommentResponseDto.postDeleted 필드 추가 · findAllCommentsByMemberId 쿼리 변경)</span>
-        <span class="task-tag">HIGH</span>
+      <div class="task-item" style="opacity:0.45;border-color:#1e1e2e;">
+        <span class="task-num" style="color:var(--done)">✓ 10</span>
+        <span class="task-text" style="text-decoration:line-through;color:var(--muted)">Soft Delete 정책 개선 — Post/Member cascade 제거 · PostService.deletePost() 명시적 처리 · FileStorageService 오류 시 log.error</span>
+        <span class="task-tag" style="background:rgba(62,207,142,0.1);color:var(--done)">DONE</span>
       </div>
-      <div class="task-item">
-        <span class="task-num">11</span>
-        <span class="task-text">회원 탈퇴 연관 상태 점검 — 주문 재고 복구 · 게시글 파일 삭제 · 댓글 삭제 정책 검증 (10번 Soft Delete 정책 확정 후 진행)</span>
-        <span class="task-tag">MED</span>
+      <div class="task-item" style="opacity:0.45;border-color:#1e1e2e;">
+        <span class="task-num" style="color:var(--done)">✓ 11</span>
+        <span class="task-text" style="text-decoration:line-through;color:var(--muted)">회원 탈퇴 연관 상태 점검 — MemberService.withdraw() 명시적 연관 삭제 · Order 보존 정책 확정 · sellerId/buyerEmail 스냅샷 · 판매 내역 API · 주문 수락 시 Item 상태 변경</span>
+        <span class="task-tag" style="background:rgba(62,207,142,0.1);color:var(--done)">DONE</span>
       </div>
 
       <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;padding:16px 0 4px;">— PHASE 3 · 고급 기능 —</div>
 
       <div class="task-item">
         <span class="task-num">12</span>
+        <span class="task-text">상태 전이 모델링 개선 — OrderStatus.next() · ItemStatus.validateTransition() enum 내부로 이전 · 상태 전이 규칙 캡슐화</span>
+        <span class="task-tag">HIGH</span>
+      </div>
+      <div class="task-item">
+        <span class="task-num">13</span>
         <span class="task-text">Elasticsearch — 게시글 검색 한정 도입 (nori 형태소 분석 · 한국어 검색 품질)</span>
         <span class="task-tag">MED</span>
       </div>
       <div class="task-item">
-        <span class="task-num">13</span>
-        <span class="task-text">Spring Events — 신고 누적 자동 숨김 · 주문 완료 재고 상태 변경 (도메인 결합도 감소) · 게시글 조회 이벤트(PostViewedEvent) 발행으로 ViewCountService 의존성 분리 (현재 컨트롤러에서 직접 호출 중)</span>
+        <span class="task-num">14</span>
+        <span class="task-text">Spring Events — 신고 누적 자동 숨김 · 주문 완료 재고 상태 변경 · PostViewedEvent 발행으로 ViewCountService 의존성 분리</span>
         <span class="task-tag">MED</span>
       </div>
       <div class="task-item">
-        <span class="task-num">14</span>
+        <span class="task-num">15</span>
+        <span class="task-text">동시성 제어 — Item 재고 차감 낙관적 락 (@Version) 도입 · 비관적 락 비교 실험</span>
+        <span class="task-tag">MED</span>
+      </div>
+      <div class="task-item">
+        <span class="task-num">16</span>
+        <span class="task-text">부하 테스트 — nGrinder/JMeter 재고 차감 동시 요청 시나리오 · 락 적용 전후 비교</span>
+        <span class="task-tag">MED</span>
+      </div>
+      <div class="task-item">
+        <span class="task-num">17</span>
+        <span class="task-text">모니터링 — Prometheus + Grafana Docker 구성 · API 응답시간 · JVM 힙 상태 시각화</span>
+        <span class="task-tag">MED</span>
+      </div>
+      <div class="task-item">
+        <span class="task-num">18</span>
+        <span class="task-text">SSE 실시간 알림 — 주문 상태 변경 알림 (단방향 · WebSocket 빌드업)</span>
+        <span class="task-tag">LOW</span>
+      </div>
+      <div class="task-item">
+        <span class="task-num">19</span>
         <span class="task-text">파일 저장소 — LocalStorage → AWS S3 전환</span>
         <span class="task-tag">LOW</span>
       </div>
       <div class="task-item">
-        <span class="task-num">15</span>
+        <span class="task-num">20</span>
+        <span class="task-text">CI/CD — GitHub Actions + Docker 자동화 배포</span>
+        <span class="task-tag">LOW</span>
+      </div>
+      <div class="task-item">
+        <span class="task-num">21</span>
         <span class="task-text">AI 악보 변환 — MusicScoreConverter 구현 (외부 API 연동) · v1 마지막 기능</span>
         <span class="task-tag">LOW</span>
       </div>

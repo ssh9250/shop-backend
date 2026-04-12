@@ -2,7 +2,6 @@ package com.study.shop.domain.post.controller;
 
 import com.study.shop.domain.post.dto.*;
 import com.study.shop.domain.post.service.PostService;
-import com.study.shop.global.dto.CachePage;
 import com.study.shop.global.response.ApiResponse;
 import com.study.shop.infrastructure.redis.ViewCountService;
 import com.study.shop.security.auth.CustomUserDetails;
@@ -58,7 +57,6 @@ public class PostController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<PostDetailDto>> getPost(@PathVariable Long id) {
         PostDetailDto result = postService.getPostById(id);
-        viewCountService.increment(id);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
