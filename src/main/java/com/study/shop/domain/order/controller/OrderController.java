@@ -4,7 +4,6 @@ package com.study.shop.domain.order.controller;
 import com.study.shop.domain.order.dto.CreateOrderRequestDto;
 import com.study.shop.domain.order.dto.OrderDetailDto;
 import com.study.shop.domain.order.dto.OrderListDto;
-import com.study.shop.domain.order.dto.OrderResponseDto;
 import com.study.shop.domain.order.service.OrderService;
 import com.study.shop.global.enums.OrderStatus;
 import com.study.shop.global.response.ApiResponse;
@@ -27,7 +26,7 @@ public class OrderController {
 
     @Operation(summary = "주문 생성", description = "주문을 생성합니다.")
     @PostMapping
-    public ResponseEntity<ApiResponse<OrderResponseDto>> createOrder(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CreateOrderRequestDto requestDto) {
+    public ResponseEntity<ApiResponse<OrderDetailDto>> createOrder(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CreateOrderRequestDto requestDto) {
         return ResponseEntity.ok(ApiResponse.success(orderService.createOrder(userDetails.getMemberId(), requestDto)));
     }
 

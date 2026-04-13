@@ -10,6 +10,8 @@ import com.study.shop.domain.post.entity.Post;
 import com.study.shop.domain.post.exception.PostNotFoundException;
 import com.study.shop.domain.post.repository.PostRepository;
 import com.study.shop.global.config.CacheConfig;
+import com.study.shop.global.util.ExtractRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -61,25 +63,26 @@ public class PostService {
         return post.getId();
     }
 
-//    @Cacheable(value = CacheConfig.POST_LIST_CACHE, key = "#condition.toString()")
+    //    @Cacheable(value = CacheConfig.POST_LIST_CACHE, key = "#condition.toString()")
     @Transactional(readOnly = true)
     public Page<PostListDto> searchPosts(PostSearchConditionDto condition, Pageable pageable) {
         return postRepository.searchPosts(condition, pageable);
     }
 
     @Transactional(readOnly = true)
-    public PostDetailDto getPostById(Long id) {
-        eventPublisher.publishEvent(new PostViewedEvent(id));
+    public PostDetailDto getPostById(Long id, HttpServletRequest request) {
+        Post post = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(id));
+
+        eventPublisher.publishEvent(new PostViewedEvent(id, ExtractRequest.extractIp(request)));
+
         String redisValue = stringRedisTemplate.opsForValue()
                 .get("view:post:" + id);
         int redisCount = redisValue == null ? 0 : Integer.parseInt(redisValue);
 
-        return postRepository.findById(id)
-                .map(post -> PostDetailDto.from(post, redisCount + post.getViewCount()))
-                .orElseThrow(() -> new PostNotFoundException(id));
+        return PostDetailDto.from(post, redisCount + post.getViewCount());
     }
 
-//    @CacheEvict(value = CacheConfig.POST_LIST_CACHE, allEntries = true)
+    //    @CacheEvict(value = CacheConfig.POST_LIST_CACHE, allEntries = true)
     public void updatePost(Long memberId, Long postId, UpdatePostRequestDto requestDto, List<MultipartFile> files) {
 //        Member member = memberRepository.findById(memberId)
 //                .orElseThrow(() -> new MemberNotFoundException(memberId));
@@ -110,7 +113,7 @@ public class PostService {
 //        필요없음 @Transactional, 즉 트랜잭션이 끝날 때 JPA가 더티체킹으로 자동 업데이트
     }
 
-//    @CacheEvict(value = CacheConfig.POST_LIST_CACHE, allEntries = true)
+    //    @CacheEvict(value = CacheConfig.POST_LIST_CACHE, allEntries = true)
     public void deletePost(Long memberId, Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new PostNotFoundException(postId));

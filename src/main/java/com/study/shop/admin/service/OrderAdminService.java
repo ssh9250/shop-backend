@@ -1,6 +1,7 @@
 package com.study.shop.admin.service;
 
-import com.study.shop.domain.order.dto.OrderResponseDto;
+import com.study.shop.domain.order.dto.OrderDetailDto;
+import com.study.shop.domain.order.dto.OrderListDto;
 import com.study.shop.domain.order.entity.Order;
 import com.study.shop.domain.order.exception.OrderNotFoundException;
 import com.study.shop.domain.order.repository.OrderRepository;
@@ -18,43 +19,43 @@ import java.util.stream.Collectors;
 public class OrderAdminService {
     private final OrderRepository orderRepository;
 
-    public List<OrderResponseDto> getAllOrders() {
-        return orderRepository.findAll().stream().map(OrderResponseDto::from).collect(Collectors.toList());
+    public List<OrderListDto> getAllOrders() {
+        return orderRepository.findAll().stream().map(OrderListDto::from).collect(Collectors.toList());
     }
 
-    public OrderResponseDto getOrderById(Long orderId) {
+    public OrderDetailDto getOrderById(Long orderId) {
         Order order = findOrderOrThrow(orderId);
-        return OrderResponseDto.from(order);
+        return OrderDetailDto.from(order);
     }
 
-    public List<OrderResponseDto> getOrdersByStatus(OrderStatus status) {
+    public List<OrderListDto> getOrdersByStatus(OrderStatus status) {
         return orderRepository.findByOrderStatus(status).stream()
-                .map(OrderResponseDto::from)
+                .map(OrderListDto::from)
                 .collect(Collectors.toList());
     }
 
-    public List<OrderResponseDto> getOrdersByMember(Long memberId) {
+    public List<OrderListDto> getOrdersByMember(Long memberId) {
         return orderRepository.findByMemberId(memberId).stream()
-                .map(OrderResponseDto::from)
+                .map(OrderListDto::from)
                 .collect(Collectors.toList());
     }
 
-    public OrderResponseDto acceptOrder(Long orderId) {
+    public OrderDetailDto acceptOrder(Long orderId) {
         Order order = findOrderOrThrow(orderId);
         order.accept();
-        return OrderResponseDto.from(order);
+        return OrderDetailDto.from(order);
     }
 
-    public OrderResponseDto startDelivery(Long orderId) {
+    public OrderDetailDto startDelivery(Long orderId) {
         Order order = findOrderOrThrow(orderId);
         order.startDelivery();
-        return OrderResponseDto.from(order);
+        return OrderDetailDto.from(order);
     }
 
-    public OrderResponseDto completeOrder(Long orderId) {
+    public OrderDetailDto completeOrder(Long orderId) {
         Order order = findOrderOrThrow(orderId);
         order.complete();
-        return OrderResponseDto.from(order);
+        return OrderDetailDto.from(order);
     }
 
     public Long cancelOrder(Long orderId) {

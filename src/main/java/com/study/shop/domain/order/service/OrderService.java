@@ -3,22 +3,25 @@ package com.study.shop.domain.order.service;
 import com.study.shop.domain.Item.entity.Item;
 import com.study.shop.domain.Item.exception.ItemNotFoundException;
 import com.study.shop.domain.Item.repository.ItemRepository;
+import com.study.shop.domain.event.OrderAcceptedEvent;
 import com.study.shop.domain.member.entity.Member;
 import com.study.shop.domain.member.exception.MemberNotFoundException;
 import com.study.shop.domain.member.repository.MemberRepository;
 import com.study.shop.domain.order.dto.CreateOrderRequestDto;
 import com.study.shop.domain.order.dto.OrderDetailDto;
 import com.study.shop.domain.order.dto.OrderListDto;
-import com.study.shop.domain.order.dto.OrderResponseDto;
 import com.study.shop.domain.order.entity.Order;
 import com.study.shop.domain.order.entity.OrderItem;
 import com.study.shop.domain.order.exception.OrderNotFoundException;
 import com.study.shop.domain.order.repository.OrderRepository;
-import com.study.shop.global.enums.ItemStatus;
 import com.study.shop.global.enums.OrderStatus;
-import com.study.shop.global.enums.RoleType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -33,8 +36,14 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final MemberRepository memberRepository;
     private final ItemRepository itemRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public OrderResponseDto createOrder(Long memberId, CreateOrderRequestDto requestDto) {
+    @Retryable(
+            retryFor = ObjectOptimisticLockingFailureException.class,
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 100)
+    )
+    public OrderDetailDto createOrder(Long memberId, CreateOrderRequestDto requestDto) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
 
@@ -47,8 +56,9 @@ public class OrderService {
 
         orderRepository.save(order);
 
-        return OrderResponseDto.from(order);
+        return OrderDetailDto.from(order);
     }
+
 
     public List<OrderListDto> getOrderList(Long memberId) {
         return orderRepository.findByMemberId(memberId).stream()
@@ -89,16 +99,18 @@ public class OrderService {
         return responseDtos;
     }
 
+    @Retryable(
+            retryFor = ObjectOptimisticLockingFailureException.class,
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 100)
+    )
     public OrderDetailDto acceptOrder(Long memberId, Long orderId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new MemberNotFoundException(memberId));
-
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
-
         validateOrderStateAccess(order, memberId);
 
         order.accept();
-        order.getOrderItem().getItem().reserveOrSellOut();
+        eventPublisher.publishEvent(new OrderAcceptedEvent(orderId, order.getOrderItem().getItem().getId()));
+//        order.getOrderItem().getItem().reserveOrSellOut();
 
         return OrderDetailDto.from(order);
     }
@@ -123,6 +135,11 @@ public class OrderService {
         return OrderDetailDto.from(order);
     }
 
+    @Retryable(
+            retryFor = ObjectOptimisticLockingFailureException.class,
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 100)
+    )
     public Long cancelOrder(Long memberId, Long orderId) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
         validateOrderAccess(order, memberId);
@@ -130,6 +147,12 @@ public class OrderService {
         return order.getId();
     }
 
+
+    @Retryable(
+            retryFor = ObjectOptimisticLockingFailureException.class,
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 100)
+    )
     public Long rejectOrder(Long memberId, Long orderId) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
         validateOrderStateAccess(order, memberId);
@@ -159,5 +182,26 @@ public class OrderService {
         if (!order.getSellerId().equals(memberId)) {
             throw new AccessDeniedException("주문에 접근할 권한이 없습니다.");
         }
+    }
+
+
+    @Recover
+    public OrderDetailDto recoverCreateOrder(ObjectOptimisticLockingFailureException e, Long memberId, CreateOrderRequestDto requestDto) {
+        throw e;
+    }
+
+    @Recover
+    public OrderDetailDto RecoverAcceptOrder(ObjectOptimisticLockingFailureException e, Long memberId, Long orderId) {
+        throw e;
+    }
+
+    @Recover
+    public Long recoverCancelOrder(ObjectOptimisticLockingFailureException e, Long memberId, Long orderId) {
+        throw e;
+    }
+
+    @Recover
+    public Long recoverRejectOrder(ObjectOptimisticLockingFailureException e, Long memberId, Long orderId) {
+        throw e;
     }
 }

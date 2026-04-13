@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.websocket.AuthenticationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
@@ -54,6 +55,14 @@ public class GlobalExceptionHandler {
         // 보안상의 이유로 세분화하지 않는 것이 바람직
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.fail("로그인에 실패하였습니다."));
     }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ApiResponse<Void>> handleObjectOptimisticLockingFailure(ObjectOptimisticLockingFailureException e) {
+        return ResponseEntity
+                .status(ErrorCode.OPTIMISTIC_LOCK_CONFLICT.getStatus())
+                .body(ApiResponse.fail(ErrorCode.OPTIMISTIC_LOCK_CONFLICT.getMessage()));
+    }
+
 
     @ExceptionHandler
     public ResponseEntity<ApiResponse<Void>> handleException(Exception e) {

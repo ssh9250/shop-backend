@@ -7,6 +7,7 @@ import com.study.shop.infrastructure.redis.ViewCountService;
 import com.study.shop.security.auth.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,8 +56,8 @@ public class PostController {
 
     @Operation(summary = "게시글 단건 조회", description = "id를 통해 특정 게시글을 조회합니다.")
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<PostDetailDto>> getPost(@PathVariable Long id) {
-        PostDetailDto result = postService.getPostById(id);
+    public ResponseEntity<ApiResponse<PostDetailDto>> getPost(@PathVariable Long id, HttpServletRequest request) {
+        PostDetailDto result = postService.getPostById(id, request);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 

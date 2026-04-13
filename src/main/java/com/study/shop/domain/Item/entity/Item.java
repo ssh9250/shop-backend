@@ -38,6 +38,9 @@ public class Item extends BaseTimeEntity {
     private boolean used;
     private ItemStatus itemStatus;
 
+    @Version
+    private int version;
+
     @OneToMany(mappedBy = "item")
     private List<CategoryItem> categoryItems = new ArrayList<>();
 

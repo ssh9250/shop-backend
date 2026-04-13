@@ -1,4 +1,4 @@
 package com.study.shop.domain.event;
 
-public class OrderAcceptedEvent {
+public record OrderAcceptedEvent(Long orderId, Long itemId) {
 }
