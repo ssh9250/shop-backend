@@ -7,6 +7,7 @@ import com.study.shop.domain.comment.service.CommentService;
 import com.study.shop.global.response.ApiResponse;
 import com.study.shop.security.auth.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,15 +28,15 @@ public class CommentController {
     @Operation(summary = "댓글 작성", description = "새로운 댓글을 작성합니다.")
     @PostMapping
     public ResponseEntity<ApiResponse<Long>> createComment(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                                           @PathVariable Long postId,
+                                                           @Parameter(description = "댓글을 작성할 게시글 ID") @PathVariable Long postId,
                                                            @RequestBody @Valid CreateCommentRequestDto request) {
         Long commentId = commentService.createComment(userDetails.getMemberId(), postId, request);
         return ResponseEntity.ok(ApiResponse.success(commentId));
     }
 
-    @Operation(summary = "게시글 댓글 조회", description = "게시글 id로 해당 게시글에 달린 모든 댓글들을 조회합니다.")
+    @Operation(summary = "게시글 댓글 조회", description = "게시글 id로 해당 게시글에 달린 모든 댓글들을 조회합니다. soft delete된 댓글은 제외됩니다.")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<CommentResponseDto>>> getCommentsByPostId(@PathVariable Long postId) {
+    public ResponseEntity<ApiResponse<List<CommentResponseDto>>> getCommentsByPostId(@Parameter(description = "조회할 게시글 ID") @PathVariable Long postId) {
         List<CommentResponseDto> comments = commentService.getCommentsByPostId(postId);
         return ResponseEntity.ok(ApiResponse.success(comments));
     }

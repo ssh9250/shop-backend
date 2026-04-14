@@ -27,7 +27,7 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponse.success(memberService.getMemberById(id)));
     }
 
-    @Operation(summary = "개인정보 수정", description = "회원 정보를 수정합니다.")
+    @Operation(summary = "개인정보 수정", description = "닉네임·전화번호·주소를 수정합니다. 닉네임 중복 시 409 반환.")
     @PatchMapping("/profile")
     public ResponseEntity<ApiResponse<Void>> updateProfile(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody UpdateProfileRequestDto requestDto) {
         Long id = userDetails.getMemberId();
@@ -43,7 +43,7 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponse.success(null, "비밀번호 수정 완료"));
     }
 
-    @Operation(summary = "회원 탈퇴", description = "회원 정보를 삭제합니다. 연관관계를 맺은 모든 데이터들은 영속성 전이를 통해 모두 삭제됩니다.")
+    @Operation(summary = "회원 탈퇴", description = "회원을 soft delete 처리합니다. 게시글·댓글·상품 등 연관 데이터도 함께 soft delete됩니다.")
     @DeleteMapping
     public ResponseEntity<ApiResponse<Void>> deleteMember(@AuthenticationPrincipal CustomUserDetails userDetails) {
         Long id = userDetails.getMemberId();

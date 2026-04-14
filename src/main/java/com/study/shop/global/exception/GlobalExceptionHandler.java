@@ -3,6 +3,7 @@ package com.study.shop.global.exception;
 import com.study.shop.global.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.websocket.AuthenticationException;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -56,8 +57,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.fail("로그인에 실패하였습니다."));
     }
 
-    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
-    public ResponseEntity<ApiResponse<Void>> handleObjectOptimisticLockingFailure(ObjectOptimisticLockingFailureException e) {
+    @ExceptionHandler({ObjectOptimisticLockingFailureException.class, CannotAcquireLockException.class})
+    public ResponseEntity<ApiResponse<Void>> handleLockException(Exception e) {
         return ResponseEntity
                 .status(ErrorCode.OPTIMISTIC_LOCK_CONFLICT.getStatus())
                 .body(ApiResponse.fail(ErrorCode.OPTIMISTIC_LOCK_CONFLICT.getMessage()));

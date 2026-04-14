@@ -11,6 +11,7 @@ import com.study.shop.security.auth.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -24,10 +25,10 @@ import java.util.List;
 public class OrderController {
     private final OrderService orderService;
 
-    @Operation(summary = "주문 생성", description = "주문을 생성합니다.")
+    @Operation(summary = "주문 생성", description = "주문을 생성합니다. 재고 부족 또는 ON_SALE 상태가 아닌 상품은 주문 불가. 동시 주문 충돌 시 최대 3회 재시도합니다.")
     @PostMapping
     public ResponseEntity<ApiResponse<OrderDetailDto>> createOrder(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CreateOrderRequestDto requestDto) {
-        return ResponseEntity.ok(ApiResponse.success(orderService.createOrder(userDetails.getMemberId(), requestDto)));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(orderService.createOrder(userDetails.getMemberId(), requestDto)));
     }
 
     @Operation(summary = "구매한 주문 목록 조회", description = "구매한 주문 목록을 조회합니다.")
@@ -54,7 +55,7 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.success(orderService.findSoldOrderById(userDetails.getMemberId(), id)));
     }
 
-    @Operation(summary = "주문 상태별 조회", description = "주문 상태(PENDING, ORDERED, IN_DELIVERY, COMPLETED, CANCELLED)로 필터링하여 조회합니다.")
+    @Operation(summary = "구매 주문 상태별 조회", description = "구매한 주문을 상태(PENDING, ORDERED, IN_DELIVERY, COMPLETED, CANCELLED)로 필터링하여 조회합니다.")
     @GetMapping("/status/{status}")
     public ResponseEntity<ApiResponse<List<OrderListDto>>> getOrdersByStatus(@PathVariable OrderStatus status, @AuthenticationPrincipal CustomUserDetails userDetails) {
         return ResponseEntity.ok(ApiResponse.success(orderService.getOrdersByStatus(userDetails.getMemberId(), status)));

@@ -33,7 +33,7 @@ public class PostController {
     private final PostService postService;
     private final ViewCountService viewCountService;
 
-    @Operation(summary = "게시글 작성", description = "게시글을 생성합니다.")
+    @Operation(summary = "게시글 작성", description = "게시글을 생성합니다. Content-Type: multipart/form-data — 'request' 파트에 JSON, 'files' 파트에 첨부파일(선택)을 포함합니다.")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Long>> createPost(
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -43,8 +43,11 @@ public class PostController {
         return ResponseEntity.ok(ApiResponse.success(postService.createPost(userDetails.getMemberId(), requestDto, files)));
     }
 
-    // 요청 예시 : GET /api/posts?page=0&size=20&sort=createdAt,desc&title=foo&writer=bar&from=2024-01-01T00:00:00&to=2024-12-31T23:59:59
-    @Operation(summary = "게시글 목록 조회", description = "검색 조건에 맞는 게시글을 조회합니다. 조건 없이 호출하면 전체 조회입니다.")
+    @Operation(summary = "게시글 목록 조회", description = """
+            검색 조건에 맞는 게시글을 페이지 단위로 조회합니다. 조건 없이 호출하면 전체 조회입니다.
+            - 검색 파라미터: title, writer, content, hidden(boolean), from(ISO 8601), to(ISO 8601)
+            - 예시: GET /api/posts?title=악기&from=2024-01-01T00:00:00&sort=createdAt,desc&size=20
+            """)
     @GetMapping
     public ResponseEntity<ApiResponse<Page<PostListDto>>> searchPosts(
             @ParameterObject @ModelAttribute PostSearchConditionDto cond,
@@ -54,14 +57,14 @@ public class PostController {
         return ResponseEntity.ok(ApiResponse.success(postService.searchPosts(cond, pageable)));
     }
 
-    @Operation(summary = "게시글 단건 조회", description = "id를 통해 특정 게시글을 조회합니다.")
+    @Operation(summary = "게시글 단건 조회", description = "id를 통해 특정 게시글을 조회합니다. 조회 시 IP 기반 조회수가 24시간에 1회 증가합니다.")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<PostDetailDto>> getPost(@PathVariable Long id, HttpServletRequest request) {
         PostDetailDto result = postService.getPostById(id, request);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
-    @Operation(summary = "게시글 수정", description = "id를 통해 특정 게시글을 수정합니다.")
+    @Operation(summary = "게시글 수정", description = "id를 통해 특정 게시글을 수정합니다. Content-Type: multipart/form-data — 기존 첨부파일은 모두 교체됩니다.")
     @PatchMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> updatePost(
             @AuthenticationPrincipal CustomUserDetails userDetails,

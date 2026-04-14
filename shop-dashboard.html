@@ -711,40 +711,18 @@
         <span class="task-text" style="text-decoration:line-through;color:var(--muted)">동시성 제어 — Item @Version 낙관적 락 · spring-retry @Retryable (maxAttempts=3, backoff=100ms) · @Recover · OPTIMISTIC_LOCK_CONFLICT ErrorCode</span>
         <span class="task-tag" style="background:rgba(62,207,142,0.1);color:var(--done)">DONE</span>
       </div>
-      <div class="task-item">
-        <span class="task-num">15</span>
-        <span class="task-text">부하 테스트 — nGrinder/JMeter 재고 차감 동시 요청 시나리오 · 낙관적 락 적용 전후 · 비관적 락 비교 실험</span>
-        <span class="task-tag">MED</span>
+      <div class="task-item" style="opacity:0.45;border-color:#1e1e2e;">
+        <span class="task-num" style="color:var(--done)">✓ 15</span>
+        <span class="task-text" style="text-decoration:line-through;color:var(--muted)">부하 테스트 — K6 재고 차감 동시 요청 시나리오 · 낙관적 락 ON/OFF 비교 · 비관적 락 비교 · MySQL 데드락 이슈 확인 (Issue #003)</span>
+        <span class="task-tag" style="background:rgba(62,207,142,0.1);color:var(--done)">DONE</span>
       </div>
+
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;padding:16px 0 4px;">— 문서화 &amp; v2 리팩터링 —</div>
+
       <div class="task-item">
         <span class="task-num">16</span>
-        <span class="task-text">모니터링 — Prometheus + Grafana Docker 구성 · API 응답시간 · JVM 힙 상태 시각화</span>
-        <span class="task-tag">MED</span>
-      </div>
-      <div class="task-item">
-        <span class="task-num">17</span>
-        <span class="task-text">Elasticsearch — 게시글 검색 한정 도입 (nori 형태소 분석 · 한국어 검색 품질)</span>
-        <span class="task-tag">MED</span>
-      </div>
-      <div class="task-item">
-        <span class="task-num">18</span>
-        <span class="task-text">SSE 실시간 알림 — 주문 상태 변경 알림 (단방향 · WebSocket 빌드업)</span>
-        <span class="task-tag">LOW</span>
-      </div>
-      <div class="task-item">
-        <span class="task-num">19</span>
-        <span class="task-text">파일 저장소 — LocalStorage → AWS S3 전환</span>
-        <span class="task-tag">LOW</span>
-      </div>
-      <div class="task-item">
-        <span class="task-num">20</span>
-        <span class="task-text">CI/CD — GitHub Actions + Docker 자동화 배포</span>
-        <span class="task-tag">LOW</span>
-      </div>
-      <div class="task-item">
-        <span class="task-num">21</span>
-        <span class="task-text">AI 악보 변환 — MusicScoreConverter 구현 (외부 API 연동) · v1 마지막 기능</span>
-        <span class="task-tag">LOW</span>
+        <span class="task-text">README 작성 — 프로젝트 개요 · 기술 스택 · 아키텍처 · 동시성 제어 실험 결과 (k6 비교 데이터) · 실행 방법 · 트러블슈팅</span>
+        <span class="task-tag" style="background:rgba(124,106,247,0.15);color:var(--accent)">HIGH</span>
       </div>
 
       <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;padding:16px 0 4px;">— PHASE 4 · shop-v2 클론 (ID Reference 리팩터링) —</div>
@@ -788,6 +766,39 @@
         <span class="task-num">v2-07</span>
         <span class="task-text">v1 vs v2 비교 문서 작성 — 설계 의도 · 트레이드오프 · 쿼리 수 변화 정리 (README)</span>
         <span class="task-tag">DOCS</span>
+      </div>
+
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;padding:16px 0 4px;">— PHASE 3 나머지 · 인프라 확장 —</div>
+
+      <div class="task-item">
+        <span class="task-num">17</span>
+        <span class="task-text">모니터링 — Prometheus + Grafana Docker 구성 · API 응답시간 · JVM 힙 상태 시각화</span>
+        <span class="task-tag">MED</span>
+      </div>
+      <div class="task-item">
+        <span class="task-num">18</span>
+        <span class="task-text">Elasticsearch — 게시글 검색 한정 도입 (nori 형태소 분석 · 한국어 검색 품질)</span>
+        <span class="task-tag">MED</span>
+      </div>
+      <div class="task-item">
+        <span class="task-num">19</span>
+        <span class="task-text">SSE 실시간 알림 — 주문 상태 변경 알림 (단방향 · WebSocket 빌드업)</span>
+        <span class="task-tag">LOW</span>
+      </div>
+      <div class="task-item">
+        <span class="task-num">20</span>
+        <span class="task-text">파일 저장소 — LocalStorage → AWS S3 전환</span>
+        <span class="task-tag">LOW</span>
+      </div>
+      <div class="task-item">
+        <span class="task-num">21</span>
+        <span class="task-text">CI/CD — GitHub Actions + Docker 자동화 배포</span>
+        <span class="task-tag">LOW</span>
+      </div>
+      <div class="task-item">
+        <span class="task-num">22</span>
+        <span class="task-text">AI 악보 변환 — MusicScoreConverter 구현 (외부 API 연동) · v1 마지막 기능</span>
+        <span class="task-tag">LOW</span>
       </div>
     </div>
   </div>

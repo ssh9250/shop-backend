@@ -11,6 +11,7 @@ import com.study.shop.security.dto.RefreshRequestDto;
 import com.study.shop.security.dto.RefreshResponseDto;
 import com.study.shop.security.jwt.JwtTokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -31,7 +32,7 @@ public class AuthController {
     private final MemberService memberService;
     private final JwtTokenProvider jwtTokenProvider;
 
-    @Operation(summary = "회원가입", description = "신규 회원을 등록합니다.")
+    @Operation(summary = "회원가입", description = "신규 회원을 등록합니다. 이메일·닉네임 중복 시 409 반환.", security = {})
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<Void>> signup(@Valid @RequestBody SignupRequestDto requestDto) throws Exception {
         log.info("signup attempt for email: {}", requestDto.getEmail());
@@ -40,7 +41,7 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(null, "회원가입 성공"));
     }
 
-    @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인합니다.")
+    @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인합니다. 성공 시 Access Token(30분)과 Refresh Token(14일)을 반환합니다.", security = {})
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponseDto>> login(@Valid @RequestBody LoginRequestDto requestDto) {
         log.info("login attempt for email: {}", requestDto.getEmail());
@@ -49,7 +50,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(responseDto, "로그인 성공"));
     }
 
-    @Operation(summary = "토큰 갱신", description = "Refresh Token으로 Access Token을 갱신합니다.")
+    @Operation(summary = "토큰 갱신", description = "Refresh Token으로 Access/Refresh Token을 재발급합니다. (Rotation 방식 — 기존 Refresh Token은 만료됩니다.)", security = {})
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<RefreshResponseDto>> refresh(@RequestBody RefreshRequestDto requestDto) {
         log.info("refresh attempt");
@@ -58,6 +59,7 @@ public class AuthController {
         return new ResponseEntity<>(ApiResponse.success(responseDto), HttpStatus.OK);
     }
 
+    @Operation(summary = "로그아웃", description = "현재 Access Token을 블랙리스트에 등록하여 즉시 무효화합니다.", security = @SecurityRequirement(name = "bearerAuth"))
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(@AuthenticationPrincipal CustomUserDetails customUserDetails, HttpServletRequest request) {
         String email = customUserDetails.getUsername();

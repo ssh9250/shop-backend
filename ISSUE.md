@@ -1756,3 +1756,140 @@ DELETE /api/order/{id}/reject  → 판매자 거절 (rejectOrder)
 **상태:** 수정 완료
 
 ---
+
+## Issue #021: 낙관적 락 + @Retryable 고부하 환경 이슈 — StockNotEnoughException 재시도 진입, MySQL 데드락, 비관적 락 비교
+
+**발생일**: 2026-04-14
+
+### 배경
+
+재고 차감 동시성 제어를 위해 `@Version` 기반 낙관적 락과 `@Retryable`을 도입했다. 부하 테스트(k6, 50 VUs, 10s) 중 두 가지 문제가 발생했고, 비관적 락과의 성능 비교 실험도 함께 진행했다.
+
+---
+
+### 버그 1. `StockNotEnoughException`이 `@Retryable` 내부로 진입
+
+#### 증상
+
+```
+ExhaustedRetryException: Cannot locate recovery method
+  Caused by: StockNotEnoughException: 재고가 부족합니다.
+```
+
+`@Retryable(retryFor = ObjectOptimisticLockingFailureException.class)`로 설정했음에도 `StockNotEnoughException` 발생 시 `@Recover` 탐색이 시작되고, 매칭되는 `@Recover`가 없으면 `ExhaustedRetryException`으로 감싸져 500이 반환됐다.
+
+#### 원인
+
+spring-retry는 `retryFor`에 없는 예외도 `@Recover` 탐색을 시도한다. 재시도 대상이 아니더라도 `@Recover`가 없으면 `ExhaustedRetryException`을 던지는 것이 spring-retry의 동작 방식이다.
+
+#### 해결 1 — `noRetryFor`로 명시적 제외
+
+```java
+@Retryable(
+    retryFor = {ObjectOptimisticLockingFailureException.class},
+    noRetryFor = {StockNotEnoughException.class, ItemNotFoundException.class},
+    maxAttempts = 5,
+    backoff = @Backoff(delay = 100)
+)
+```
+
+#### 해결 2 — `@Recover`를 `RuntimeException`으로 범용화
+
+```java
+@Recover
+public OrderDetailDto recoverCreateOrder(RuntimeException e, ...) {
+    if (e instanceof ObjectOptimisticLockingFailureException
+            || e instanceof CannotAcquireLockException) {
+        throw new OptimisticLockingFailureException("요청 충돌이 발생하였습니다.");
+    }
+    throw e; // StockNotEnoughException 등은 그대로 re-throw
+}
+```
+
+---
+
+### 버그 2. MySQL InnoDB 데드락 발생
+
+#### 증상
+
+```
+CannotAcquireLockException: Deadlock found when trying to get lock
+  update item set ... version=? where id=? and version=?
+```
+
+`@Version` 낙관적 락을 적용했음에도 50명 동시 요청 시 MySQL에서 데드락이 발생했다.
+
+#### 원인
+
+낙관적 락은 **커밋 시점**에 version 불일치를 감지하는 방식이다. 커밋 이전에 InnoDB 행 잠금(row lock) 경합이 먼저 발생하면 DB 레벨 데드락을 막지 못한다. H2는 InnoDB의 갭 락·넥스트 키 락 같은 복잡한 잠금 메커니즘이 없어 동일 조건에서 데드락이 발생하지 않았다.
+
+#### 해결 — `CannotAcquireLockException`도 재시도 대상에 추가
+
+```java
+@Retryable(
+    retryFor = {ObjectOptimisticLockingFailureException.class,
+                CannotAcquireLockException.class},
+    noRetryFor = {StockNotEnoughException.class, ItemNotFoundException.class},
+    maxAttempts = 5,
+    backoff = @Backoff(delay = 100)
+)
+```
+
+`GlobalExceptionHandler`에도 함께 추가:
+
+```java
+@ExceptionHandler({OptimisticLockingFailureException.class,
+                   CannotAcquireLockException.class})
+public ResponseEntity handleLockException(Exception e) {
+    return ResponseEntity.status(HttpStatus.CONFLICT)
+            .body(ApiResponse.error(e.getMessage()));
+}
+```
+
+---
+
+### 비교 실험 — 낙관적 락 vs 비관적 락 (k6, 50 VUs, 10s)
+
+MySQL 데드락 문제를 확인한 후 비관적 락(`SELECT FOR UPDATE`)을 동일 조건으로 테스트해 트레이드오프를 측정했다.
+
+#### 비관적 락 적용
+
+```java
+// ItemRepository
+@Lock(LockModeType.PESSIMISTIC_WRITE)
+@Query("SELECT i FROM Item i WHERE i.id = :id")
+Optional<Item> findByIdWithLock(@Param("id") Long id);
+
+// OrderService — findById → findByIdWithLock 교체
+Item item = itemRepository.findByIdWithLock(id)
+        .orElseThrow(() -> new ItemNotFoundException(id));
+```
+
+#### 결과 비교
+
+| 항목 | 락 없음 | 낙관적 락 (H2) | 낙관적 락 (MySQL) | 비관적 락 |
+|---|---|---|---|---|
+| 성공률 (201) | 21% | 93% | 63% | 56%* |
+| 충돌/오류 (409) | 500 데드락 | 6% | 36% | 0% |
+| 평균 응답시간 | 빠름 | 2~3ms | 2~3ms | 70ms |
+| 데이터 정합성 | 미보장 | 보장 | 보장 | 보장 |
+| 데드락 발생 | 있음 | 없음 | 있음 | 없음 |
+
+\* 재고 소진으로 인한 400 포함
+
+### 관련 파일
+
+- `src/main/java/com/study/shop/domain/order/service/OrderService.java`
+- `src/main/java/com/study/shop/domain/Item/repository/ItemRepository.java`
+- `src/main/java/com/study/shop/global/exception/GlobalExceptionHandler.java`
+
+### 교훈
+
+- **`@Retryable`의 `retryFor`는 재시도 예외만 거른다. `@Recover` 탐색은 별개다**: `retryFor`에 없는 예외도 `@Recover`가 없으면 `ExhaustedRetryException`으로 감싸진다. 재시도 불필요한 예외는 `noRetryFor`로 명시적으로 제외해야 한다.
+- **낙관적 락은 MySQL InnoDB 행 잠금 데드락을 막지 못한다**: version 불일치 감지는 커밋 시점이고, 데드락은 그 이전 행 잠금 단계에서 발생한다. 재고처럼 동일 행 경합이 심한 도메인에서는 `CannotAcquireLockException`도 재시도 대상에 포함해야 한다.
+- **테스트 환경(H2)과 운영 환경(MySQL)의 동시성 동작이 다르다**: H2에서 93% 성공하던 낙관적 락이 MySQL에서는 63%로 낮아졌다. 부하 테스트는 반드시 실제 운영 DB와 동일한 환경에서 진행해야 신뢰할 수 있다.
+- **락 전략은 도메인 특성에 따라 선택해야 한다**: 낙관적 락은 충돌이 드문 환경에 적합하고, 비관적 락은 경합이 심한 도메인에서 정합성을 보장하지만 응답시간이 약 20~30배(2ms → 70ms) 느려진다.
+
+**상태:** 해결 완료
+
+---

@@ -1,7 +1,9 @@
 package com.study.shop.domain.Item.repository;
 
 import com.study.shop.domain.Item.entity.Item;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
@@ -20,4 +22,8 @@ public interface ItemRepository extends JpaRepository<Item,Long>, ItemRepository
     @Modifying(clearAutomatically = true)
     @Query("update Item i set i.deletedAt = NOW() where i.seller.id = :memberId")
     void softDeleteByMemberId(Long memberId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select i from Item i where i.id = :id")
+    Optional<Item> findByIdWithLock(Long id);
 }

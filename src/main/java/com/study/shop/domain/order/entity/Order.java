@@ -37,7 +37,7 @@ public class Order extends BaseTimeEntity {
     private Long sellerId;
     private String buyerEmail;
 
-    @OneToOne(mappedBy = "order")
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
     private OrderItem orderItem;
 
     private LocalDateTime orderDate;

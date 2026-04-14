@@ -18,7 +18,7 @@ public enum ErrorCode {
 
     // ITEM
     ITEM_NOT_FOUND("상품을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
-    STOCK_NOT_ENOUGH("재고가 부족합니다.", HttpStatus.CONFLICT),
+    STOCK_NOT_ENOUGH("재고가 부족합니다.", HttpStatus.BAD_REQUEST),
     INVALID_ITEM_ACCESS("주문할 수 없는 상품입니다. 아이템 상태 : %s", HttpStatus.BAD_REQUEST),
 
     // ORDER

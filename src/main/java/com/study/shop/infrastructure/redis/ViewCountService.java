@@ -21,7 +21,6 @@ public class ViewCountService {
     private final StringRedisTemplate stringRedisTemplate;
     private final PostRepository postRepository;
 
-    // todo: 비로그인 사용자, 조회수 중복 로직
     public void increment(Long postId, String ip) {
         String viewedKey = VIEW_KEY_PREFIX + postId + ":" + ip;
 

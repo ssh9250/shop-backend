@@ -13,11 +13,14 @@ import com.study.shop.domain.order.dto.OrderListDto;
 import com.study.shop.domain.order.entity.Order;
 import com.study.shop.domain.order.entity.OrderItem;
 import com.study.shop.domain.order.exception.OrderNotFoundException;
+import com.study.shop.domain.order.exception.StockNotEnoughException;
 import com.study.shop.domain.order.repository.OrderRepository;
 import com.study.shop.global.enums.OrderStatus;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.CannotAcquireLockException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
@@ -38,16 +41,18 @@ public class OrderService {
     private final ItemRepository itemRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    @Retryable(
-            retryFor = ObjectOptimisticLockingFailureException.class,
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 100)
-    )
+//    @Retryable(
+//            retryFor = {ObjectOptimisticLockingFailureException.class,
+//                    CannotAcquireLockException.class},
+//            noRetryFor = {StockNotEnoughException.class, ItemNotFoundException.class, MemberNotFoundException.class},
+//            maxAttempts = 5,
+//            backoff = @Backoff(delay = 100)
+//    )
     public OrderDetailDto createOrder(Long memberId, CreateOrderRequestDto requestDto) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
 
-        Item item = itemRepository.findById(requestDto.getOrderItem().getItemId())
+        Item item = itemRepository.findByIdWithLock(requestDto.getOrderItem().getItemId())
                 .orElseThrow(() -> new ItemNotFoundException(requestDto.getOrderItem().getItemId()));
         OrderItem orderItem = OrderItem.create(item, requestDto.getOrderItem().getQuantity());
 
@@ -101,6 +106,7 @@ public class OrderService {
 
     @Retryable(
             retryFor = ObjectOptimisticLockingFailureException.class,
+            noRetryFor = {StockNotEnoughException.class, ItemNotFoundException.class, MemberNotFoundException.class},
             maxAttempts = 3,
             backoff = @Backoff(delay = 100)
     )
@@ -137,6 +143,7 @@ public class OrderService {
 
     @Retryable(
             retryFor = ObjectOptimisticLockingFailureException.class,
+            noRetryFor = {StockNotEnoughException.class, ItemNotFoundException.class, MemberNotFoundException.class},
             maxAttempts = 3,
             backoff = @Backoff(delay = 100)
     )
@@ -150,6 +157,7 @@ public class OrderService {
 
     @Retryable(
             retryFor = ObjectOptimisticLockingFailureException.class,
+            noRetryFor = {StockNotEnoughException.class, ItemNotFoundException.class, MemberNotFoundException.class},
             maxAttempts = 3,
             backoff = @Backoff(delay = 100)
     )
@@ -186,22 +194,25 @@ public class OrderService {
 
 
     @Recover
-    public OrderDetailDto recoverCreateOrder(ObjectOptimisticLockingFailureException e, Long memberId, CreateOrderRequestDto requestDto) {
+    public OrderDetailDto recoverCreateOrder(RuntimeException e, Long memberId, CreateOrderRequestDto requestDto) {
+//        if (e instanceof CannotAcquireLockException) {
+//            throw new OptimisticLockingFailureException("주문 요청이 많아 처리중입니다. 잠시만 기다려주세요.");
+//        }
         throw e;
     }
 
     @Recover
-    public OrderDetailDto RecoverAcceptOrder(ObjectOptimisticLockingFailureException e, Long memberId, Long orderId) {
+    public OrderDetailDto RecoverAcceptOrder(RuntimeException e, Long memberId, Long orderId) {
         throw e;
     }
 
     @Recover
-    public Long recoverCancelOrder(ObjectOptimisticLockingFailureException e, Long memberId, Long orderId) {
+    public Long recoverCancelOrder(RuntimeException e, Long memberId, Long orderId) {
         throw e;
     }
 
     @Recover
-    public Long recoverRejectOrder(ObjectOptimisticLockingFailureException e, Long memberId, Long orderId) {
+    public Long recoverRejectOrder(RuntimeException e, Long memberId, Long orderId) {
         throw e;
     }
 }

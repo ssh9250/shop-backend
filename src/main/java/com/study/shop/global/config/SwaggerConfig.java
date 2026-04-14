@@ -26,7 +26,7 @@ public class SwaggerConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("Shop API")
-                        .description("악기 쇼핑몰 B2C 백엔드 API 문서")
+                        .description("C2C 중고거래 플랫폼 백엔드 API 문서")
                         .version("0.1")
                         .contact(new Contact().name("Shop Team").email("support@shop.example"))
                         .license(new License().name("Shop License")))
