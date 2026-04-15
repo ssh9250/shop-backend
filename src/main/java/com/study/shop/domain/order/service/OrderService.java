@@ -12,6 +12,7 @@ import com.study.shop.domain.order.dto.OrderDetailDto;
 import com.study.shop.domain.order.dto.OrderListDto;
 import com.study.shop.domain.order.entity.Order;
 import com.study.shop.domain.order.entity.OrderItem;
+import com.study.shop.domain.order.exception.InvalidOrderException;
 import com.study.shop.domain.order.exception.OrderNotFoundException;
 import com.study.shop.domain.order.exception.StockNotEnoughException;
 import com.study.shop.domain.order.repository.OrderRepository;
@@ -41,19 +42,28 @@ public class OrderService {
     private final ItemRepository itemRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-//    @Retryable(
-//            retryFor = {ObjectOptimisticLockingFailureException.class,
-//                    CannotAcquireLockException.class},
-//            noRetryFor = {StockNotEnoughException.class, ItemNotFoundException.class, MemberNotFoundException.class},
-//            maxAttempts = 5,
-//            backoff = @Backoff(delay = 100)
-//    )
+        @Retryable(
+            retryFor = {ObjectOptimisticLockingFailureException.class,
+                    CannotAcquireLockException.class},
+            noRetryFor = {StockNotEnoughException.class, ItemNotFoundException.class, MemberNotFoundException.class},
+            maxAttempts = 5,
+            backoff = @Backoff(delay = 100)
+    )
     public OrderDetailDto createOrder(Long memberId, CreateOrderRequestDto requestDto) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
 
-        Item item = itemRepository.findByIdWithLock(requestDto.getOrderItem().getItemId())
+        Item item = itemRepository.findById(requestDto.getOrderItem().getItemId())
                 .orElseThrow(() -> new ItemNotFoundException(requestDto.getOrderItem().getItemId()));
+
+        // 비관적 락 적용을 위한 코드
+//      Item item = itemRepository.findByIdWithLock(requestDto.getOrderItem().getItemId())
+//              .orElseThrow(() -> new ItemNotFoundException(requestDto.getOrderItem().getItemId()));
+
+        if (item.getSeller().getId().equals(member.getId())) {
+            throw InvalidOrderException.selfPurchaseException();
+        }
+
         OrderItem orderItem = OrderItem.create(item, requestDto.getOrderItem().getQuantity());
 
         Order order = Order.create(member, requestDto.getAddress());

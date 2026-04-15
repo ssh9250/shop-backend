@@ -26,6 +26,7 @@ public enum ErrorCode {
     INVALID_ORDER_TRANSITION("주문 상태를 %s(으)로 변경할 수 없습니다. 현재 상태: %s", HttpStatus.BAD_REQUEST),
     INVALID_ORDER_STATE("현재 상태 %s 에서는 주문 상태를 변경할 수 없습니다.", HttpStatus.BAD_REQUEST),
     INVALID_ORDER_CANCEL("주문 수락 전에만 취소할 수 있습니다.", HttpStatus.BAD_REQUEST),
+    SELF_PURCHASE("본인 상품은 구매할 수 없습니다.", HttpStatus.BAD_REQUEST),
 
     // etc
     INVALID_REQUEST("잘못된 요청입니다.", HttpStatus.BAD_REQUEST),
