@@ -1,41 +1,36 @@
 spring:
+  config:
+    activate:
+      on-profile: prod
   datasource:
-    url: ${DB_URL}            # 예: jdbc:postgresql://host:5432/shop
-    driver-class-name: ${DB_DRIVER:org.postgresql.Driver}
+    url: jdbc:mysql://shop-mysql:3306/shop?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    driver-class-name: com.mysql.cj.jdbc.Driver
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
-    hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
-      connection-timeout: 30000
   jpa:
     hibernate:
-      ddl-auto: validate      # 운영은 스키마 검증만 (권장)
-  # 마이그레이션 도구 사용 시
-  flyway:
-    enabled: true
-    baseline-on-migrate: true
-    locations: classpath:db/migration
-  h2:
-    console:
-      enabled: false
+      ddl-auto: validate        # prod는 validate — 실수로 스키마 변경 방지
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: false       # prod는 SQL 로그 끄기
+  data:
+    redis:
+      host: shop-redis          # Docker 서비스명으로 접근
+      port: 6379
+  main:
+    allow-bean-definition-overriding: true
 
-# 운영에선 Swagger/H2 콘솔 비활성
 springdoc:
   swagger-ui:
-    enabled: false
+    enabled: false              # prod는 Swagger 비활성화
   api-docs:
     enabled: false
 
-# 운영 로깅은 보수적으로
 logging:
   level:
-    root: info
-    com.study.cruisin: info
-    org.hibernate.SQL: warn
+    root: warn
+    com.study.shop: info
 
-# 서버 공통 하드닝 예(선택)
-server:
-  compression:
-    enabled: true
-  forward-headers-strategy: framework
+jwt:
+  secret: ${JWT_SECRET}         # 환경변수로 주입

@@ -338,6 +338,45 @@
       letter-spacing: 1px;
     }
 
+    /* Deferred notice */
+    .deferred-box {
+      background: rgba(124,106,247,0.05);
+      border: 1px dashed rgba(124,106,247,0.3);
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-bottom: 40px;
+      animation: fadeUp 0.6s ease 0.88s both;
+    }
+    .deferred-box .deferred-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+    .deferred-box .deferred-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+    .deferred-box .deferred-desc b { color: var(--accent2); }
+    .deferred-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .deferred-chip {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1px solid rgba(124,106,247,0.25);
+      color: var(--accent);
+      background: rgba(124,106,247,0.06);
+    }
+
     /* Animations */
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(16px); }
@@ -387,7 +426,7 @@
     <div class="stat-card wip">
       <div class="stat-label">진행중</div>
       <div class="stat-value">0</div>
-      <div class="stat-sub">Phase 3 진행중</div>
+      <div class="stat-sub">README 작성 진행중</div>
     </div>
     <div class="stat-card todo">
       <div class="stat-label">대기</div>
@@ -619,16 +658,29 @@
       <span class="stack-chip active">Lombok</span>
       <span class="stack-chip active">springdoc-openapi 2.5.0</span>
       <span class="stack-chip active">embedded-redis (test)</span>
-      <span class="stack-chip planned">AWS S3 (예정)</span>
-      <span class="stack-chip planned">Elasticsearch (예정 · 검색)</span>
-      <span class="stack-chip planned">AI 악보 변환 API (예정)</span>
       <span class="stack-chip active">Spring Events</span>
       <span class="stack-chip active">spring-retry</span>
       <span class="stack-chip active">낙관적 락 (@Version)</span>
-      <span class="stack-chip planned">Prometheus · Grafana (예정)</span>
-      <span class="stack-chip planned">Elasticsearch (예정 · 검색)</span>
-      <span class="stack-chip planned">SSE 실시간 알림 (예정)</span>
-      <span class="stack-chip planned">Kafka (예정)</span>
+      <span class="stack-chip active">k6 (부하 테스트)</span>
+      <span class="stack-chip planned">AWS S3 (예정)</span>
+      <span class="stack-chip planned">AI 악보 변환 API (예정)</span>
+    </div>
+  </div>
+
+  <!-- Deferred to marklong -->
+  <div class="deferred-box">
+    <div class="deferred-title">// marklong 프로젝트로 이전된 항목</div>
+    <div class="deferred-desc">
+      아래 기술들은 shop v1 포트폴리오 범위 밖으로 결정되었습니다.<br>
+      <b>marklong</b> 프로젝트(주식 포트폴리오 플랫폼)에서 실질적인 비즈니스 요구와 함께 학습 및 적용합니다.
+    </div>
+    <div class="deferred-chips">
+      <span class="deferred-chip">Kafka 이벤트 버스</span>
+      <span class="deferred-chip">Elasticsearch 한국어 검색</span>
+      <span class="deferred-chip">ID Reference 아키텍처</span>
+      <span class="deferred-chip">Prometheus · Grafana</span>
+      <span class="deferred-chip">SSE 실시간 알림</span>
+      <span class="deferred-chip">CI/CD GitHub Actions</span>
     </div>
   </div>
 
@@ -649,7 +701,6 @@
         <span class="task-text" style="text-decoration:line-through;color:var(--muted)">상품 Cursor 페이징 — Slice 기반 무한스크롤 (createdAt + id 복합 커서)</span>
         <span class="task-tag" style="background:rgba(62,207,142,0.1);color:var(--done)">DONE</span>
       </div>
-
       <div class="task-item" style="opacity:0.45;border-color:#1e1e2e;">
         <span class="task-num" style="color:var(--done)">✓ 04</span>
         <span class="task-text" style="text-decoration:line-through;color:var(--muted)">QueryDSL — Post 동적 검색 (PostSearchCondition: 제목 · 닉네임 · 숨김 · 날짜)</span>
@@ -717,7 +768,7 @@
         <span class="task-tag" style="background:rgba(62,207,142,0.1);color:var(--done)">DONE</span>
       </div>
 
-      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;padding:16px 0 4px;">— 문서화 &amp; v2 리팩터링 —</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;padding:16px 0 4px;">— 문서화 &amp; v1 마무리 —</div>
 
       <div class="task-item">
         <span class="task-num">16</span>
@@ -725,78 +776,35 @@
         <span class="task-tag" style="background:rgba(124,106,247,0.15);color:var(--accent)">HIGH</span>
       </div>
 
-      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;padding:16px 0 4px;">— PHASE 4 · shop-v2 클론 (ID Reference 리팩터링) —</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;padding:16px 0 4px;">— v1 완성도 보완 (선택) —</div>
 
       <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);padding:4px 0 10px;line-height:1.8;">
-        전체 기능 완료 후, 현재 프로젝트를 클론하여 <span style="color:var(--accent2)">Aggregate 간 참조를 ID Reference 방식으로 전환</span>하는 별도 프로젝트 진행.<br>
-        DDD 원칙 강화 · MSA 대응 설계 · 영속성 컨텍스트 의존도 감소가 목표.
+        README 완료 후 포트폴리오 완성도 향상을 위한 선택적 보완 작업.<br>
+        Kafka · Elasticsearch · ID Reference 등 고급 아키텍처 기능은 <span style="color:var(--accent2)">marklong 프로젝트</span>에서 학습/적용.
       </div>
-
-      <div class="task-item">
-        <span class="task-num">v2-01</span>
-        <span class="task-text">Aggregate 간 참조 전환 — Order.member → memberId, Post.member → memberId, Comment.member/post → memberId/postId, Item.seller → sellerId</span>
-        <span class="task-tag">CORE</span>
-      </div>
-      <div class="task-item">
-        <span class="task-num">v2-02</span>
-        <span class="task-text">Service 계층 재설계 — 연관 객체 탐색 제거, 필요 시 명시적 Repository 조회로 대체 (쿼리 발생 지점 명확화)</span>
-        <span class="task-tag">CORE</span>
-      </div>
-      <div class="task-item">
-        <span class="task-num">v2-03</span>
-        <span class="task-text">QueryDSL 조인 전략 변경 — 객체 그래프 탐색 대신 ID 조건 조인으로 재작성</span>
-        <span class="task-tag">CORE</span>
-      </div>
-      <div class="task-item">
-        <span class="task-num">v2-04</span>
-        <span class="task-text">cascade / orphanRemoval 정리 — Aggregate 내부(Order↔OrderItem 등)는 유지, 외부 참조 cascade 제거</span>
-        <span class="task-tag">CORE</span>
-      </div>
-      <div class="task-item">
-        <span class="task-num">v2-05</span>
-        <span class="task-text">양방향 연관관계 제거 — Member.posts / Member.orders 등 역방향 컬렉션 삭제, 조회는 Repository로만</span>
-        <span class="task-tag">CORE</span>
-      </div>
-      <div class="task-item">
-        <span class="task-num">v2-06</span>
-        <span class="task-text">DTO 응답 조립 방식 변경 — 엔티티 그래프 대신 서비스에서 각 Aggregate 개별 조회 후 조립</span>
-        <span class="task-tag">DETAIL</span>
-      </div>
-      <div class="task-item">
-        <span class="task-num">v2-07</span>
-        <span class="task-text">v1 vs v2 비교 문서 작성 — 설계 의도 · 트레이드오프 · 쿼리 수 변화 정리 (README)</span>
-        <span class="task-tag">DOCS</span>
-      </div>
-
-      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;padding:16px 0 4px;">— PHASE 3 나머지 · 인프라 확장 —</div>
 
       <div class="task-item">
         <span class="task-num">17</span>
-        <span class="task-text">모니터링 — Prometheus + Grafana Docker 구성 · API 응답시간 · JVM 힙 상태 시각화</span>
+        <span class="task-text">Integration Test 보강 — Service 계층 통합 테스트 추가 · 동시성 시나리오 테스트 · 커버리지 개선</span>
         <span class="task-tag">MED</span>
       </div>
       <div class="task-item">
         <span class="task-num">18</span>
-        <span class="task-text">Elasticsearch — 게시글 검색 한정 도입 (nori 형태소 분석 · 한국어 검색 품질)</span>
+        <span class="task-text">예외 처리 고도화 — ErrorCode 정비 · CustomException varargs 리팩터링 · 응답 메시지 일관성 점검</span>
         <span class="task-tag">MED</span>
       </div>
       <div class="task-item">
         <span class="task-num">19</span>
-        <span class="task-text">SSE 실시간 알림 — 주문 상태 변경 알림 (단방향 · WebSocket 빌드업)</span>
+        <span class="task-text">API 문서 보완 — Swagger 응답 예시 · @Operation 설명 · 인증 필요 여부 태그 정비</span>
         <span class="task-tag">LOW</span>
       </div>
       <div class="task-item">
         <span class="task-num">20</span>
-        <span class="task-text">파일 저장소 — LocalStorage → AWS S3 전환</span>
+        <span class="task-text">파일 저장소 — LocalStorage → AWS S3 전환 (인프라 모듈 완성)</span>
         <span class="task-tag">LOW</span>
       </div>
       <div class="task-item">
         <span class="task-num">21</span>
-        <span class="task-text">CI/CD — GitHub Actions + Docker 자동화 배포</span>
-        <span class="task-tag">LOW</span>
-      </div>
-      <div class="task-item">
-        <span class="task-num">22</span>
         <span class="task-text">AI 악보 변환 — MusicScoreConverter 구현 (외부 API 연동) · v1 마지막 기능</span>
         <span class="task-tag">LOW</span>
       </div>
