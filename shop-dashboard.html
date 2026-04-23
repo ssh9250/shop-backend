@@ -420,18 +420,18 @@
     </div>
     <div class="stat-card done">
       <div class="stat-label">완료</div>
-      <div class="stat-value">7</div>
-      <div class="stat-sub">auth · member · post · comment · item · order · admin</div>
+      <div class="stat-value">8</div>
+      <div class="stat-sub">auth · member · post · comment · item · order · admin · 배포</div>
     </div>
     <div class="stat-card wip">
       <div class="stat-label">진행중</div>
       <div class="stat-value">0</div>
-      <div class="stat-sub">README 작성 진행중</div>
+      <div class="stat-sub">—</div>
     </div>
     <div class="stat-card todo">
       <div class="stat-label">대기</div>
-      <div class="stat-value">1</div>
-      <div class="stat-sub">infrastructure / AI</div>
+      <div class="stat-value">0</div>
+      <div class="stat-sub">관리자 보완 · 포트폴리오 마무리</div>
     </div>
   </div>
 
@@ -439,15 +439,15 @@
   <div class="progress-section">
     <div class="progress-header">
       <span class="section-label">전체 진행률</span>
-      <span class="pct">95%</span>
+      <span class="pct">100%</span>
     </div>
     <div class="bar-track">
-      <div class="bar-fill" style="width: 95%"></div>
+      <div class="bar-fill" style="width: 100%"></div>
     </div>
     <div style="display:flex; gap: 24px; margin-top: 12px;">
-      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--done)">● 완료 95%</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--done)">● 완료 100%</span>
       <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--wip)">◐ 진행중 0%</span>
-      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)">○ 대기 5%</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)">○ 대기 0%</span>
     </div>
   </div>
 
@@ -601,22 +601,25 @@
       </div>
     </div>
 
-    <!-- Infrastructure / AI -->
-    <div class="module-card todo">
-      <span class="module-badge badge-todo">○ 대기</span>
-      <div class="module-path">infrastructure/</div>
-      <div class="module-name">인프라 / AI</div>
-      <div class="module-desc">AI 악보 변환 · S3 파일 저장소 전환</div>
+    <!-- Deployment -->
+    <div class="module-card done">
+      <span class="module-badge badge-done">✓ 완료</span>
+      <div class="module-path">AWS EC2 · Docker · Nginx</div>
+      <div class="module-name">배포</div>
+      <div class="module-desc">EC2 Ubuntu · Docker Compose 분리 · Nginx 리버스 프록시 · prod 프로파일</div>
       <ul class="feature-list">
-        <li class="partial">MusicScoreClient (인터페이스만)</li>
-        <li class="partial">MusicScoreConverter (인터페이스만)</li>
-        <li>AI 악보 변환 구현</li>
-        <li>S3 StorageService 전환</li>
-        <li>InstrumentCategory 활용</li>
+        <li class="done">Dockerfile 멀티스테이지 빌드 (builder / jre)</li>
+        <li class="done">docker-compose.infra.yml — MySQL · Redis</li>
+        <li class="done">docker-compose.yml — App · Nginx</li>
+        <li class="done">application-prod.yml — 환경변수 분리</li>
+        <li class="done">Nginx 리버스 프록시 (80 → 8080)</li>
+        <li class="done">shop-net 네트워크 수동 관리</li>
+        <li class="done">SWAP 메모리 추가 (t2.micro 빌드 대응)</li>
+        <li class="done">Swagger UI EC2 퍼블릭 IP 접근 확인</li>
       </ul>
       <div class="module-progress">
-        <div class="mp-label"><span>진행률</span><span>10%</span></div>
-        <div class="bar-track"><div class="bar-fill muted" style="width:10%"></div></div>
+        <div class="mp-label"><span>진행률</span><span>100%</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
       </div>
     </div>
 
@@ -655,6 +658,8 @@
       <span class="stack-chip active">Redis</span>
       <span class="stack-chip active">MySQL 8.0</span>
       <span class="stack-chip active">Docker Compose</span>
+      <span class="stack-chip active">Nginx</span>
+      <span class="stack-chip active">AWS EC2</span>
       <span class="stack-chip active">Lombok</span>
       <span class="stack-chip active">springdoc-openapi 2.5.0</span>
       <span class="stack-chip active">embedded-redis (test)</span>
@@ -662,8 +667,6 @@
       <span class="stack-chip active">spring-retry</span>
       <span class="stack-chip active">낙관적 락 (@Version)</span>
       <span class="stack-chip active">k6 (부하 테스트)</span>
-      <span class="stack-chip planned">AWS S3 (예정)</span>
-      <span class="stack-chip planned">AI 악보 변환 API (예정)</span>
     </div>
   </div>
 
@@ -770,42 +773,43 @@
 
       <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;padding:16px 0 4px;">— 문서화 &amp; v1 마무리 —</div>
 
-      <div class="task-item">
-        <span class="task-num">16</span>
-        <span class="task-text">README 작성 — 프로젝트 개요 · 기술 스택 · 아키텍처 · 동시성 제어 실험 결과 (k6 비교 데이터) · 실행 방법 · 트러블슈팅</span>
-        <span class="task-tag" style="background:rgba(124,106,247,0.15);color:var(--accent)">HIGH</span>
+      <div class="task-item" style="opacity:0.45;border-color:#1e1e2e;">
+        <span class="task-num" style="color:var(--done)">✓ 16</span>
+        <span class="task-text" style="text-decoration:line-through;color:var(--muted)">README 작성 — 프로젝트 개요 · 기술 스택 · 아키텍처 · 동시성 제어 실험 결과 (k6 비교 데이터) · 실행 방법 · 트러블슈팅</span>
+        <span class="task-tag" style="background:rgba(62,207,142,0.1);color:var(--done)">DONE</span>
       </div>
 
-      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;padding:16px 0 4px;">— v1 완성도 보완 (선택) —</div>
+      <div class="task-item" style="opacity:0.45;border-color:#1e1e2e;">
+        <span class="task-num" style="color:var(--done)">✓ 17</span>
+        <span class="task-text" style="text-decoration:line-through;color:var(--muted)">배포 — EC2 Ubuntu · Docker Compose 분리 · Nginx 리버스 프록시 · prod 프로파일 · SWAP 메모리 · Swagger 접근 확인</span>
+        <span class="task-tag" style="background:rgba(62,207,142,0.1);color:var(--done)">DONE</span>
+      </div>
+
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;padding:16px 0 4px;">— 포트폴리오 마무리 (내일) —</div>
 
       <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);padding:4px 0 10px;line-height:1.8;">
-        README 완료 후 포트폴리오 완성도 향상을 위한 선택적 보완 작업.<br>
-        Kafka · Elasticsearch · ID Reference 등 고급 아키텍처 기능은 <span style="color:var(--accent2)">marklong 프로젝트</span>에서 학습/적용.
+        비즈니스 로직 완성도를 높이는 방향으로 마무리.<br>
+        Kafka · Elasticsearch · ID Reference 등 고급 기능은 <span style="color:var(--accent2)">marklong 프로젝트</span>에서 적용.
       </div>
 
       <div class="task-item">
-        <span class="task-num">17</span>
-        <span class="task-text">Integration Test 보강 — Service 계층 통합 테스트 추가 · 동시성 시나리오 테스트 · 커버리지 개선</span>
-        <span class="task-tag">MED</span>
-      </div>
-      <div class="task-item">
         <span class="task-num">18</span>
-        <span class="task-text">예외 처리 고도화 — ErrorCode 정비 · CustomException varargs 리팩터링 · 응답 메시지 일관성 점검</span>
-        <span class="task-tag">MED</span>
+        <span class="task-text">관리자 서비스 보완 — 회원 관리 · 상품 관리 · 통계 조회 등 Admin 기능 강화</span>
+        <span class="task-tag" style="background:rgba(124,106,247,0.15);color:var(--accent)">NEXT</span>
       </div>
       <div class="task-item">
         <span class="task-num">19</span>
-        <span class="task-text">API 문서 보완 — Swagger 응답 예시 · @Operation 설명 · 인증 필요 여부 태그 정비</span>
-        <span class="task-tag">LOW</span>
+        <span class="task-text">예외 처리 고도화 — ErrorCode 정비 · 응답 메시지 일관성 점검</span>
+        <span class="task-tag">MED</span>
       </div>
       <div class="task-item">
         <span class="task-num">20</span>
-        <span class="task-text">파일 저장소 — LocalStorage → AWS S3 전환 (인프라 모듈 완성)</span>
-        <span class="task-tag">LOW</span>
+        <span class="task-text">API 문서 보완 — Swagger 응답 예시 · @Operation 설명 · 인증 필요 여부 태그 정비</span>
+        <span class="task-tag">MED</span>
       </div>
       <div class="task-item">
         <span class="task-num">21</span>
-        <span class="task-text">AI 악보 변환 — MusicScoreConverter 구현 (외부 API 연동) · v1 마지막 기능</span>
+        <span class="task-text">포트폴리오 최종 점검 — README · Swagger · 코드 품질 전반 리뷰</span>
         <span class="task-tag">LOW</span>
       </div>
     </div>

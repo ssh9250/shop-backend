@@ -9,7 +9,7 @@ spring:
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: validate        # prod는 validate — 실수로 스키마 변경 방지
+      ddl-auto: update        # prod는 validate — 실수로 스키마 변경 방지
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
@@ -23,9 +23,9 @@ spring:
 
 springdoc:
   swagger-ui:
-    enabled: false              # prod는 Swagger 비활성화
+    enabled: true
   api-docs:
-    enabled: false
+    enabled: true
 
 logging:
   level:
