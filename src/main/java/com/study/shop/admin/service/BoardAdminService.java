@@ -5,6 +5,7 @@ import com.study.shop.domain.comment.entity.Comment;
 import com.study.shop.domain.comment.exception.CommentNotFoundException;
 import com.study.shop.domain.comment.repository.CommentRepository;
 import com.study.shop.domain.post.dto.PostDetailDto;
+import com.study.shop.domain.post.dto.PostListDto;
 import com.study.shop.domain.post.entity.Post;
 import com.study.shop.domain.post.exception.PostNotFoundException;
 import com.study.shop.domain.post.repository.PostRepository;
@@ -28,10 +29,10 @@ public class BoardAdminService {
     // ==================== 게시글 ====================
 
     @Transactional(readOnly = true)
-    public List<PostDetailDto> getAllPosts() {
-        return postRepository.findAll().stream()
-                .map(PostDetailDto::from)
-                .collect(Collectors.toList());
+    public List<PostListDto> getHiddenPosts() {
+        return postRepository.findPostsByHiddenIsTrue().stream()
+                .map(PostListDto::from)
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -42,10 +43,10 @@ public class BoardAdminService {
     }
 
     @Transactional(readOnly = true)
-    public List<PostDetailDto> getPostsByMemberId(Long memberId) {
+    public List<PostListDto> getPostsByMemberId(Long memberId) {
         return postRepository.findByMemberId(memberId).stream()
-                .map(PostDetailDto::from)
-                .collect(Collectors.toList());
+                .map(PostListDto::from)
+                .toList();
     }
 
     public void deletePost(Long postId) {

@@ -3,6 +3,7 @@ package com.study.shop.admin.controller;
 import com.study.shop.admin.dto.AdminCommentResponseDto;
 import com.study.shop.admin.service.BoardAdminService;
 import com.study.shop.domain.post.dto.PostDetailDto;
+import com.study.shop.domain.post.dto.PostListDto;
 import com.study.shop.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,10 +25,10 @@ public class BoardAdminController {
 
     // ==================== 게시글 ====================
 
-    @Operation(summary = "전체 게시글 조회", description = "모든 게시글을 조회합니다.")
+    @Operation(summary = "숨김 게시글 조회", description = "모든 숨긴 게시글을 조회합니다.")
     @GetMapping("/posts")
-    public ResponseEntity<ApiResponse<List<PostDetailDto>>> getAllPosts() {
-        return ResponseEntity.ok(ApiResponse.success(boardAdminService.getAllPosts()));
+    public ResponseEntity<ApiResponse<List<PostListDto>>> getHiddenPosts() {
+        return ResponseEntity.ok(ApiResponse.success(boardAdminService.getHiddenPosts()));
     }
 
     @Operation(summary = "게시글 단건 조회", description = "id로 게시글을 조회합니다.")
@@ -38,7 +39,7 @@ public class BoardAdminController {
 
     @Operation(summary = "회원별 게시글 조회", description = "특정 회원이 작성한 게시글 목록을 조회합니다.")
     @GetMapping("/posts/member/{memberId}")
-    public ResponseEntity<ApiResponse<List<PostDetailDto>>> getPostsByMemberId(@PathVariable Long memberId) {
+    public ResponseEntity<ApiResponse<List<PostListDto>>> getPostsByMemberId(@PathVariable Long memberId) {
         return ResponseEntity.ok(ApiResponse.success(boardAdminService.getPostsByMemberId(memberId)));
     }
 

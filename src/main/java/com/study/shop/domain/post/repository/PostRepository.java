@@ -27,6 +27,11 @@ public interface PostRepository extends JpaRepository<Post, Long>,PostRepository
             "left join fetch p.postFiles "+
             "where p.id = :postId")
     Optional<Post> findPostByIdWithComment(Long postId);
+
+    @Query("select p from Post p " +
+            "left join fetch p.comments " +
+            "left join fetch p.member pm")
+    List<Post> findPostsByHiddenIsTrue();
 }
 
 // 회원목록 -> 한 회원 조회 -> 회원이 쓴 글 목록 -> 글 클릭 시 포스트로 이동

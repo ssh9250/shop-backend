@@ -214,6 +214,13 @@
 
 ---
 
+## [2026-04-25] QueryDSL DTO Projection — `Projections.constructor()` 방식 채택
+- 이유: `@QueryProjection`은 컴파일 타임 타입 체크가 가능하지만 DTO에 `com.querydsl` 의존성이 생겨 재사용성이 떨어짐. `Projections.fields()`는 필드명 기준 리플렉션 매핑으로 IDE 추적 불가, 오타를 컴파일 타임에 잡지 못함
+- 대안: `@QueryProjection` → DTO-QueryDSL 결합도 증가. `Projections.fields()` → 안전성 낮음
+- 결정: `Projections.constructor()`로 통일. 생성자 파라미터 타입+순서 기준 매핑으로 QueryDSL 의존성 없이 타입 안전성 확보. 파라미터 불일치 시 즉시 예외 발생으로 디버깅 용이
+
+---
+
 ## [미완료 TODO] 남은 설계 결정 과제
 
 - **Item-Category ManyToMany → CategoryItem 중간 엔티티 전환** (Issue #008)

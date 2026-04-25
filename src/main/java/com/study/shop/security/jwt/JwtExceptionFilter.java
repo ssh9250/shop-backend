@@ -19,10 +19,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-/**
- * JWT 예외를 처리하는 필터
- * JwtAuthenticationFilter에서 발생하는 예외를 잡아 적절한 응답 반환
- */
 @Slf4j
 @Component
 public class JwtExceptionFilter extends OncePerRequestFilter {

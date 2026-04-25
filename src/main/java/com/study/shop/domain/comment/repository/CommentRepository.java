@@ -17,7 +17,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long>, Comment
     @Query("select c from Comment c where c.post.id = :postId")
     List<Comment> findAllByPostId(Long postId);
 
-    @Modifying(clearAutomatically = true)
+    @Modifying(clearAutomatically = true) // modifying으로 select 외에도 수행 가능, clearAutomatically로 1차 캐시 완전히 플러시
     @Query("update Comment c set c.deletedAt = NOW() where c.post.id = :postId ")
     void deleteAllByPostId(Long postId);
 

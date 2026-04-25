@@ -1,5 +1,6 @@
 package com.study.shop.domain.post.dto;
 
+import com.study.shop.domain.post.entity.Post;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,4 +20,15 @@ public class PostListDto implements Serializable {
     private LocalDateTime createTime;
     private Long commentCount;
     private int viewCount;
+
+    public static PostListDto from(Post post) {
+        return PostListDto.builder()
+                .id(post.getId())
+                .title(post.getTitle())
+                .writer(post.getMember().getEmail())
+                .createTime(post.getCreatedAt())
+                .commentCount((long) post.getComments().size())
+                .viewCount(post.getViewCount())
+                .build();
+    }
 }

@@ -2,6 +2,7 @@ package com.study.shop.domain.member.service;
 
 import com.study.shop.domain.Item.repository.ItemRepository;
 import com.study.shop.domain.auth.dto.SignupRequestDto;
+import com.study.shop.domain.event.MemberWithdrawEvent;
 import com.study.shop.domain.member.exception.DuplicateEmailException;
 import com.study.shop.domain.member.exception.DuplicateNicknameException;
 import com.study.shop.domain.post.repository.PostRepository;
@@ -15,6 +16,7 @@ import com.study.shop.domain.member.repository.MemberRepository;
 import com.study.shop.domain.post.service.PostService;
 import com.study.shop.global.enums.RoleType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +31,7 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final PostService postService;
     private final ItemRepository itemRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public void signup(SignupRequestDto requestDto) {
         validateDuplicateEmail(requestDto.getEmail());
@@ -86,13 +89,7 @@ public class MemberService {
     }
 
     public void withdraw(Long id) {
-        postRepository.findByMemberId(id)
-                .forEach(post -> {postService.deletePost(id,  post.getId());});
-
-        commentRepository.softDeleteAllByMember(id);
-        itemRepository.softDeleteByMemberId(id);
-
-        memberRepository.deleteById(id);
+        eventPublisher.publishEvent(new MemberWithdrawEvent(id));
     }
 
     private void validateDuplicateEmail(String email) {

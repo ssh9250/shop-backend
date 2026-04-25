@@ -1,5 +1,6 @@
 package com.study.shop.admin.service;
 
+import com.study.shop.domain.event.OrderAcceptedEvent;
 import com.study.shop.domain.order.dto.OrderDetailDto;
 import com.study.shop.domain.order.dto.OrderListDto;
 import com.study.shop.domain.order.entity.Order;
@@ -8,6 +9,7 @@ import com.study.shop.domain.order.repository.OrderRepository;
 import com.study.shop.global.enums.OrderStatus;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,6 +20,7 @@ import java.util.stream.Collectors;
 @Transactional
 public class OrderAdminService {
     private final OrderRepository orderRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public List<OrderListDto> getAllOrders() {
         return orderRepository.findAll().stream().map(OrderListDto::from).collect(Collectors.toList());
@@ -43,6 +46,7 @@ public class OrderAdminService {
     public OrderDetailDto acceptOrder(Long orderId) {
         Order order = findOrderOrThrow(orderId);
         order.accept();
+        eventPublisher.publishEvent(new OrderAcceptedEvent(orderId, order.getOrderItem().getItem().getId()));
         return OrderDetailDto.from(order);
     }
 

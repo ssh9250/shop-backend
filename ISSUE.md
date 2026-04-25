@@ -1893,3 +1893,97 @@ Item item = itemRepository.findByIdWithLock(id)
 **상태:** 해결 완료
 
 ---
+
+## Issue #022: `@QueryProjection` 잘못된 위치 사용 — Q 클래스 전체 컴파일 오류
+
+**발생일**: 2026-04-25
+**관련 도메인**: Admin Member 검색
+
+---
+
+### 배경
+
+관리자 회원 검색 기능(`MemberQueryRepository.searchMembers`) 구현 중 QueryDSL DTO Projection 방식으로 `@QueryProjection`을 도입하려 했다.
+`@QueryProjection`은 DTO 생성자를 Q 클래스(`QMemberSearchConditionDto`)로 생성하여 컴파일 타임에 타입 체크가 가능하다는 점이 매력적이었다.
+
+---
+
+### 문제 상황
+
+```java
+// 잘못된 사용 — 어노테이션을 클래스 레벨에 붙임
+@Getter
+@NoArgsConstructor
+@QueryProjection  // ← 여기가 잘못됨
+public class MemberSearchConditionDto {
+    private String email;
+    private String nickname;
+    ...
+}
+```
+
+`@QueryProjection`은 **생성자** 위에 선언해야 Q 클래스 생성이 가능하지만, 클래스 선언부에 붙이면서 APT(Annotation Processing Tool)가 잘못된 Q 클래스 생성을 시도해 프로젝트 전체의 Q 클래스 컴파일이 실패했다.
+
+---
+
+### 올바른 사용법
+
+```java
+// 올바른 사용 — 생성자 위에 선언
+@Getter
+@NoArgsConstructor
+public class MemberSearchConditionDto {
+
+    @QueryProjection  // ← 생성자에 붙여야 함
+    public MemberSearchConditionDto(String email, String nickname, RoleType roleType, Boolean isDeleted) {
+        this.email = email;
+        ...
+    }
+}
+```
+
+`@QueryProjection`이 생성자에 붙어야 APT가 `QMemberSearchConditionDto(StringPath email, ...)` 형태의 Q 클래스를 생성하고, 이를 통해 `new QMemberSearchConditionDto(member.email, ...)` 방식으로 타입 안전한 Projection이 가능하다.
+
+---
+
+### 최종 결정 — `Projections.constructor()` 방식 채택
+
+`@QueryProjection`은 문제를 수정해도 DTO에 `com.querydsl` 의존성이 생긴다는 단점이 있다. 이 DTO가 QueryDSL에 종속되면 테스트나 다른 레이어에서 재사용할 때 QueryDSL 없이는 동작하지 않는다.
+
+세 가지 방식을 비교한 후 `Projections.constructor()`로 결정했다.
+
+| 방식 | 특징 | 단점 |
+|---|---|---|
+| `@QueryProjection` | 컴파일 타임 타입 체크, IDE 자동완성 | DTO에 QueryDSL 의존성 생김 |
+| `Projections.constructor()` | 생성자 호출, 타입+순서 기준 매핑 | 파라미터 순서가 맞지 않으면 런타임 오류 |
+| `Projections.fields()` | 필드명 기준 매핑, 생성자 불필요 | 리플렉션, IDE 추적 불가, 오타 컴파일 타임에 미탐지 |
+
+`Projections.constructor()`는 QueryDSL 의존성 없이 타입 기반 매핑이 가능하고, 파라미터 수와 타입이 생성자와 불일치하면 즉시 예외가 발생해 디버깅이 쉽다. `fields()` 방식은 리플렉션이라 IDE에서 필드 추적이 안 되고 필드명 오타를 컴파일 타임에 잡을 수 없어 제외했다.
+
+```java
+// 최종 코드 — Projections.constructor() 적용
+queryFactory
+    .select(Projections.constructor(MemberListResponseDto.class,
+            member.email, member.nickname, member.role))
+    .from(member)
+    .where(...)
+    .fetch();
+```
+
+---
+
+### 관련 파일
+
+- `src/main/java/com/study/shop/domain/member/dto/MemberSearchConditionDto.java`
+- `src/main/java/com/study/shop/domain/member/dto/MemberListResponseDto.java`
+- `src/main/java/com/study/shop/domain/member/repository/MemberQueryRepository.java`
+
+### 교훈
+
+- **`@QueryProjection`은 생성자 위에 선언해야 한다**: 클래스 레벨에 붙이면 APT가 잘못된 처리를 시도해 프로젝트 전체 Q 클래스 컴파일 오류로 번진다.
+- **DTO는 QueryDSL 의존성을 갖지 않는 것이 낫다**: `@QueryProjection`은 타입 안전성이 강점이지만, 도메인 DTO가 QueryDSL에 종속되면 재사용성이 떨어진다.
+- **`fields()` 방식은 편리해 보이지만 안전하지 않다**: 필드명 매핑은 IDE에서 추적이 안 되고 오타를 런타임에서야 발견하게 된다. `constructor()` 방식이 타입+순서 불일치를 즉시 노출해 더 안전하다.
+
+**상태:** 해결됨
+
+---

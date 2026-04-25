@@ -9,14 +9,14 @@ spring:
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: update        # prod는 validate — 실수로 스키마 변경 방지
+      ddl-auto: update        # prod는 validate — 실수로 스키마 변경 방지(배포 처음 실행 시 db 에러를 위해 update)
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
-        format_sql: false       # prod는 SQL 로그 끄기
+        format_sql: false
   data:
     redis:
-      host: shop-redis          # Docker 서비스명으로 접근
+      host: shop-redis
       port: 6379
   main:
     allow-bean-definition-overriding: true
