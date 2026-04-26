@@ -129,6 +129,12 @@ public class PostService {
         postRepository.delete(post);
     }
 
+    public void deleteAllPostByMemberId(Long memberId) {
+        List<String> storedFileNames = postRepository.findStoredFileNamesByMemberId(memberId);
+        storedFileNames.forEach(fileStorageService::deleteFile);
+        postRepository.softDeleteAllByMember(memberId);
+    }
+
     public void validatePostAccess(Long memberId, Post post) {
 //        Member member = memberRepository.findById(memberId)
 //                .orElseThrow(() -> new MemberNotFoundException(memberId));

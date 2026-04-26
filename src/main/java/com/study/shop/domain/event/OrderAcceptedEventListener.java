@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component;
 public class OrderAcceptedEventListener {
     private final ItemRepository itemRepository;
 
-    @Async
     @EventListener
     @Transactional
     public void onOrderAccepted(OrderAcceptedEvent event) {

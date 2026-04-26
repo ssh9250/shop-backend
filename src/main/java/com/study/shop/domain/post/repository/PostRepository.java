@@ -4,7 +4,9 @@ import com.study.shop.domain.post.entity.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +34,15 @@ public interface PostRepository extends JpaRepository<Post, Long>,PostRepository
             "left join fetch p.comments " +
             "left join fetch p.member pm")
     List<Post> findPostsByHiddenIsTrue();
+
+    @Modifying(clearAutomatically = true)
+    @Query("update Post p set p.deletedAt = NOW() " +
+            "where p.member.id = :memberId")
+    void softDeleteAllByMember(@Param("memberId") Long memberId);
+
+    @Query("select pf.storedFileName from PostFile pf " +
+            "where pf.post.member.id = :memberId")
+    List<String> findStoredFileNamesByMemberId(@Param("memberId") Long memberId);
 }
 
 // 회원목록 -> 한 회원 조회 -> 회원이 쓴 글 목록 -> 글 클릭 시 포스트로 이동

@@ -1,5 +1,6 @@
 package com.study.shop.admin.service;
 
+import com.study.shop.domain.event.MemberWithdrawEvent;
 import com.study.shop.domain.member.dto.MemberListResponseDto;
 import com.study.shop.domain.member.dto.MemberResponseDto;
 import com.study.shop.domain.member.dto.MemberSearchConditionDto;
@@ -27,6 +28,6 @@ public class MemberAdminService {
     }
 
     public void kickMember(Long memberId) {
-
+        eventPublisher.publishEvent(new MemberWithdrawEvent(memberId));
     }
 }

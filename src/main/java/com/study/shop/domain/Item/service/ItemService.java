@@ -91,6 +91,10 @@ public class ItemService {
         itemRepository.deleteById(itemId);
     }
 
+    public void deleteAllItemsByMemberId(Long memberId) {
+        itemRepository.softDeleteByMemberId(memberId);
+    }
+
     private void validateItemAccess(Item item, Long memberId) {
         if (!item.getSeller().getId().equals(memberId)) {
             throw new AccessDeniedException("해당 작업을 수행할 권한이 없습니다.");

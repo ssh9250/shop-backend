@@ -64,6 +64,18 @@ public class CommentService {
         commentRepository.delete(comment);
     }
 
+    public void deleteAllCommentByPostId(Long postId) {
+        commentRepository.deleteAllByPostId(postId);
+    }
+
+    public void deleteAllCommentByMemberId(Long memberId) {
+        commentRepository.softDeleteAllByMember(memberId);
+    }
+
+    public void deleteAllCommentByMemberPosts(Long memberId) {
+        commentRepository.softDeleteAllByMemberPosts(memberId);
+    }
+
     public void validateCommentAccess(Long memberId, Comment comment) {
         if (!memberId.equals(comment.getMember().getId())) {
             throw new AccessDeniedException("해당 작업을 수행할 권한이 없습니다.");

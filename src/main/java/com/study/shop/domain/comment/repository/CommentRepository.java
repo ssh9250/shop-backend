@@ -5,6 +5,7 @@ import com.study.shop.domain.member.entity.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -24,4 +25,10 @@ public interface CommentRepository extends JpaRepository<Comment, Long>, Comment
     @Modifying(clearAutomatically = true)
     @Query("update Comment c set c.deletedAt = NOW() where c.member.id = :memberId")
     void softDeleteAllByMember(Long memberId);
+
+    @Modifying(clearAutomatically = true)
+    @Query("update Comment c set c.deletedAt = NOW() " +
+            "where c.post.id in " +
+            "(select p.id from Post p where p.member.id = :memberId)")
+    void softDeleteAllByMemberPosts(@Param("memberId") Long memberId);
 }
