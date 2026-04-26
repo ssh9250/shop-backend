@@ -1,6 +1,6 @@
-# Issues Log
+# 개발 기록
 
-## Issue #001: 공통 API 응답 객체(ApiResponse) 도입
+## 기록 #001: 공통 API 응답 객체(ApiResponse) 도입
 
 ### 배경
 프로젝트 초기에는 Controller에서 반환 타입을 기본적인 Response Entity로 설정함
@@ -60,7 +60,7 @@ return ResponseEntity.status(code.getStatus())
 
 ---
 
-## Issue #002: 회원가입 시 서버 500 에러 발생
+## 기록 #002: 회원가입 시 서버 500 에러 발생
 
 **발생일**: 2025-09-22
 
@@ -91,7 +91,7 @@ private String password;
 
 ---
 
-## Issue #003: 전역 예외 핸들러로 인한 디버깅 어려움
+## 기록 #003: 전역 예외 핸들러로 인한 디버깅 어려움
 
 **발생일**: 2025-09-22
 
@@ -127,7 +127,7 @@ public ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
 
 ---
 
-## Issue #004: 테스트 실행 시 SLF4J 로거 충돌로 ApplicationContext 로딩 실패
+## 기록 #004: 테스트 실행 시 SLF4J 로거 충돌로 ApplicationContext 로딩 실패
 
 **발생일**: 2026-01-15
 
@@ -175,7 +175,7 @@ testImplementation('it.ozimov:embedded-redis:0.7.3') {
 
 ---
 
-## Issue #005: SecurityConfig에 signup 엔드포인트 permitAll 누락
+## 기록 #005: SecurityConfig에 signup 엔드포인트 permitAll 누락
 
 **발생일**: 2026-01-21
 
@@ -215,7 +215,7 @@ SecurityConfig의 `authorizeHttpRequests`에서 `/api/auth/signup` 엔드포인�
 
 ---
 
-## Issue #006: 통합 테스트 간 SecurityContext 및 Redis 데이터 격리 실패
+## 기록 #006: 통합 테스트 간 SecurityContext 및 Redis 데이터 격리 실패
 
 **발생일**: 2026-01-21
 
@@ -251,7 +251,7 @@ void tearDown() {
 
 ---
 
-## Issue #007: Category 엔티티 도메인 메서드에서 캡슐화 위반
+## 기록 #007: Category 엔티티 도메인 메서드에서 캡슐화 위반
 
 **발생일**: 2026-02-01
 
@@ -305,7 +305,7 @@ void changeParent(Category parent) {
 
 ---
 
-## Issue #008: Item-Category 양방향 ManyToMany 연관관계 구조 개선 필요
+## 기록 #008: Item-Category 양방향 ManyToMany 연관관계 구조 개선 필요
 
 **발생일**: 2026-02-01
 
@@ -398,7 +398,7 @@ public List<Item> findItemsByCategory(Long categoryId) {
 
 ---
 
-## Issue #009: Order 엔티티 접근 제어자를 활용한 DDD 캡슐화 설계
+## 기록 #009: Order 엔티티 접근 제어자를 활용한 DDD 캡슐화 설계
 
 **발생일**: 2026-02-13
 
@@ -456,7 +456,7 @@ void assignOrder(Order order) {
 **장점:**
 - 같은 `domain.order.entity` 패키지 내의 엔티티끼리만 호출 가능하여 도메인 내부 협력을 안전하게 캡슐화
 - Service 레이어에서 직접 호출 불가 → 연관관계 설정을 반드시 엔티티의 public 메서드를 통해 수행하도록 강제
-- public setter 노출 없이 양방향 연관관계 동기화 가능 (Issue #007의 교훈 적용)
+- public setter 노출 없이 양방향 연관관계 동기화 가능 (기록 #007의 교훈 적용)
 
 **단점:**
 - 같은 패키지에 다른 클래스가 추가되면 의도치 않게 접근 가능
@@ -498,11 +498,11 @@ private void validateOrderStatus() {
 - **접근 제어자는 설계 의도를 표현하는 도구**: 단순히 컴파일 에러를 막기 위한 것이 아니라, 각 메서드의 역할과 호출 범위를 명확히 전달하는 수단
 - **DDD에서 엔티티는 자신의 상태를 스스로 관리**: public 메서드로 비즈니스 행위를 노출하고, 내부 상태 변경은 패키지 프라이빗 또는 private으로 보호
 - **패키지 구조가 접근 제어의 핵심**: `domain.order.entity` 패키지에 Order와 OrderItem을 함께 두어 패키지 프라이빗의 이점을 최대한 활용
-- **Issue #007의 연장선**: Category에서 배운 캡슐화 원칙을 Order 도메인에도 일관되게 적용
+- **기록 #007의 연장선**: Category에서 배운 캡슐화 원칙을 Order 도메인에도 일관되게 적용
 
 ---
 
-## Issue #010: Post.removeComment()에서 연관관계만 끊어지고 실제 삭제가 이루어지지 않는 문제
+## 기록 #010: Post.removeComment()에서 연관관계만 끊어지고 실제 삭제가 이루어지지 않는 문제
 
 **발생일**: 2026-02-20
 
@@ -556,7 +556,7 @@ public void removeComment(Comment comment) {
 
 ---
 
-## Issue #011: Order-OrderItem 양방향 연관관계의 순환 의존성 문제
+## 기록 #011: Order-OrderItem 양방향 연관관계의 순환 의존성 문제
 
 **발생일**: 2026-02-23
 
@@ -694,7 +694,7 @@ public static OrderItem create(Order order, Item item, Integer quantity) {
 
 1. **재고 검증 (`StockNotEnoughException`)**: `OrderItem.create()` 내에서 생성 시점에 즉시 재고 부족 여부를 검증하여 생성 후 롤백 없이 빠른 실패(fail-fast) 처리
 2. **가격 스냅샷**: 주문 당시의 `item.getPrice()`를 `price` 필드로 캡처하여 이후 상품 가격 변경 시에도 주문 금액의 데이터 정합성 유지
-3. **패키지 프라이빗 `assignOrder()`**: Issue #009의 교훈 적용 - Service 레이어에서 직접 연관관계 조작 불가, 반드시 `order.addOrderItem()`을 통해서만 설정 가능
+3. **패키지 프라이빗 `assignOrder()`**: 기록 #009의 교훈 적용 - Service 레이어에서 직접 연관관계 조작 불가, 반드시 `order.addOrderItem()`을 통해서만 설정 가능
 
 ### 관련 파일
 - `src/main/java/com/study/shop/domain/order/entity/Order.java`
@@ -705,13 +705,13 @@ public static OrderItem create(Order order, Item item, Integer quantity) {
 - **"먼저 생성, 나중에 연관관계 설정" 패턴**: JPA 양방향 연관관계의 순환 의존성은 한쪽을 먼저 생성(빈 상태)하고, 편의 메서드(`addOrderItem`)로 나중에 연결하는 방식으로 해결
 - **패키지 프라이빗과 순환 의존성 해결의 시너지**: 연관관계 설정 메서드를 패키지 프라이빗으로 관리하면 Service가 직접 조작할 수 없어 자연스럽게 올바른 생성 순서가 강제됨
 - **팩토리 메서드에서 불변 데이터 캡처**: 가격 등 시간이 지나면 변할 수 있는 데이터는 생성 시점에 스냅샷으로 저장하여 데이터 정합성 유지 (e-커머스의 기본 원칙)
-- **Issue #009와의 연계**: 접근 제어자 전략(public/패키지 프라이빗/private 분리)이 순환 의존성 해결과 자연스럽게 결합되어 더 나은 설계로 발전
+- **기록 #009와의 연계**: 접근 제어자 전략(public/패키지 프라이빗/private 분리)이 순환 의존성 해결과 자연스럽게 결합되어 더 나은 설계로 발전
 
 **상태:** 해결됨
 
 ---
 
-## [IMPORTANT] Issue #012: N+1 문제 해결 과정 — findAllPosts 메서드 개선
+## [핵심] 기록 #012: N+1 문제 해결 과정 — findAllPosts 메서드 개선
 
 **작성일**: 2026-03-14
 **관련 작업**: `findAllPosts` 메서드 개선 (JpaRepository → QueryDSL + Paging + DTO Projection)
@@ -873,7 +873,7 @@ public Page<PostListDto> findAllPosts(Pageable pageable) {
 
 ---
 
-## [IMPORTANT] Issue #013: 소프트 삭제(Soft Delete) 도입 — 구현 전략과 Cascade/orphanRemoval 충돌 관리
+## [핵심] 기록 #013: 소프트 삭제(Soft Delete) 도입 — 구현 전략과 Cascade/orphanRemoval 충돌 관리
 
 **작성일**: 2026-03-16
 **관련 도메인**: Member, Order, Comment
@@ -1098,7 +1098,7 @@ SELECT * FROM member WHERE email = ?
 
 ---
 
-## Issue #014: searchPosts 설계 오류 — GET + @RequestBody, count 쿼리 member join 누락
+## 기록 #014: searchPosts 설계 오류 — GET + @RequestBody, count 쿼리 member join 누락
 
 **발생일**: 2026-03-18
 **관련 도메인**: Post
@@ -1252,13 +1252,13 @@ long total = Optional.ofNullable(queryFactory
 - **GET 요청의 조건은 Query Parameter**: REST 원칙상 GET에 body를 포함하면 안 되며, 검색 조건은 `@ModelAttribute`로 DTO에 바인딩
 - **동적 조건 쿼리에서 content/count 일관성 유지**: 조건에 사용된 테이블(member 등)은 content 쿼리와 count 쿼리 모두에 join이 필요
 - **fetchOne() 반환값은 항상 null 가능**: count 집계라도 `Optional.ofNullable(...).orElse(0L)`로 방어
-- **Issue #012 연장**: count 쿼리 분리 전략 적용 시 content 쿼리의 join 조건과 동기화가 필수
+- **기록 #012 연장**: count 쿼리 분리 전략 적용 시 content 쿼리의 join 조건과 동기화가 필수
 
 **상태:** 해결됨
 
 ---
 
-## Issue #015: Page vs Slice 페이징 전략 선택 — 게시글(Offset)과 상품(Cursor) 분리 적용
+## 기록 #015: Page vs Slice 페이징 전략 선택 — 게시글(Offset)과 상품(Cursor) 분리 적용
 
 **작성일**: 2026-03-19
 **관련 도메인**: Post, Item
@@ -1290,7 +1290,7 @@ Post 비즈니스 로직에 페이징을 도입하는 과정에서 Spring Data�
 
 **count 쿼리를 분리하는 이유:**
 `join fetch`나 `groupBy`가 포함된 쿼리를 그대로 count에 사용하면 Hibernate가 변환에 실패하거나
-잘못된 결과를 반환하기 때문이다. (Issue #012, #014에서도 동일한 원칙 적용)
+잘못된 결과를 반환하기 때문이다. (기록 #012, #014에서도 동일한 원칙 적용)
 
 **Offset 기반 페이징의 한계:**
 - `offset`은 `page * size`번째 데이터부터 가져오는 방식으로, offset 값이 커질수록 앞의 데이터를 전부 읽고 버리는 구조
@@ -1385,12 +1385,12 @@ Redis 캐싱과 DB 인덱싱은 서로 보완적이다. 캐시 히트 시 DB까�
 
 - **UI 요구사항이 페이징 전략을 결정한다**: 페이지 번호가 필요하면 Page, 무한스크롤이면 Slice — 기술 선택 전에 UX 요구사항을 먼저 파악
 - **복합 커서로 안정성 확보**: Cursor 기반 페이징에서 단일 필드(createdAt)만 사용하면 동일 값 데이터에서 중복/누락 발생 → id를 함께 사용
-- **count 쿼리 분리는 Page 사용 시 항상 고려**: groupBy, fetch join이 포함된 쿼리는 count에서 오류가 발생하므로 분리 필수 (Issue #012 참고)
+- **count 쿼리 분리는 Page 사용 시 항상 고려**: groupBy, fetch join이 포함된 쿼리는 count에서 오류가 발생하므로 분리 필수 (기록 #012 참고)
 - **도메인별 적합한 전략을 선택**: 하나의 전략을 모든 도메인에 일괄 적용하기보다, 도메인의 특성과 트래픽 패턴에 맞는 전략을 개별 선택
 - **캐싱과 인덱싱은 보완 관계**: 캐시 히트 시 DB를 건드리지 않으므로 인덱스의 역할이 줄어들지만, 캐시 미스 대비 인덱스는 여전히 필요
 - **LIKE 양방향 와일드카드는 인덱스 우회**: title/content 검색 성능이 중요하다면 FULLTEXT INDEX 또는 Elasticsearch를 고려
 
-## Issue #016: Lombok @Builder 사용 시 필드 기본값 무시 문제
+## 기록 #016: Lombok @Builder 사용 시 필드 기본값 무시 문제
 
 ### 문제 상황
 엔티티 필드에 `= false`, `= 0`, `= new ArrayList<>()` 등 기본값을 선언해도, `@Builder`를 통해 객체를 생성할 경우 해당 값이 적용되지 않고 `null`이 할당된다.
@@ -1418,7 +1418,7 @@ private Boolean hidden = false;
 | `Item` | `List<CategoryItem> categoryItems = new ArrayList<>()` |
 | `Category` | `List<CategoryItem> categoryItems`, `List<Category> child` |
 
-## Issue #017: `Page<T>` Redis 캐싱 시 직렬화 문제
+## 기록 #017: `Page<T>` Redis 캐싱 시 직렬화 문제
 
 ### 배경
 게시글 목록 조회(`GET /api/posts`) 결과인 `Page<PostListDto>`를 `@Cacheable`로 Redis에 캐싱하여 DB 부하를 줄이려 했다.
@@ -1536,7 +1536,7 @@ Write-behind 조회수 캐싱(`StringRedisTemplate` + `@Scheduled`)은 단순 �
 
 ---
 
-## Issue #018: `@ModelAttribute` 바인딩 시 DTO 필드 값이 null로 들어오는 문제
+## 기록 #018: `@ModelAttribute` 바인딩 시 DTO 필드 값이 null로 들어오는 문제
 
 **발생일**: 2026-04-03
 
@@ -1604,7 +1604,7 @@ public class PostSearchConditionDto {
 - **테스트 코드에서도 실제 바인딩이 그대로 동작한다**: MockMvc의 `.param()`도 실제 HTTP 요청과 동일하게 `@ModelAttribute` 바인딩을 거치므로, DTO 구조 검증에 유용하다.
 
 
-## Issue #019: `Slice<T>` 직렬화 시 `hasNext` 필드가 JSON에 포함되지 않는 문제
+## 기록 #019: `Slice<T>` 직렬화 시 `hasNext` 필드가 JSON에 포함되지 않는 문제
 
 **발생일**: 2026-04-06
 
@@ -1682,7 +1682,7 @@ public class SliceResponse<T> {
 
 ---
 
-## Issue #020: C2C 구조 전환 — Order:OrderItem 1:N → 1:1 리팩토링 시 발생한 버그들
+## 기록 #020: C2C 구조 전환 — Order:OrderItem 1:N → 1:1 리팩토링 시 발생한 버그들
 
 **발생일**: 2026-04-07
 
@@ -1757,7 +1757,7 @@ DELETE /api/order/{id}/reject  → 판매자 거절 (rejectOrder)
 
 ---
 
-## Issue #021: 낙관적 락 + @Retryable 고부하 환경 이슈 — StockNotEnoughException 재시도 진입, MySQL 데드락, 비관적 락 비교
+## 기록 #021: 낙관적 락 + @Retryable 고부하 환경 이슈 — StockNotEnoughException 재시도 진입, MySQL 데드락, 비관적 락 비교
 
 **발생일**: 2026-04-14
 
@@ -1894,7 +1894,7 @@ Item item = itemRepository.findByIdWithLock(id)
 
 ---
 
-## Issue #022: `@QueryProjection` 잘못된 위치 사용 — Q 클래스 전체 컴파일 오류
+## 기록 #022: `@QueryProjection` 잘못된 위치 사용 — Q 클래스 전체 컴파일 오류
 
 **발생일**: 2026-04-25
 **관련 도메인**: Admin Member 검색
@@ -1983,6 +1983,64 @@ queryFactory
 - **`@QueryProjection`은 생성자 위에 선언해야 한다**: 클래스 레벨에 붙이면 APT가 잘못된 처리를 시도해 프로젝트 전체 Q 클래스 컴파일 오류로 번진다.
 - **DTO는 QueryDSL 의존성을 갖지 않는 것이 낫다**: `@QueryProjection`은 타입 안전성이 강점이지만, 도메인 DTO가 QueryDSL에 종속되면 재사용성이 떨어진다.
 - **`fields()` 방식은 편리해 보이지만 안전하지 않다**: 필드명 매핑은 IDE에서 추적이 안 되고 오타를 런타임에서야 발견하게 된다. `constructor()` 방식이 타입+순서 불일치를 즉시 노출해 더 안전하다.
+
+**상태:** 해결됨
+
+---
+
+## 기록 #023: 연관 엔티티 고유값을 파생 필드로 저장하는 방식의 문제 (post.writer, comment.writer)
+
+**작성일**: 2026-02-01  
+**관련 도메인**: Post, Comment, Member
+
+---
+
+### 문제 상황
+
+`Post.writer`, `Comment.writer` 필드에 `Member.email`을 직접 복사해 저장하는 방식을 사용했다. JOIN을 줄이려는 편의 목적이었지만, 이는 동일한 정보가 두 테이블에 중복 저장되는 데이터 정규화 위반이다.
+
+```java
+// 문제가 있는 구조
+// Member 테이블:  id=1, email=hong@test.com
+// Post 테이블:    id=1, writer="hong@test.com", member_id=1
+// → 같은 정보가 두 군데 저장됨
+
+@Entity
+public class Post {
+    private String writer;   // member.email 복사 저장 ← 문제
+
+    @ManyToOne(fetch = LAZY)
+    private Member member;   // 같은 정보를 연관관계로도 보유
+}
+```
+
+### 원인 분석
+
+회원이 이메일을 변경하면 `member` 테이블 1건 수정으로 끝나야 하는데, 파생 필드 구조에서는 `post.writer`, `comment.writer` 등 관련 테이블의 모든 레코드를 일괄 업데이트해야 한다. 동기화를 빠뜨리면 두 값이 불일치하는 데이터 정합성 문제가 생기고, 데이터가 많아질수록 업데이트 비용이 선형으로 증가한다.
+
+### 해결 방법
+
+파생 필드를 제거하고 연관관계에서 직접 접근하는 방식으로 변경했다.
+
+```java
+// v1 — Object Reference에서 직접 접근
+post.getMember().getNickname()
+post.getMember().getEmail()
+
+// v2 목표 — ID Reference (MSA 전환 시 Aggregate 경계 명확화)
+public class Post {
+    private Long memberId;   // FK만 저장, 객체 참조 없음
+    // 필요 시 MemberService.findById(memberId)로 명시적 조회
+}
+```
+
+`Post → Member`는 N:1 관계이므로 Fetch Join + Paging 조합도 안전하게 사용할 수 있다. 파생 필드로 JOIN을 피하는 것보다 정규화 유지가 장기적으로 이점이 크다.
+
+### 교훈
+
+- **파생 필드는 단기 편의, 장기 기술 부채**: "자주 바뀌지 않을 것"이라는 가정은 위험하다. 정규화 원칙이 가장 안전한 기본값이다.
+- **Object Reference → ID Reference 진화 방향**: 실무에서도 동일한 이유로 Object Reference(v1) → ID Reference(v2, MSA)로 발전시킨다. ID Reference는 Aggregate 경계를 명확히 하고 영속성 컨텍스트 의존도를 낮추는 DDD 원칙과 일치한다.
+- **연관관계가 있으면 파생 필드는 불필요**: `@ManyToOne`으로 Member를 이미 참조하고 있다면, 거기서 직접 꺼내면 된다.
 
 **상태:** 해결됨
 
