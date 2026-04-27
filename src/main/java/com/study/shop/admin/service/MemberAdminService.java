@@ -4,6 +4,8 @@ import com.study.shop.domain.event.MemberWithdrawEvent;
 import com.study.shop.domain.member.dto.MemberListResponseDto;
 import com.study.shop.domain.member.dto.MemberResponseDto;
 import com.study.shop.domain.member.dto.MemberSearchConditionDto;
+import com.study.shop.domain.member.entity.Member;
+import com.study.shop.domain.member.exception.MemberNotFoundException;
 import com.study.shop.domain.member.repository.MemberQueryRepository;
 import com.study.shop.domain.member.repository.MemberRepository;
 import com.study.shop.domain.member.service.MemberService;
@@ -28,6 +30,9 @@ public class MemberAdminService {
     }
 
     public void kickMember(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                        .orElseThrow(()->new MemberNotFoundException(memberId));
+        member.softDelete();
         eventPublisher.publishEvent(new MemberWithdrawEvent(memberId));
     }
 }

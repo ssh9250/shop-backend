@@ -24,10 +24,6 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @EnableAsync
 @RequiredArgsConstructor
 public class MemberWithdrawEventListener {
-    private final MemberRepository memberRepository;
-    private final PostRepository postRepository;
-    private final CommentRepository commentRepository;
-    private final ItemRepository itemRepository;
 
     private final PostService postService;
     private final CommentService commentService;
@@ -43,7 +39,6 @@ public class MemberWithdrawEventListener {
         commentService.deleteAllCommentByMemberPosts(event.memberId());
         postService.deleteAllPostByMemberId(event.memberId());
         itemService.deleteAllItemsByMemberId(event.memberId());
-        memberRepository.deleteById(event.memberId());
 
         log.info("member withdraw successfully for member id : {}", event.memberId());
     }

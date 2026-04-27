@@ -89,6 +89,8 @@ public class MemberService {
     }
 
     public void withdraw(Long id) {
+        Member member = memberRepository.findById(id).orElseThrow(() -> new MemberNotFoundException(id));
+        member.softDelete();
         eventPublisher.publishEvent(new MemberWithdrawEvent(id));
     }
 

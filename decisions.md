@@ -32,13 +32,6 @@
 
 ---
 
-## [2026-02-01] Item-Category ManyToMany 양방향 → 단방향 유지 (중간 엔티티 리팩토링 예정)
-- 이유: 양방향 ManyToMany는 중간 테이블에 추가 속성 확장 불가, N+1 발생 가능성, 캐시 효율 저하
-- 대안: 중간 엔티티(CategoryItem) 도입 → 가장 유연하지만 리팩토링 비용 큼. QueryDSL 단방향 조회로도 충분
-- 결정: 초기 개발 단계이므로 양방향 ManyToMany 유지, 추후 CategoryItem 중간 엔티티로 리팩토링 예정. **현재 미완료**
-
----
-
 ## [2026-02-13] 도메인 엔티티 메서드 접근 제어자 전략 (DDD 캡슐화)
 - 이유: 엔티티가 스스로 상태를 관리하는 DDD 원칙 적용. Service 레이어가 엔티티 내부를 직접 조작하는 것을 방지
 - 대안: 모두 public → 어디서든 호출 가능해져 도메인 무결성 보장 어려움
@@ -223,8 +216,7 @@
 
 ## [미완료 TODO] 남은 설계 결정 과제
 
-- **Item-Category ManyToMany → CategoryItem 중간 엔티티 전환** (Issue #008)
 - **Post/Comment 소프트 삭제 전략 통일** — `@SQLDelete` 일괄 적용 또는 수동 방식 통일 (Issue #013)
 - **Order 소프트 삭제 시 재고 복구 로직** 미구현 (Issue #013 TODO)
 - **Post.removeComment() 소프트 삭제 미동작** — orphanRemoval과 수동 소프트 삭제 충돌 해결 (Issue #010)
-- **Full-text 검색** — 현재 LIKE '%keyword%'는 인덱스 미사용, Elasticsearch 또는 MySQL FULLTEXT INDEX 도입 검토
+- **인덱스 튜닝**
