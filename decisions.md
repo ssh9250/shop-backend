@@ -214,9 +214,17 @@
 
 ---
 
+## [2026-04-28] Admin 소프트 삭제 우회 전략 — Hibernate Filter/AOP 대신 Native Query 채택
+
+- 이유: `@SQLRestriction`은 JPQL 기반 모든 쿼리에 `deleted = false` 조건을 자동 삽입한다. 관리자 기능에서 소프트 삭제된 데이터를 조회해야 하는 경우 우회 수단이 필요했다. 두 가지 대안을 검토했다.
+- 대안 1: `@SQLRestriction`을 제거하고 Hibernate `@FilterDef` + `@Filter`로 교체 — Session 단위로 `session.enableFilter() / disableFilter()`를 호출해 필터를 켜고 끌 수 있다. AOP Around Advice로 일반 서비스 메서드 진입 시 자동 활성화하고, 관리자 서비스에서만 비활성화하는 방식도 검토했다. 그러나 동일 트랜잭션 내에서 관리자 서비스가 다른 서비스 메서드를 호출하면 해당 메서드의 AOP Advice가 다시 필터를 활성화한다. Session 범위의 필터 상태가 메서드 진입 시마다 덮어써질 수 있어 예측이 어렵고, 서비스 간 호출 구조가 복잡해질수록 리스크가 커진다.
+- 대안 2: `@SQLRestriction` 유지 + 관리자 전용 Repository에 `nativeQuery = true` 적용 — Native Query는 Hibernate ORM 레이어를 우회하므로 `@SQLRestriction`이 적용되지 않는다. MySQL 문법에 대한 DB 의존성이 생기지만, 관리자 조회 쿼리는 수가 한정적이고 변경 빈도가 낮다.
+- 결정: Native Query(`nativeQuery = true`) 채택. 관리자 기능은 특수 목적으로 범위가 제한적이며, Filter 상태를 트랜잭션 경계 전반에서 안전하게 관리하는 복잡도보다 DB 의존성이 감수할 만한 트레이드오프다. 기존 서비스 로직과 `@SQLRestriction` 설정을 그대로 유지하면서 관리자 Repository 메서드에만 국소적으로 적용한다.
+
+---
+
 ## [미완료 TODO] 남은 설계 결정 과제
 
-- **Post/Comment 소프트 삭제 전략 통일** — `@SQLDelete` 일괄 적용 또는 수동 방식 통일 (Issue #013)
-- **Order 소프트 삭제 시 재고 복구 로직** 미구현 (Issue #013 TODO)
-- **Post.removeComment() 소프트 삭제 미동작** — orphanRemoval과 수동 소프트 삭제 충돌 해결 (Issue #010)
-- **인덱스 튜닝**
+- post.removeComment 충돌 진짜 해결됐는지 확인
+- memberQueryRepository 확인
+- logging aop 작성

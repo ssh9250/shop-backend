@@ -7,15 +7,15 @@ import org.aspectj.lang.annotation.Before;
 import org.hibernate.Session;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration
-@Aspect
-public class SoftDeleteAspect {
-    @PersistenceContext
-    private EntityManager entityManager;
-
-    @Before("execution(* com.study.shop.repository..*.find*(..)")
-    public void enableFilter() {
-        Session session = entityManager.unwrap(Session.class);
-        session.enableFilter("softDeleteFilter");
-    }
-}
+//@Configuration
+//@Aspect
+//public class SoftDeleteAspect {
+//    @PersistenceContext
+//    private EntityManager entityManager;
+//
+//    @Before("execution(* com.study.shop.domain..repository..*.*(..))")
+//    public void enableFilter() {
+//        Session session = entityManager.unwrap(Session.class);
+//        session.enableFilter("softDeleteFilter");
+//    }
+//}

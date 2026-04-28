@@ -449,3 +449,86 @@ Optional<Item> findByIdWithLock(@Param("id") Long id);
 1. **`noRetryFor` 누락은 흔한 실수다.** `retryFor`에 없는 예외가 `@Recover`를 찾지 못해 `ExhaustedRetryException`으로 감싸지는 동작은 직관적이지 않다. 재시도가 필요 없는 도메인 예외는 반드시 `noRetryFor`에 명시해야 한다.
 2. **동시성 테스트는 반드시 운영 DB(MySQL)에서 진행해야 한다.** H2는 InnoDB 잠금 메커니즘이 없어 MySQL에서 발생하는 데드락을 재현하지 못한다.
 3. **낙관적 락은 충돌이 드문 환경에 적합하다.** 재고 차감처럼 동일 행 경합이 집중되는 도메인에서는 MySQL 데드락과 낮은 성공률이 문제가 된다. 비관적 락은 정합성을 보장하지만 처리량(TPS)이 낮아진다. 락 전략은 도메인의 경합 특성과 성능 요구사항을 함께 고려해 선택해야 한다.
+
+---
+
+## #007 — `@SQLRestriction` 관리자 우회 전략 탐색 — Hibernate Filter + AOP의 한계와 Native Query 채택
+
+> `설계` `JPA` `트레이드오프`
+
+### 배경
+
+`@SQLRestriction("deleted = false")`를 핵심 도메인(Member, Order)에 적용했다. 이 어노테이션은 해당 엔티티를 대상으로 하는 모든 JPQL 쿼리에 `deleted = false` 조건을 자동으로 삽입한다. 일반 사용자 기능에서는 소프트 삭제된 데이터가 자동으로 걸러지므로 편리하다.
+
+그런데 관리자 기능을 구현하면서 문제가 생겼다. 탈퇴 회원 목록 조회처럼 소프트 삭제된 데이터 자체가 필요한 경우, `@SQLRestriction`이 JPQL 레이어에서 조건을 강제하므로 일반적인 방법으로는 우회할 수 없었다.
+
+### 시도 1 — Hibernate `@FilterDef` + `@Filter` + Session 직접 제어
+
+`@SQLRestriction`은 토글이 불가능하다. 이를 제거하고 Hibernate `@FilterDef` + `@Filter`로 교체하면 Session 단위로 필터를 켜고 끌 수 있다.
+
+```java
+@FilterDef(name = "deletedFilter", parameters = @ParamDef(name = "deleted", type = Boolean.class))
+@Filter(name = "deletedFilter", condition = "deleted = :deleted")
+@Entity
+public class Member { ... }
+
+// 일반 서비스 — 필터 활성화
+Session session = entityManager.unwrap(Session.class);
+session.enableFilter("deletedFilter").setParameter("deleted", false);
+
+// 관리자 서비스 — 필터 비활성화
+session.disableFilter("deletedFilter");
+```
+
+가능한 방법이었지만, 서비스 계층마다 Session을 꺼내 필터를 수동으로 조작해야 하므로 코드가 분산되고 빠뜨릴 경우 버그 위험이 있었다.
+
+### 시도 2 — Spring AOP로 필터 자동 활성화 + 관리자 서비스에서만 비활성화
+
+코드 분산 문제를 해결하기 위해 AOP를 도입했다. Around Advice로 서비스 메서드 진입 시 자동으로 필터를 활성화하고, 관리자 서비스 메서드는 AOP 적용 대상에서 제외해 비활성화 상태를 유지하는 방식이다.
+
+```java
+@Around("execution(* com.study.shop..service.*.*(..)) "
+      + "&& !within(com.study.shop.admin.service..*)")
+public Object applyDeletedFilter(ProceedingJoinPoint pjp) throws Throwable {
+    Session session = entityManager.unwrap(Session.class);
+    session.enableFilter("deletedFilter").setParameter("deleted", false);
+    try {
+        return pjp.proceed();
+    } finally {
+        session.disableFilter("deletedFilter");
+    }
+}
+```
+
+겉으로는 깔끔해 보였지만 구조적인 문제가 있었다.
+
+**문제 — 동일 트랜잭션 내에서 필터 상태가 덮어써진다**
+
+관리자 서비스가 AOP 대상 밖이라 필터가 꺼진 상태로 동작하더라도, 같은 트랜잭션 내에서 일반 서비스 메서드를 호출하는 순간 그 메서드의 AOP Advice가 다시 필터를 활성화한다. Hibernate 필터는 Session(= 트랜잭션) 범위로 관리되는데, AOP는 메서드 단위로 동작하기 때문에 상태가 메서드 진입마다 덮어써진다.
+
+```
+AdminService.kickMember()          ← AOP 제외, 필터 OFF
+  └─ MemberService.findById()      ← AOP 적용, 필터 ON으로 복구
+       → 소프트 삭제된 회원 조회 실패 (의도와 반대)
+```
+
+서비스 간 호출 구조가 복잡해질수록 필터 상태 추적이 불가능해진다.
+
+### 최종 결정 — Native Query
+
+`@SQLRestriction`은 그대로 유지하고, 관리자 전용 Repository 메서드에만 `nativeQuery = true`를 적용했다. Native Query는 Hibernate ORM 레이어를 우회하므로 `@SQLRestriction`이 적용되지 않는다.
+
+```java
+// 관리자 전용 — native query로 @SQLRestriction 우회
+@Query(value = "SELECT * FROM member WHERE deleted = true", nativeQuery = true)
+List<Member> findAllDeletedMembers();
+
+// 일반 조회 — @SQLRestriction 자동 적용 (deleted = false 조건 삽입)
+List<Member> findAll();
+```
+
+MySQL 문법에 대한 DB 의존성이 생기지만, 관리자 조회 쿼리는 수가 한정적이고 변경 빈도가 낮다. 필터 상태를 트랜잭션 전반에서 안전하게 관리하는 복잡도와 비교하면 감수할 만한 트레이드오프다.
+
+### 교훈
+
+`@SQLRestriction`과 `@Filter`/`@FilterDef`는 서로 다른 Hibernate 메커니즘이다. `@SQLRestriction`은 항상 적용되고 토글이 불가능하다. `@Filter`는 Session 단위로 제어할 수 있지만, AOP로 자동화하면 AOP(메서드 범위)와 Hibernate 필터(Session 범위) 사이의 범위 불일치 때문에 상태 예측이 어려워진다. "자동화"가 오히려 예측 불가능성을 만드는 경우, 범위가 제한된 명시적 해결책이 낫다.

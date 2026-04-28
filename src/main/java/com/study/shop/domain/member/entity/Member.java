@@ -8,13 +8,13 @@ import com.study.shop.global.enums.RoleType;
 import com.study.shop.global.util.BaseEntity;
 import com.study.shop.global.util.BaseTimeEntity;
 import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +25,8 @@ import java.util.List;
 @Builder
 @SQLDelete(sql = "update member set deleted_at = NOW() where id = ?")
 @SQLRestriction("deleted_at is NULL")
+//@FilterDef(name = "deletedFilter", parameters = @ParamDef(name = "deletedAt", type = LocalDateTime.class))
+//@Filter(name = "deletedFilter", condition = "deleted_at IS NULL")
 public class Member extends BaseTimeEntity {
     @Id
     @GeneratedValue
