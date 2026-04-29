@@ -222,9 +222,3 @@
 - 결정: Native Query(`nativeQuery = true`) 채택. 관리자 기능은 특수 목적으로 범위가 제한적이며, Filter 상태를 트랜잭션 경계 전반에서 안전하게 관리하는 복잡도보다 DB 의존성이 감수할 만한 트레이드오프다. 기존 서비스 로직과 `@SQLRestriction` 설정을 그대로 유지하면서 관리자 Repository 메서드에만 국소적으로 적용한다.
 
 ---
-
-## [미완료 TODO] 남은 설계 결정 과제
-
-- post.removeComment 충돌 진짜 해결됐는지 확인
-- memberQueryRepository 확인
-- logging aop 작성
