@@ -21,7 +21,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.CannotAcquireLockException;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
@@ -42,23 +41,22 @@ public class OrderService {
     private final ItemRepository itemRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-        @Retryable(
-            retryFor = {ObjectOptimisticLockingFailureException.class,
-                    CannotAcquireLockException.class},
-            noRetryFor = {StockNotEnoughException.class, ItemNotFoundException.class, MemberNotFoundException.class},
-            maxAttempts = 5,
-            backoff = @Backoff(delay = 100)
-    )
+//        @Retryable(
+//            retryFor = {ObjectOptimisticLockingFailureException.class,
+//                    CannotAcquireLockException.class},
+//            noRetryFor = {StockNotEnoughException.class, ItemNotFoundException.class, MemberNotFoundException.class},
+//            maxAttempts = 5,
+//            backoff = @Backoff(delay = 100)
+//    )
     public OrderDetailDto createOrder(Long memberId, CreateOrderRequestDto requestDto) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
 
+            //         비관적 락 적용을 위한 코드
+//            Item item = itemRepository.findByIdWithLock(requestDto.getOrderItem().getItemId())
+//
         Item item = itemRepository.findById(requestDto.getOrderItem().getItemId())
                 .orElseThrow(() -> new ItemNotFoundException(requestDto.getOrderItem().getItemId()));
-
-        // 비관적 락 적용을 위한 코드
-//      Item item = itemRepository.findByIdWithLock(requestDto.getOrderItem().getItemId())
-//              .orElseThrow(() -> new ItemNotFoundException(requestDto.getOrderItem().getItemId()));
 
         if (item.getSeller().getId().equals(member.getId())) {
             throw InvalidOrderException.selfPurchaseException();
@@ -66,7 +64,7 @@ public class OrderService {
 
         OrderItem orderItem = OrderItem.create(item, requestDto.getOrderItem().getQuantity());
 
-        Order order = Order.create(member, requestDto.getAddress());
+        Order order = Order.create(member, requestDto.getAddress(), item.getSeller().getId());
         order.addOrderItem(orderItem);
 
         orderRepository.save(order);

@@ -64,11 +64,13 @@ public class Order extends BaseTimeEntity {
     }
 
     // 생성 메서드
-    public static Order create(Member member, String address) {
+    public static Order create(Member member, String address, Long sellerId) {
         Order order = Order.builder()
                 .orderDate(LocalDateTime.now())
                 .orderStatus(OrderStatus.PENDING)
                 .address(address)
+                .sellerId(sellerId)
+                .buyerEmail(member.getEmail())
                 .build();
 
         order.assignMember(member);

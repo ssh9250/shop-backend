@@ -96,11 +96,11 @@ class OrderControllerTest extends IntegrationTestBase {
     }
 
     private Long createTestOrder(String buyerToken, Long itemId, int quantity) throws Exception {
-        MvcResult result = mockMvc.perform(post("/api/order")
+        MvcResult result = mockMvc.perform(post("/api/orders")
                         .header("Authorization", "Bearer " + buyerToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(buildOrderRequest(itemId, quantity, "테스트 배송지"))))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn();
         return ((Number) JsonPath.read(result.getResponse().getContentAsString(), "$.data.orderId")).longValue();
     }
@@ -118,12 +118,12 @@ class OrderControllerTest extends IntegrationTestBase {
             String buyerToken = loginAndGetBuyerToken();
             int orderQuantity = 3;
 
-            mockMvc.perform(post("/api/order")
+            mockMvc.perform(post("/api/orders")
                             .header("Authorization", "Bearer " + buyerToken)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(buildOrderRequest(savedItem.getId(), orderQuantity, "서울시 강남구"))))
                     .andDo(print())
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.orderId").isNumber())
                     .andExpect(jsonPath("$.data.orderStatus").value("PENDING"))
@@ -138,16 +138,16 @@ class OrderControllerTest extends IntegrationTestBase {
         }
 
         @Test
-        @DisplayName("재고 부족 시 409 반환")
+        @DisplayName("재고 부족 시 400 반환")
         void createOrderFail_StockNotEnough() throws Exception {
             String buyerToken = loginAndGetBuyerToken();
 
-            mockMvc.perform(post("/api/order")
+            mockMvc.perform(post("/api/orders")
                             .header("Authorization", "Bearer " + buyerToken)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(buildOrderRequest(savedItem.getId(), 99, "주소"))))
                     .andDo(print())
-                    .andExpect(status().isConflict());
+                    .andExpect(status().isBadRequest());
         }
 
         @Test
@@ -155,7 +155,7 @@ class OrderControllerTest extends IntegrationTestBase {
         void createOrderFail_ItemNotFound() throws Exception {
             String buyerToken = loginAndGetBuyerToken();
 
-            mockMvc.perform(post("/api/order")
+            mockMvc.perform(post("/api/orders")
                             .header("Authorization", "Bearer " + buyerToken)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(buildOrderRequest(99999L, 1, "주소"))))
@@ -166,7 +166,7 @@ class OrderControllerTest extends IntegrationTestBase {
         @Test
         @DisplayName("인증 없이 생성 시 401 반환")
         void createOrderFail_NoAuth() throws Exception {
-            mockMvc.perform(post("/api/order")
+            mockMvc.perform(post("/api/orders")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(buildOrderRequest(savedItem.getId(), 1, "주소"))))
                     .andDo(print())
@@ -175,10 +175,111 @@ class OrderControllerTest extends IntegrationTestBase {
     }
 
     // ─────────────────────────────────────────────
-    // GET /api/order/{id}
+    // GET /api/orders - 구매한 주문 목록 조회
     // ─────────────────────────────────────────────
     @Nested
-    @DisplayName("GET /api/order/{id} - 주문 단건 조회")
+    @DisplayName("GET /api/orders - 구매한 주문 목록 조회")
+    class GetOrderList {
+
+        @Test
+        @DisplayName("정상 조회 성공 - 본인 주문 목록 반환")
+        void getOrderListSuccess() throws Exception {
+            String buyerToken = loginAndGetBuyerToken();
+            createTestOrder(buyerToken, savedItem.getId(), 1);
+
+            mockMvc.perform(get("/api/orders")
+                            .header("Authorization", "Bearer " + buyerToken))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data").isArray())
+                    .andExpect(jsonPath("$.data.length()").value(1))
+                    .andExpect(jsonPath("$.data[0].orderStatus").value("PENDING"));
+        }
+
+        @Test
+        @DisplayName("주문 없을 때 빈 배열 반환")
+        void getOrderList_Empty() throws Exception {
+            String buyerToken = loginAndGetBuyerToken();
+
+            mockMvc.perform(get("/api/orders")
+                            .header("Authorization", "Bearer " + buyerToken))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data").isArray())
+                    .andExpect(jsonPath("$.data.length()").value(0));
+        }
+
+        @Test
+        @DisplayName("인증 없이 조회 시 401 반환")
+        void getOrderListFail_NoAuth() throws Exception {
+            mockMvc.perform(get("/api/orders"))
+                    .andDo(print())
+                    .andExpect(status().isUnauthorized());
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    // GET /api/orders/sold - 판매한 주문 목록 조회
+    // ─────────────────────────────────────────────
+    @Nested
+    @DisplayName("GET /api/orders/sold - 판매한 주문 목록 조회")
+    class GetSoldOrderList {
+
+        @Test
+        @DisplayName("정상 조회 성공 - 판매한 주문 목록 반환")
+        void getSoldOrderListSuccess() throws Exception {
+            String sellerToken = loginAndGetSellerToken();
+
+            mockMvc.perform(get("/api/orders/sold")
+                            .header("Authorization", "Bearer " + sellerToken))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data").isArray());
+        }
+
+        @Test
+        @DisplayName("인증 없이 조회 시 401 반환")
+        void getSoldOrderListFail_NoAuth() throws Exception {
+            mockMvc.perform(get("/api/orders/sold"))
+                    .andDo(print())
+                    .andExpect(status().isUnauthorized());
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    // GET /api/orders/sold/{id} - 판매한 주문 단건 조회
+    // ─────────────────────────────────────────────
+    @Nested
+    @DisplayName("GET /api/orders/sold/{id} - 판매한 주문 단건 조회")
+    class GetSoldOrderById {
+
+        @Test
+        @DisplayName("존재하지 않는 주문 조회 시 404 반환")
+        void getSoldOrderByIdFail_NotFound() throws Exception {
+            String sellerToken = loginAndGetSellerToken();
+
+            mockMvc.perform(get("/api/orders/sold/{id}", 99999L)
+                            .header("Authorization", "Bearer " + sellerToken))
+                    .andDo(print())
+                    .andExpect(status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("인증 없이 조회 시 401 반환")
+        void getSoldOrderByIdFail_NoAuth() throws Exception {
+            mockMvc.perform(get("/api/orders/sold/{id}", 1L))
+                    .andDo(print())
+                    .andExpect(status().isUnauthorized());
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    // GET /api/orders/{id}
+    // ─────────────────────────────────────────────
+    @Nested
+    @DisplayName("GET /api/orders/{id} - 주문 단건 조회")
     class GetOrderById {
 
         @Test
@@ -187,7 +288,7 @@ class OrderControllerTest extends IntegrationTestBase {
             String buyerToken = loginAndGetBuyerToken();
             Long orderId = createTestOrder(buyerToken, savedItem.getId(), 2);
 
-            mockMvc.perform(get("/api/order/{id}", orderId)
+            mockMvc.perform(get("/api/orders/{id}", orderId)
                             .header("Authorization", "Bearer " + buyerToken))
                     .andDo(print())
                     .andExpect(status().isOk())
@@ -199,17 +300,17 @@ class OrderControllerTest extends IntegrationTestBase {
         }
 
         @Test
-        @DisplayName("판매자가 구매자 주문 조회 가능")
-        void getOrderByIdSuccess_Seller() throws Exception {
+        @DisplayName("판매자가 구매자 전용 주문 단건 조회 시 403 반환 (구매자 전용 엔드포인트)")
+        void getOrderByIdFail_Seller() throws Exception {
             String buyerToken = loginAndGetBuyerToken();
             String sellerToken = loginAndGetSellerToken();
             Long orderId = createTestOrder(buyerToken, savedItem.getId(), 1);
 
-            // 판매자 토큰으로 구매자의 주문 조회 →
-            mockMvc.perform(get("/api/order/{id}", orderId)
+            // /api/orders/{id}는 validateBuyer()로 구매자만 접근 가능 → 판매자는 403
+            mockMvc.perform(get("/api/orders/{id}", orderId)
                             .header("Authorization", "Bearer " + sellerToken))
                     .andDo(print())
-                    .andExpect(status().isOk());
+                    .andExpect(status().isForbidden());
         }
 
         @Test
@@ -217,7 +318,7 @@ class OrderControllerTest extends IntegrationTestBase {
         void getOrderByIdFail_NotFound() throws Exception {
             String buyerToken = loginAndGetBuyerToken();
 
-            mockMvc.perform(get("/api/order/{id}", 99999L)
+            mockMvc.perform(get("/api/orders/{id}", 99999L)
                             .header("Authorization", "Bearer " + buyerToken))
                     .andDo(print())
                     .andExpect(status().isNotFound());
@@ -238,7 +339,7 @@ class OrderControllerTest extends IntegrationTestBase {
             createTestOrder(buyerToken, savedItem.getId(), 1);
             createTestOrder(buyerToken, savedItem.getId(), 1);
 
-            mockMvc.perform(get("/api/order/status/{status}", "PENDING")
+            mockMvc.perform(get("/api/orders/status/{status}", "PENDING")
                             .header("Authorization", "Bearer " + buyerToken))
                     .andDo(print())
                     .andExpect(status().isOk())
@@ -256,12 +357,12 @@ class OrderControllerTest extends IntegrationTestBase {
             Long orderId = createTestOrder(buyerToken, savedItem.getId(), 1);
 
             // 판매자가 수락 → ORDERED 상태로 전환
-            mockMvc.perform(patch("/api/order/{id}/accept", orderId)
+            mockMvc.perform(patch("/api/orders/{id}/accept", orderId)
                             .header("Authorization", "Bearer " + sellerToken))
                     .andExpect(status().isOk());
 
             // 구매자가 PENDING 조회 시 ORDERED로 전환된 주문은 제외됨
-            mockMvc.perform(get("/api/order/status/{status}", "PENDING")
+            mockMvc.perform(get("/api/orders/status/{status}", "PENDING")
                             .header("Authorization", "Bearer " + buyerToken))
                     .andDo(print())
                     .andExpect(status().isOk())
@@ -271,7 +372,7 @@ class OrderControllerTest extends IntegrationTestBase {
         @Test
         @DisplayName("인증 없이 조회 시 401 반환")
         void getOrdersByStatusFail_NoAuth() throws Exception {
-            mockMvc.perform(get("/api/order/status/{status}", "PENDING"))
+            mockMvc.perform(get("/api/orders/status/{status}", "PENDING"))
                     .andDo(print())
                     .andExpect(status().isUnauthorized());
         }
@@ -291,7 +392,7 @@ class OrderControllerTest extends IntegrationTestBase {
             String sellerToken = loginAndGetSellerToken();
             Long orderId = createTestOrder(buyerToken, savedItem.getId(), 1);
 
-            mockMvc.perform(patch("/api/order/{id}/accept", orderId)
+            mockMvc.perform(patch("/api/orders/{id}/accept", orderId)
                             .header("Authorization", "Bearer " + sellerToken))
                     .andDo(print())
                     .andExpect(status().isOk())
@@ -307,11 +408,11 @@ class OrderControllerTest extends IntegrationTestBase {
             String sellerToken = loginAndGetSellerToken();
             Long orderId = createTestOrder(buyerToken, savedItem.getId(), 1);
 
-            mockMvc.perform(patch("/api/order/{id}/accept", orderId)
+            mockMvc.perform(patch("/api/orders/{id}/accept", orderId)
                             .header("Authorization", "Bearer " + sellerToken))
                     .andExpect(status().isOk());
 
-            mockMvc.perform(patch("/api/order/{id}/delivery", orderId)
+            mockMvc.perform(patch("/api/orders/{id}/delivery", orderId)
                             .header("Authorization", "Bearer " + sellerToken))
                     .andDo(print())
                     .andExpect(status().isOk())
@@ -326,14 +427,14 @@ class OrderControllerTest extends IntegrationTestBase {
             String sellerToken = loginAndGetSellerToken();
             Long orderId = createTestOrder(buyerToken, savedItem.getId(), 1);
 
-            mockMvc.perform(patch("/api/order/{id}/accept", orderId)
+            mockMvc.perform(patch("/api/orders/{id}/accept", orderId)
                             .header("Authorization", "Bearer " + sellerToken))
                     .andExpect(status().isOk());
-            mockMvc.perform(patch("/api/order/{id}/delivery", orderId)
+            mockMvc.perform(patch("/api/orders/{id}/delivery", orderId)
                             .header("Authorization", "Bearer " + sellerToken))
                     .andExpect(status().isOk());
 
-            mockMvc.perform(patch("/api/order/{id}/complete", orderId)
+            mockMvc.perform(patch("/api/orders/{id}/complete", orderId)
                             .header("Authorization", "Bearer " + sellerToken))
                     .andDo(print())
                     .andExpect(status().isOk())
@@ -342,17 +443,19 @@ class OrderControllerTest extends IntegrationTestBase {
         }
 
         @Test
-        @DisplayName("잘못된 상태에서 수락 시 400 반환")
+        @DisplayName("잘못된 상태에서 수락 시 400 반환 (CANCELLED 상태)")
         void acceptOrder_Fail_InvalidState() throws Exception {
             String buyerToken = loginAndGetBuyerToken();
             String sellerToken = loginAndGetSellerToken();
             Long orderId = createTestOrder(buyerToken, savedItem.getId(), 1);
 
-            mockMvc.perform(patch("/api/order/{id}/accept", orderId)
-                            .header("Authorization", "Bearer " + sellerToken))
+            // 구매자가 PENDING 상태에서 취소 → CANCELLED
+            mockMvc.perform(delete("/api/orders/{id}", orderId)
+                            .header("Authorization", "Bearer " + buyerToken))
                     .andExpect(status().isOk());
 
-            mockMvc.perform(patch("/api/order/{id}/accept", orderId)
+            // 판매자가 CANCELLED 상태에서 수락 시도 → CANCELLED.next() throws InvalidOrderStatusException → 400
+            mockMvc.perform(patch("/api/orders/{id}/accept", orderId)
                             .header("Authorization", "Bearer " + sellerToken))
                     .andDo(print())
                     .andExpect(status().isBadRequest());
@@ -365,7 +468,7 @@ class OrderControllerTest extends IntegrationTestBase {
             Long orderId = createTestOrder(buyerToken, savedItem.getId(), 1);
 
             // 구매자 토큰으로 수락 시도 → 403
-            mockMvc.perform(patch("/api/order/{id}/accept", orderId)
+            mockMvc.perform(patch("/api/orders/{id}/accept", orderId)
                             .header("Authorization", "Bearer " + buyerToken))
                     .andDo(print())
                     .andExpect(status().isForbidden());
@@ -376,7 +479,7 @@ class OrderControllerTest extends IntegrationTestBase {
         void acceptOrder_Fail_NotFound() throws Exception {
             String sellerToken = loginAndGetSellerToken();
 
-            mockMvc.perform(patch("/api/order/{id}/accept", 99999L)
+            mockMvc.perform(patch("/api/orders/{id}/accept", 99999L)
                             .header("Authorization", "Bearer " + sellerToken))
                     .andDo(print())
                     .andExpect(status().isNotFound());
@@ -400,7 +503,7 @@ class OrderControllerTest extends IntegrationTestBase {
             assertThat(itemRepository.findById(savedItem.getId()).orElseThrow().getStock())
                     .isEqualTo(10 - orderQuantity);
 
-            mockMvc.perform(delete("/api/order/{id}", orderId)
+            mockMvc.perform(delete("/api/orders/{id}", orderId)
                             .header("Authorization", "Bearer " + buyerToken))
                     .andDo(print())
                     .andExpect(status().isOk())
@@ -420,11 +523,11 @@ class OrderControllerTest extends IntegrationTestBase {
             String sellerToken = loginAndGetSellerToken();
             Long orderId = createTestOrder(buyerToken, savedItem.getId(), 1);
 
-            mockMvc.perform(patch("/api/order/{id}/accept", orderId)
+            mockMvc.perform(patch("/api/orders/{id}/accept", orderId)
                             .header("Authorization", "Bearer " + sellerToken))
                     .andExpect(status().isOk());
 
-            mockMvc.perform(delete("/api/order/{id}", orderId)
+            mockMvc.perform(delete("/api/orders/{id}", orderId)
                             .header("Authorization", "Bearer " + buyerToken))
                     .andDo(print())
                     .andExpect(status().isBadRequest());
@@ -438,7 +541,7 @@ class OrderControllerTest extends IntegrationTestBase {
             Long orderId = createTestOrder(buyerToken, savedItem.getId(), 1);
 
             // 판매자 토큰으로 취소 시도 → 403 (판매자는 거절 api만 사용 가능)
-            mockMvc.perform(delete("/api/order/{id}", orderId)
+            mockMvc.perform(delete("/api/orders/{id}", orderId)
                             .header("Authorization", "Bearer " + sellerToken))
                     .andDo(print())
                     .andExpect(status().isForbidden());
@@ -449,7 +552,7 @@ class OrderControllerTest extends IntegrationTestBase {
         void cancelOrderFail_NotFound() throws Exception {
             String buyerToken = loginAndGetBuyerToken();
 
-            mockMvc.perform(delete("/api/order/{id}", 99999L)
+            mockMvc.perform(delete("/api/orders/{id}", 99999L)
                             .header("Authorization", "Bearer " + buyerToken))
                     .andDo(print())
                     .andExpect(status().isNotFound());
@@ -474,7 +577,7 @@ class OrderControllerTest extends IntegrationTestBase {
             assertThat(itemRepository.findById(savedItem.getId()).orElseThrow().getStock())
                     .isEqualTo(10 - orderQuantity);
 
-            mockMvc.perform(delete("/api/order/{id}/reject", orderId)
+            mockMvc.perform(delete("/api/orders/{id}/reject", orderId)
                             .header("Authorization", "Bearer " + sellerToken))
                     .andDo(print())
                     .andExpect(status().isOk())
@@ -494,7 +597,7 @@ class OrderControllerTest extends IntegrationTestBase {
             Long orderId = createTestOrder(buyerToken, savedItem.getId(), 1);
 
             // 구매자 토큰으로 거절 시도 → 403
-            mockMvc.perform(delete("/api/order/{id}/reject", orderId)
+            mockMvc.perform(delete("/api/orders/{id}/reject", orderId)
                             .header("Authorization", "Bearer " + buyerToken))
                     .andDo(print())
                     .andExpect(status().isForbidden());
@@ -505,7 +608,7 @@ class OrderControllerTest extends IntegrationTestBase {
         void rejectOrderFail_NotFound() throws Exception {
             String sellerToken = loginAndGetSellerToken();
 
-            mockMvc.perform(delete("/api/order/{id}/reject", 99999L)
+            mockMvc.perform(delete("/api/orders/{id}/reject", 99999L)
                             .header("Authorization", "Bearer " + sellerToken))
                     .andDo(print())
                     .andExpect(status().isNotFound());

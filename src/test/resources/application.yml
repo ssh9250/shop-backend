@@ -16,7 +16,7 @@ logging:
     org.hibernate.SQL: warn
     org.springframework: warn
     org.springframework.cache: trace
-    com.study.cruisin: debug
+    com.study.shop: debug
 
 springdoc:
   api-docs:

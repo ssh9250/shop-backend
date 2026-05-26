@@ -57,7 +57,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.fail("로그인에 실패하였습니다."));
     }
 
-    @ExceptionHandler({ObjectOptimisticLockingFailureException.class, CannotAcquireLockException.class})
+//    @ExceptionHandler({ObjectOptimisticLockingFailureException.class, CannotAcquireLockException.class})
     public ResponseEntity<ApiResponse<Void>> handleLockException(Exception e) {
         return ResponseEntity
                 .status(ErrorCode.OPTIMISTIC_LOCK_CONFLICT.getStatus())

@@ -29,7 +29,7 @@ import java.util.List;
 //@Filter(name = "deletedFilter", condition = "deleted_at IS NULL")
 public class Member extends BaseTimeEntity {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false, unique = true, length = 50)

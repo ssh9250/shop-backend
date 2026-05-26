@@ -351,45 +351,47 @@ public Page<PostListDto> searchPosts(PostSearchConditionDto cond, Pageable pagea
 
 ---
 
+
 ## #006 — 낙관적 락 + `@Retryable` 고부하 환경 이슈
 
 > `동시성` `성능` `버그`
 
 ### 배경
 
-재고 차감 동시성 제어를 위해 `Item` 엔티티에 `@Version` 낙관적 락과 `@Retryable`을 도입했다. 부하 테스트(k6, 50 VUs, 10s) 중 두 가지 문제가 연달아 발생했다.
+재고 차감 동시성 제어를 위해 `Item` 엔티티에 `@Version` 낙관적 락과 `@Retryable`을 도입했다.
+부하 테스트(k6, 50 VUs, 10s) 중 두 가지 버그가 연달아 발생했다.
 
 ### 버그 1 — `StockNotEnoughException`이 `@Retryable` 내부로 진입
 
 #### 증상
-
-```
-ExhaustedRetryException: Cannot locate recovery method
-  Caused by: StockNotEnoughException: 재고가 부족합니다.
 ```
 
-`@Retryable(retryFor = ObjectOptimisticLockingFailureException.class)`로 설정했음에도 `StockNotEnoughException` 발생 시 500이 반환됐다.
+ExhaustedRetryException: Cannot locate recovery method Caused by: StockNotEnoughException: 재고가 부족합니다.
+
+````
+
+`@Retryable(retryFor = ObjectOptimisticLockingFailureException.class)`로 설정했음에도
+`StockNotEnoughException` 발생 시 500이 반환됐다.
 
 #### 원인
 
-spring-retry의 동작 방식을 잘못 이해하고 있었다. **`retryFor`는 재시도할 예외를 지정하는 것이지, 나머지 예외의 `@Recover` 탐색을 막지 않는다.** `retryFor`에 없는 예외가 발생해도 spring-retry는 `@Recover` 메서드를 탐색하고, 타입이 맞는 `@Recover`가 없으면 `ExhaustedRetryException`으로 감싸 던진다.
+`retryFor`는 재시도할 예외를 지정하는 것이지, 나머지 예외의 `@Recover` 탐색을 막지 않는다.
+`retryFor`에 없는 예외가 발생해도 spring-retry는 `@Recover` 메서드를 탐색하고,
+타입이 맞는 `@Recover`가 없으면 `ExhaustedRetryException`으로 감싸 던진다.
 
 #### 해결
 
 ```java
 @Retryable(
-    retryFor  = {ObjectOptimisticLockingFailureException.class},
-    noRetryFor = {StockNotEnoughException.class, ItemNotFoundException.class}, // 명시적 제외
+    retryFor   = {ObjectOptimisticLockingFailureException.class,
+                  CannotAcquireLockException.class},
+    noRetryFor = {StockNotEnoughException.class, ItemNotFoundException.class},
     maxAttempts = 5,
     backoff = @Backoff(delay = 100)
 )
 
 @Recover
 public OrderDetailDto recoverCreateOrder(RuntimeException e, ...) {
-    if (e instanceof ObjectOptimisticLockingFailureException
-            || e instanceof CannotAcquireLockException) {
-        throw new OptimisticLockingFailureException("요청 충돌이 발생하였습니다.");
-    }
     throw e; // StockNotEnoughException 등은 그대로 re-throw
 }
 ```
@@ -397,33 +399,29 @@ public OrderDetailDto recoverCreateOrder(RuntimeException e, ...) {
 ### 버그 2 — H2에서는 없던 MySQL InnoDB 데드락 발생
 
 #### 증상
+````
 
-H2 환경에서 93% 성공하던 낙관적 락이 MySQL로 전환하자 데드락이 발생했다.
+CannotAcquireLockException: Deadlock found when trying to get lock update item set stock=?, version=? where id=? and version=?
 
-```
-CannotAcquireLockException: Deadlock found when trying to get lock
-  update item set stock=?, version=? where id=? and version=?
-```
+````
 
 #### 원인
 
-**낙관적 락은 커밋 시점에 version 불일치를 감지하는 방식이다.** 그 이전에 InnoDB 행 잠금(row lock) 경합이 먼저 발생하면 DB 레벨 데드락을 막지 못한다. H2는 InnoDB의 갭 락(gap lock), 넥스트 키 락(next-key lock) 같은 복잡한 잠금 메커니즘이 없어 동일 조건에서 데드락이 발생하지 않았다. 테스트 환경(H2)과 운영 환경(MySQL)의 동시성 동작이 다른 것이다.
+낙관적 락은 커밋 시점에 version 불일치를 감지하는 방식이다.
+그 이전에 InnoDB 행 잠금 경합이 먼저 발생하면 DB 레벨 데드락을 막지 못한다.
+H2는 InnoDB의 갭 락, 넥스트 키 락 같은 복잡한 잠금 메커니즘이 없어 동일 조건에서 데드락이 발생하지 않았다.
 
 #### 해결
 
 ```java
 @Retryable(
     retryFor = {ObjectOptimisticLockingFailureException.class,
-                CannotAcquireLockException.class}, // 데드락도 재시도 대상
-    noRetryFor = {StockNotEnoughException.class, ItemNotFoundException.class},
-    maxAttempts = 5,
-    backoff = @Backoff(delay = 100)
+                CannotAcquireLockException.class}, // 데드락도 재시도 대상 추가
+    ...
 )
 ```
 
-### 비교 실험 — 낙관적 락 vs 비관적 락 (k6, 50 VUs, 10s)
-
-MySQL 데드락 확인 후 비관적 락(`SELECT FOR UPDATE`)과의 트레이드오프를 직접 측정했다.
+### 비교 실험 — 락 전략별 트레이드오프 (k6, 50 VUs, 10s, 재고 1,000,000)
 
 ```java
 // 비관적 락 적용
@@ -434,21 +432,28 @@ Optional<Item> findByIdWithLock(@Param("id") Long id);
 
 | 항목 | 락 없음 | 낙관적 락 (H2) | 낙관적 락 (MySQL) | 비관적 락 |
 |---|---|---|---|---|
-| 성공률 (201) | 21% | 93% | 63% | 56%* |
-| 충돌/오류 (409) | 500 데드락 | 6% | 36% | 0% |
-| 평균 응답시간 | 빠름 | 2~3ms | 2~3ms | **70ms** |
-| 데이터 정합성 | 미보장 | 보장 | 보장 | 보장 |
-| 데드락 | 있음 | 없음 | **있음** | 없음 |
+| 성공 (201) | 18% | 93% | 83% | 100% |
+| 충돌 (409) | 0% (500으로 터짐) | 6% | 16% | 0% |
+| 평균 응답시간 | 62ms | 2~3ms | 161ms | 127ms |
+| 데이터 정합성 | ❌ 857개 유실 | ✅ | ✅ | ✅ |
+| 데드락 | 있음 | 없음 | 있음 (재시도 처리) | 없음 |
 
-*재고 소진으로 인한 400 포함
+#### 정합성 검증 (락 없음 시나리오)
 
-비관적 락은 충돌을 원천 차단하지만 락 대기(blocking) 비용으로 응답시간이 낙관적 락 대비 약 **20~30배** 느려졌다(2ms → 70ms). 재고처럼 동일 행에 대한 경합이 매우 심한 도메인에서는 낙관적 락의 retry 성공률도 낮아진다.
+```sql
+SELECT stock FROM item WHERE id = 1;   -- 999,343
+SELECT COUNT(*) FROM orders;           -- 1,498
+
+-- 기대: 1,000,000 - 1,498 = 998,502
+-- 실제: 999,343
+-- → 857개 재고 유실 (주문은 생성됐으나 재고 미차감)
+```
 
 ### 교훈
 
-1. **`noRetryFor` 누락은 흔한 실수다.** `retryFor`에 없는 예외가 `@Recover`를 찾지 못해 `ExhaustedRetryException`으로 감싸지는 동작은 직관적이지 않다. 재시도가 필요 없는 도메인 예외는 반드시 `noRetryFor`에 명시해야 한다.
-2. **동시성 테스트는 반드시 운영 DB(MySQL)에서 진행해야 한다.** H2는 InnoDB 잠금 메커니즘이 없어 MySQL에서 발생하는 데드락을 재현하지 못한다.
-3. **낙관적 락은 충돌이 드문 환경에 적합하다.** 재고 차감처럼 동일 행 경합이 집중되는 도메인에서는 MySQL 데드락과 낮은 성공률이 문제가 된다. 비관적 락은 정합성을 보장하지만 처리량(TPS)이 낮아진다. 락 전략은 도메인의 경합 특성과 성능 요구사항을 함께 고려해 선택해야 한다.
+1. **`noRetryFor` 누락은 흔한 실수다.** 재시도가 필요 없는 도메인 예외는 반드시 명시해야 한다.
+2. **동시성 테스트는 반드시 운영 DB(MySQL)에서 진행해야 한다.** H2는 InnoDB 잠금 메커니즘이 없어 MySQL 데드락을 재현하지 못한다.
+3. **락 전략은 트레이드오프다.** 낙관적 락은 경합이 드문 환경에 적합하고, 비관적 락은 경합이 심한 환경에서 재시도 오버헤드 없이 100% 정합성을 보장하지만 응답시간이 높아진다. "락 적용 = 느려진다"는 통념과 달리, 재시도 오버헤드가 없는 비관적 락이 낙관적 락보다 빠른 경우도 있다.
 
 ---
 

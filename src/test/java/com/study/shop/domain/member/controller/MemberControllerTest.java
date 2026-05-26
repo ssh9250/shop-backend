@@ -3,6 +3,8 @@ package com.study.shop.domain.member.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import com.study.shop.common.IntegrationTestBase;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import com.study.shop.domain.auth.dto.LoginRequestDto;
 import com.study.shop.domain.member.dto.ChangePasswordRequestDto;
 import com.study.shop.domain.member.dto.UpdateProfileRequestDto;
@@ -28,6 +30,7 @@ class MemberControllerTest extends IntegrationTestBase {
     @Autowired private ObjectMapper objectMapper;
     @Autowired private MemberRepository memberRepository;
     @Autowired private PasswordEncoder passwordEncoder;
+    @PersistenceContext private EntityManager entityManager;
 
     private static final String TEST_EMAIL    = "test@example.com";
     private static final String TEST_PASSWORD = "password123";
@@ -252,7 +255,10 @@ class MemberControllerTest extends IntegrationTestBase {
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.message").value("회원 탈퇴 완료"));
 
+            // softDelete()는 엔티티를 removed 상태로 바꾸지 않으므로 flush 후 1차 캐시를 clear하여 DB 조회
             // @SQLRestriction("deleted_at is NULL") 적용 → 삭제 후 조회 불가
+            entityManager.flush();
+            entityManager.clear();
             assertThat(memberRepository.findById(memberId)).isEmpty();
         }
 

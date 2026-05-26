@@ -184,7 +184,7 @@ class ItemControllerTest extends IntegrationTestBase {
         @Test
         @DisplayName("조건 없이 전체 조회 - Slice 응답 검증")
         void searchItemsSuccess_All_Slice() throws Exception {
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 9; i++) {
                 createTestItem("기타"+i, 100000, false);
                 Thread.sleep(1);
             }

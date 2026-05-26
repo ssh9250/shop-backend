@@ -1,5 +1,7 @@
 package com.study.shop.admin.controller;
 
+import com.study.shop.domain.Item.entity.Item;
+import com.study.shop.domain.Item.repository.ItemRepository;
 import com.study.shop.domain.auth.service.AuthService;
 import com.study.shop.domain.member.entity.Member;
 import com.study.shop.domain.member.repository.MemberRepository;
@@ -31,6 +33,7 @@ public class InitController {
     private final MemberRepository memberRepository;
     private final PostService postService;
     private final PasswordEncoder passwordEncoder;
+    private final ItemRepository itemRepository;
 
     @PostMapping("/admin")
     @Operation(summary = "관리자 생성")

@@ -3,6 +3,8 @@ package com.study.shop.domain.comment.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import com.study.shop.common.IntegrationTestBase;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import com.study.shop.domain.auth.dto.LoginRequestDto;
 import com.study.shop.domain.comment.dto.CreateCommentRequestDto;
 import com.study.shop.domain.comment.dto.UpdateCommentRequestDto;
@@ -33,6 +35,7 @@ class CommentControllerTest extends IntegrationTestBase {
     @Autowired private PostRepository postRepository;
     @Autowired private CommentRepository commentRepository;
     @Autowired private PasswordEncoder passwordEncoder;
+    @PersistenceContext private EntityManager entityManager;
 
     private static final String TEST_EMAIL    = "test@example.com";
     private static final String TEST_PASSWORD = "password123";
@@ -347,12 +350,20 @@ class CommentControllerTest extends IntegrationTestBase {
             String token = loginAndGetAccessToken();
             Comment comment = createTestComment("게시글과 함께 삭제될 댓글");
             Long commentId = comment.getId();
+            Long postId = savedPost.getId();
 
-            mockMvc.perform(delete("/api/posts/{postId}", savedPost.getId())
+            // assignPost()가 savedPost.comments를 초기화하므로, DELETE 전 EM을 clear하여
+            // 서비스가 fresh 엔티티를 로드하도록 함 (초기화된 comments로 인한 merge 오류 방지)
+            entityManager.flush();
+            entityManager.clear();
+
+            mockMvc.perform(delete("/api/posts/{postId}", postId)
                             .header("Authorization", "Bearer " + token))
                     .andDo(print())
                     .andExpect(status().isOk());
 
+            // deleteAllByPostId(JPQL UPDATE) 후 @SQLRestriction으로 soft-deleted 댓글 조회 불가 검증
+            entityManager.clear();
             assertThat(commentRepository.findById(commentId)).isEmpty();
         }
 

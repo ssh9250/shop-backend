@@ -29,7 +29,7 @@ public class MemberQueryRepository {
     public List<MemberListResponseDto> searchMembers(MemberSearchConditionDto cond) {
         return queryFactory
                 .select(Projections.constructor(MemberListResponseDto.class,
-                        member.email, member.nickname, member.role))
+                        member.email, member.nickname, member.role, member.deletedAt))
                 .from(member)
                 .where(emailContains(cond.getEmail()),
                         roleContains(cond.getRoleType()),

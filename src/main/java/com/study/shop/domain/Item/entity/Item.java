@@ -38,7 +38,7 @@ public class Item extends BaseTimeEntity {
     private boolean used;
     private ItemStatus itemStatus;
 
-    @Version
+//    @Version
     private int version;
 
     @OneToMany(mappedBy = "item")
