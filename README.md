@@ -2,6 +2,9 @@
 
 > Spring Boot 기반 C2C 중고거래 백엔드 API 서버입니다.  
 > 단순 기능 구현을 넘어 **설계 판단의 근거**와 **트레이드오프**를 코드에 담는 데 집중했습니다.
+ 
+
+> ![CI](https://github.com/ssh9250/shop-backend/actions/workflows/ci.yml/badge.svg)
 
 ![Java](https://img.shields.io/badge/Java-17-007396?style=flat-square&logo=openjdk)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.3.5-6DB33F?style=flat-square&logo=springboot)
