@@ -1,8 +1,12 @@
 package com.study.shop.domain.member.repository;
 
+import com.study.shop.admin.dto.DeletedMemberProjection;
+import com.study.shop.domain.member.dto.MemberListResponseDto;
 import com.study.shop.domain.member.entity.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface MemberRepository extends JpaRepository<Member, Long> {
@@ -19,4 +23,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     boolean existsByEmail(String email);
 
     boolean existsByNickname(String nickname);
+
+    @Query(value = "SELECT email, nickname, role, deleted_at FROM member WHERE deleted_at IS NOT NULL", nativeQuery = true)
+    List<DeletedMemberProjection> findSoftDeletedMemberList();
 }

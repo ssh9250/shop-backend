@@ -21,10 +21,16 @@ import java.util.List;
 public class MemberAdminController {
     private final MemberAdminService memberAdminService;
 
-    @Operation(summary = "전체 회원정보 조회", description = "조건에 맞는 회원 리스트를 조회합니다. 조건이 없으면 탈퇴한 회원을 포함한 전체 회원을 조회합니다.")
+    @Operation(summary = "전체 회원정보 조회", description = "조건에 맞는 회원 리스트를 조회합니다. 조건이 없으면 탈퇴한 회원을 제외한 전체 회원을 조회합니다.")
     @GetMapping()
     public ResponseEntity<ApiResponse<List<MemberListResponseDto>>> getMemberList(@ModelAttribute MemberSearchConditionDto cond) {
         return ResponseEntity.ok(ApiResponse.success(memberAdminService.memberList(cond)));
+    }
+
+    @Operation(summary = "소프트 삭제 회원 조회")
+    @GetMapping("/soft-deleted")
+    public ResponseEntity<ApiResponse<List<MemberListResponseDto>>> getSoftDeletedMemberList() {
+        return ResponseEntity.ok(ApiResponse.success(memberAdminService.deletedMemberList()));
     }
 
     @PostMapping("/kick/{id}")

@@ -9,11 +9,13 @@ import com.study.shop.domain.member.exception.MemberNotFoundException;
 import com.study.shop.domain.member.repository.MemberQueryRepository;
 import com.study.shop.domain.member.repository.MemberRepository;
 import com.study.shop.domain.member.service.MemberService;
+import com.study.shop.global.enums.RoleType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 @Service
@@ -34,5 +36,16 @@ public class MemberAdminService {
                         .orElseThrow(()->new MemberNotFoundException(memberId));
         member.softDelete();
         eventPublisher.publishEvent(new MemberWithdrawEvent(memberId));
+    }
+
+    public List<MemberListResponseDto> deletedMemberList() {
+        return memberRepository.findSoftDeletedMemberList().stream()
+                .map(row -> new MemberListResponseDto(
+                        row.getEmail(),
+                        row.getNickname(),
+                        RoleType.valueOf(row.getRole()),
+                        row.getDeletedAt()
+                ))
+                .toList();
     }
 }
