@@ -48,7 +48,7 @@
 | Security | Spring Security, JWT (jjwt 0.11.5) |
 | Cache | Redis 7.2 (Refresh Token, Write-behind 조회수) |
 | Database | MySQL 8.0 (운영/로컬), H2 (테스트) |
-| 동시성 제어 | `@Version` 낙관적 락, spring-retry `@Retryable` |
+| 동시성 제어 | `@Version` 낙관적 락, spring-retry `@Retryable` |  
 | 이벤트 | Spring Events + `@Async` |
 | 인프라 | Docker Compose (MySQL · Redis · App 3-tier) |
 | 문서화 | springdoc-openapi (Swagger UI) |

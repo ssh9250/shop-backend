@@ -52,10 +52,10 @@ public class OrderService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
 
-            //         비관적 락 적용을 위한 코드
-//            Item item = itemRepository.findByIdWithLock(requestDto.getOrderItem().getItemId())
-//
-        Item item = itemRepository.findById(requestDto.getOrderItem().getItemId())
+//                     비관적 락 적용을 위한 코드
+            Item item = itemRepository.findByIdWithLock(requestDto.getOrderItem().getItemId())
+
+//        Item item = itemRepository.findById(requestDto.getOrderItem().getItemId())
                 .orElseThrow(() -> new ItemNotFoundException(requestDto.getOrderItem().getItemId()));
 
         if (item.getSeller().getId().equals(member.getId())) {
