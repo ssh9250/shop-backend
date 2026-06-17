@@ -174,24 +174,24 @@
 
 ---
 
-## [2026-04-14] 낙관적 락 → MySQL InnoDB 데드락 발생 — @Retryable 보완 및 비관적 락 비교
-- 이유: H2 테스트 환경에서는 93% 성공하던 낙관적 락이 MySQL InnoDB에서는 행 잠금 경합으로 데드락(CannotAcquireLockException) 발생. version 불일치 감지는 커밋 시점, 데드락은 그 이전 행 잠금 단계에서 발생
-- 대안: 비관적 락 전환 → 데드락 없음, 정합성 보장, 그러나 평균 응답시간 70ms(낙관적 락 대비 ~30배). 분산 락(Redisson) → 외부 의존성 추가, 복잡도 증가
-- 결정: `CannotAcquireLockException`도 `retryFor`에 추가. `@Recover`를 `RuntimeException`으로 범용화하여 StockNotEnoughException 등은 re-throw. `GlobalExceptionHandler`에 lock 예외 통합 핸들러 추가. createOrder는 비관적 락(`findByIdWithLock`, PESSIMISTIC_WRITE) 전환으로 실험
+## [2026-04-14] 낙관적 락 → MySQL InnoDB 데드락 발생 — @Retryable 보완 후 비관적 락 채택
+- 이유: H2 환경에서는 통과하던 낙관적 락이 MySQL InnoDB에서 행 잠금 경합으로 데드락(CannotAcquireLockException) 발생. version 불일치 감지는 커밋 시점, 데드락은 그 이전 행 잠금 단계에서 발생하므로 낙관적 락만으로는 막지 못함
+- 대안:
+  - 낙관적 락 유지 → 단일 상품 주문 폭주 시 충돌·재시도(backoff 100ms × 최대 5회)가 누적되어 p95 응답시간 급증
+  - 분산 락(Redisson) → 단일 인스턴스 단계에서는 외부 의존성·복잡도만 증가, 현 단계 과설계
+- 결정: createOrder를 비관적 락(`findByIdWithLock`, PESSIMISTIC_WRITE)으로 전환. 더불어 `CannotAcquireLockException`을 `retryFor`에 추가하고, `@Recover`를 `RuntimeException`으로 범용화해 StockNotEnoughException 등 도메인 예외는 re-throw. `GlobalExceptionHandler`에 lock 예외 통합 핸들러 추가
+- 측정 (k6, 50 VUs / 10s, MySQL, 초기 재고 1,000,000):
 
-  | 항목 | 낙관적 락(MySQL) | 비관적 락 |
-  |---|---|---|
-  | 성공률 | 63% | 56%* |
-  | 충돌(409) | 36% | 0% |
-  | 평균 응답시간 | 2~3ms | 70ms |
-  | 데드락 | 발생 | 없음 |
+  | 항목 | 낙관적 락 | 비관적 락 |
+    |---|---|---|
+  | 처리 요청 수 | 2,517 | 3,953 |
+  | 성공률 | 83% (2,106) | 100% (3,953) |
+  | 충돌(409) | 16% (411) | 0% |
+  | 평균 응답시간 | 161.58ms | 127.03ms |
+  | p95 응답시간 | 457.07ms | 162.99ms |
+  | 데드락 | 발생(재시도로 처리) | 없음 |
 
----
-
-## [2026-04-15] 본인 제품 구매 불가 — 판매자/구매자 동일인 검증 추가
-- 이유: C2C 플랫폼에서 자신의 상품을 자신이 주문하면 재고가 줄어드는 비즈니스 오류 발생. 자기 거래를 방지해야 함
-- 대안: 프론트엔드 차단만 → 서버 검증 없으면 API 직접 호출로 우회 가능
-- 결정: OrderService.createOrder()에서 `item.getSellerId().equals(buyerId)` 검증 추가. 본인 상품 주문 시 적절한 예외 반환
+- 결과: 고경합 환경에서 비관적 락이 더 많은 요청을 처리하면서도 평균·p95 응답시간이 더 낮고 정합성 100% 확보. "락 = 성능 저하" 예상과 반대로, 낙관적 락의 재시도 오버헤드가 비관적 락의 직렬화 비용보다 컸음
 
 ---
 

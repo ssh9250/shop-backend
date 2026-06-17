@@ -30,7 +30,7 @@ public enum ErrorCode {
 
     // etc
     INVALID_REQUEST("잘못된 요청입니다.", HttpStatus.BAD_REQUEST),
-    OPTIMISTIC_LOCK_CONFLICT("요청 충돌이 발생하였습니다. 다시 시도해주세요.", HttpStatus.CONFLICT),
+    LOCK_CONFLICT("요청 충돌이 발생하였습니다. 다시 시도해주세요.", HttpStatus.CONFLICT),
 
     // Security 관련
     UNAUTHORIZED("인증이 필요합니다.", HttpStatus.UNAUTHORIZED),

@@ -60,8 +60,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({ObjectOptimisticLockingFailureException.class, CannotAcquireLockException.class})
     public ResponseEntity<ApiResponse<Void>> handleLockException(Exception e) {
         return ResponseEntity
-                .status(ErrorCode.OPTIMISTIC_LOCK_CONFLICT.getStatus())
-                .body(ApiResponse.fail(ErrorCode.OPTIMISTIC_LOCK_CONFLICT.getMessage()));
+                .status(ErrorCode.LOCK_CONFLICT.getStatus())
+                .body(ApiResponse.fail(ErrorCode.LOCK_CONFLICT.getMessage()));
     }
 
 

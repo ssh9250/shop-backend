@@ -109,7 +109,7 @@ dependencies {
 
     //redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-    implementation 'com.github.codemonstur:embedded-redis:1.4.3'
+    testImplementation 'com.github.codemonstur:embedded-redis:1.4.3'
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
